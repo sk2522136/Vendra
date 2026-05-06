@@ -9,13 +9,13 @@ import {createCategory , getAllCategories , updateCategory , deleteCategory} fro
 const router = express.Router();
 
 router.route('/')
-.get( authMiddleware , allowRoles(['admin', 'staff' ]) , wrapAsync(getAllCategories))
+.get( authMiddleware , allowRoles(['admin']) , wrapAsync(getAllCategories))
 
 router.route('/create')
-.post(authMiddleware , allowRoles(['admin','staff']) ,validateSchema(categorySchema), wrapAsync(createCategory))
+.post(authMiddleware , allowRoles(['admin']) ,validateSchema(categorySchema), wrapAsync(createCategory))
 
 router.route('/:id')
-.put(  authMiddleware , allowRoles(['admin','staff' ]) ,validateSchema(categorySchema), wrapAsync(updateCategory))
-.delete( authMiddleware , allowRoles(['admin' ,'staff']) , wrapAsync(deleteCategory))
+.put(  authMiddleware , allowRoles(['admin']) ,validateSchema(categorySchema), wrapAsync(updateCategory))
+.delete( authMiddleware , allowRoles(['admin']) , wrapAsync(deleteCategory))
 
 export default router;

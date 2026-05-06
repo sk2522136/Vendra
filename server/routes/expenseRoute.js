@@ -9,9 +9,9 @@ import { createExpense, getExpenses } from '../controllers/expenseController.js'
 const router = express.Router();
 
 router.route('/create' )
-.post( authMiddleware ,allowRoles(['admin','staff']),validateSchema(expenseSchema ), wrapAsync (createExpense))
+.post( authMiddleware ,allowRoles(['admin']),validateSchema(expenseSchema ), wrapAsync (createExpense))
 
 router.route('/list' )
-.get( authMiddleware ,allowRoles(['admin','staff']), wrapAsync (getExpenses))
+.get( authMiddleware ,allowRoles(['admin']), wrapAsync (getExpenses))
 
 export default router;

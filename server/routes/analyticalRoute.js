@@ -8,15 +8,15 @@ const router = express.Router();
 
 
 router.route('/sale')
-.get(authMiddleware, allowRoles(['admin','staff']), wrapAsync(getSaleChart));
+.get(authMiddleware, allowRoles(['admin']), wrapAsync(getSaleChart));
 
 router.route('/profit')
-.get(authMiddleware, allowRoles(['admin','staff']), wrapAsync(getProfitChart));
+.get(authMiddleware, allowRoles(['admin']), wrapAsync(getProfitChart));
 
 router.route('/payment')
-.get(authMiddleware, allowRoles(['admin','staff']), wrapAsync(getPaymentMethod));
+.get(authMiddleware, allowRoles(['admin']), wrapAsync(getPaymentMethod));
 
 router.route('/products')
-.get(authMiddleware, allowRoles(['admin','staff']), wrapAsync(getTopSellProd));
+.get(authMiddleware, allowRoles(['admin']), wrapAsync(getTopSellProd));
 
 export default router;

@@ -7,10 +7,10 @@ import {allowRoles} from '../middleware/roleMiddleware.js'
 const router = express.Router();
 
 router.route("/status")
-.get(   authMiddleware , allowRoles(['admin', 'staff' ]) ,wrapAsync(getInventoryStatus) )
+.get(   authMiddleware , allowRoles(['admin']) ,wrapAsync(getInventoryStatus) )
 
 router.route("/history/:productId" )
-.get(  authMiddleware , allowRoles(['admin', 'staff' ]) ,wrapAsync(getInventoryHistory))
+.get(  authMiddleware , allowRoles(['admin']) ,wrapAsync(getInventoryHistory))
 
 
 

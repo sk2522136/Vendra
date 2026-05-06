@@ -9,20 +9,20 @@ import { createSupplier, deleteSupplier, getAllSuppliers, getSupplierById, updat
 const router = express.Router();
 
 router.route('/')
-    .get(authMiddleware, allowRoles(['admin', 'staff']), wrapAsync(getAllSuppliers))
+    .get(authMiddleware, allowRoles(['admin']), wrapAsync(getAllSuppliers))
 
 router.route('/create')
-    .post(authMiddleware, allowRoles(['admin', 'staff']), validateSchema(supplierSchema), wrapAsync(createSupplier))
+    .post(authMiddleware, allowRoles(['admin']), validateSchema(supplierSchema), wrapAsync(createSupplier))
 
 router.route('/:id')
-    .get(authMiddleware, allowRoles(['admin', 'staff']), wrapAsync(getSupplierById))
-    .put(authMiddleware, allowRoles(['admin', 'staff']), validateSchema(supplierSchema), wrapAsync(updateSupplier))
-    .delete(authMiddleware, allowRoles(['admin', 'staff']), wrapAsync(deleteSupplier))
+    .get(authMiddleware, allowRoles(['admin']), wrapAsync(getSupplierById))
+    .put(authMiddleware, allowRoles(['admin']), validateSchema(supplierSchema), wrapAsync(updateSupplier))
+    .delete(authMiddleware, allowRoles(['admin']), wrapAsync(deleteSupplier))
 
 router.route('/:id/purchase')
-    .post(authMiddleware, allowRoles(['admin', 'staff']), validateSchema(purchaseSchema), wrapAsync(addPurchase))
+    .post(authMiddleware, allowRoles(['admin']), validateSchema(purchaseSchema), wrapAsync(addPurchase))
 
 router.route('/:id/payment')
-    .post(authMiddleware, allowRoles(['admin', 'staff']), validateSchema(paymentSchema), wrapAsync(addPayment))
+    .post(authMiddleware, allowRoles(['admin']), validateSchema(paymentSchema), wrapAsync(addPayment))
 
 export default router;
