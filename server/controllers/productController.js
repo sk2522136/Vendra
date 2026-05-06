@@ -2,10 +2,12 @@ import Product from '../models/Product.js';
 import {v2 as cloudinary} from 'cloudinary'; 
 import { filterProducts , getPaginatedProducts , getSortProducts } from '../utils/helperQuery.js';
 import ExpressError from "../utils/expressError.js";
+import { inventoryLogChange } from "./inventoryLog.js";
 
 
 // Create Product : /api/product/create
 export const createProduct = async (req, res) => {
+  
     const {name, sku, category, costPrice, quantity, description, supplier, unit, imageUrl} = req.body
     
     let imageurl, filename;
@@ -38,17 +40,37 @@ export const createProduct = async (req, res) => {
         image: {url: imageurl, filename: filename}
     })
     await newProduct.save();
+
+    if (newProduct.quantity > 0) {
+    await inventoryLogChange({
+        product: newProduct._id,
+        quantityChange: newProduct.quantity,
+        type: "Purchase", // initial stock
+        createdBy: req.user?._id
+    });
+}
     return res.status(201).json({message: 'Product created successfully', product: newProduct})
 }
 
 // get : /api/product/all  Get all Products
 export const getAllProducts = async (req , res) => {
         const filter = filterProducts(req);
-        const { limit ,skip } =  getPaginatedProducts(req);
+        const { limit ,skip,page } =  getPaginatedProducts(req);
         const {sortBy , sortorder} =  getSortProducts(req );
         const products = await Product.find(filter).sort({[sortBy]: sortorder}).skip(skip).limit(limit);
         const total = await Product.countDocuments(filter);
-        return res.status(200).json({message : 'Products retrieved successfully' , products , total})
+        const allProducts = await Product.find(filter);
+          const totalPages = Math.ceil(total / limit); // ✅ IMPORTANT
+
+
+    const stats = {
+        totalItems: allProducts.length,
+        inStock: allProducts.filter(p => p.quantity > 0).length,
+        outOfStock: allProducts.filter(p => p.quantity === 0).length,
+        lowStock: allProducts.filter(p => p.quantity > 0 && p.quantity <= 10).length,
+    };
+      
+        return res.status(200).json({message : 'Products retrieved successfully' , products , total,stats , totalPages,page })
 }
 
 //get:/api/product/:id      Get product by id
@@ -63,11 +85,15 @@ export const getProductById = async (req , res ) => {
 
 // Update Product : /api/product/:id
 export const updateProduct = async (req , res ) => {
+
         const {id} = req.params;
         const updateProduct =  await Product.findById(id)
         if(!updateProduct){
             throw new ExpressError('Product Not found', 404);
         }
+
+            const oldQuantity = product.quantity;
+
         // for partial update
         const allowedFields = ["name" ,"sku" ,"category" ,"sellPrice" ,"costPrice" ,"quantity" ,"description" ,"supplier" ,"unit"]
         allowedFields.forEach(field => {
@@ -81,6 +107,7 @@ export const updateProduct = async (req , res ) => {
             await cloudinary.uploader.destroy(updateProduct.image.filename, {
             resource_type: 'image'
         });
+
     }
     //upload the new image to cloudinary
     let result = await cloudinary.uploader.upload(req.file.path,{
@@ -89,6 +116,20 @@ export const updateProduct = async (req , res ) => {
     updateProduct.image = {url : result.secure_url, filename: result.public_id}
 }
 await updateProduct.save();
+    const newQuantity = product.quantity;
+        const quantityDiff = newQuantity - oldQuantity;
+
+        //  STEP 4: AUTO LOG
+    if (quantityDiff !== 0) {
+        await inventoryLogChange({
+            product: product._id,
+            quantityChange: quantityDiff,
+            type: quantityDiff > 0 ? "Purchase" : "Sale",
+            createdBy: req.user?._id
+        });
+    }
+
+
 return res.status(200).json({message : 'Product updated successfully' , product : updateProduct})
 }
 

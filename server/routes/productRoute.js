@@ -17,12 +17,12 @@ router.route('/')
 router.route('/create')
 .post( authMiddleware , allowRoles(['admin']),multerConfig.upload.single('image'),validateSchema(productSchema),  wrapAsync(createProduct))
 
-router.route('/category/:categoriesId')
+router.route('/category/:id')
 .get( authMiddleware , allowRoles(['admin', 'staff' ]) ,wrapAsync(getProductByCategory))
 
 router.route('/:id')
 .get( authMiddleware, allowRoles(['admin','staff']) , wrapAsync(getProductById))
-.put( authMiddleware , allowRoles(['admin']) ,multerConfig.upload.single('image'),validateSchema(productSchema), wrapAsync(updateProduct))
+.put( authMiddleware , allowRoles(['admin']) ,multerConfig.upload.single('image'), wrapAsync(updateProduct))
 .delete( authMiddleware , allowRoles(['admin']) , wrapAsync(deleteProduct))
 
 

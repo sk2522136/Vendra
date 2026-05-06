@@ -6,7 +6,7 @@ export const validateSchema = (schema) => {
     let { error,value } = schema.validate(req.body,{
         stripUnknown: true
     });
-
+   
     if (error) {
         let errMsg = error.details.map((el) => el.message).join(",");
         throw new ExpressError(errMsg,400 ); 

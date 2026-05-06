@@ -1,10 +1,12 @@
 import Customer from "../models/Customer.js";
 import Product from "../models/Product.js";
-import SaleItem from "../models/SaleItem.js";
-import Sale from "../models/Sale.js";
-import Payment from "../models/payment.js";
-import { inventoryLogChange } from "./inventoryLog.js";
-import ExpressError from "../utils/expressError.js";
+import SaleItem from "../models/SaleItem.js"
+import Sale from "../models/Sale.js"
+import Payment from "../models/payment.js"
+import { inventoryLogChange } from "./inventoryLog.js"
+import ExpressError from "../utils/expressError.js"
+import { updateStock } from '../utils/stockService.js'
+import mongoose from "mongoose"
 
 // api/sale/create
 export const createSale = async (req, res) =>{
@@ -23,7 +25,7 @@ export const createSale = async (req, res) =>{
   }
   
   
-  let customer = await Customer.findOne({name , phoneNumber})
+  let customer = await Customer.findOne({ phoneNumber})
      if(!customer){
      customer = new Customer({
       name:name,
@@ -43,9 +45,7 @@ export const createSale = async (req, res) =>{
     let product = await Product.findById(item.product);
     let itemTotal = item.quantity * item.sellPrice
     totalAmount += itemTotal;
-    product.quantity-= item.quantity
-    await product.save();
-
+     
    //create saleItem
    let saleItem = await SaleItem.create({
         saleRef:null,
@@ -56,33 +56,55 @@ export const createSale = async (req, res) =>{
     });
     saleItemIds.push(saleItem._id);
  }
+
+
+ let userId = req.user._id;
+  if (req.user._id === 'admin') {
+    userId = new mongoose.Types.ObjectId();
+  }
+
   //  Create Sale
  const sale = await Sale.create({
             items: saleItemIds,
             customer: customer._id,
             totalAmount,
             paidAmount: paidAmount || 0,
-            createdBy: req.user._id 
+            createdBy: userId
         });
-        console.log(req.user._id)
  
  
  // create Inventory log for History
- for (let item of items){
- await inventoryLogChange({
-    product : item.product,
-    quantityChange:-item.quantity,
-    type:"Sale",
-    sale: sale._id,
-    createdBy:req.user._id,
+//  for (let item of items){
+//  await inventoryLogChange({
+//     product : item.product,
+//     quantityChange:-item.quantity,
+//     type:"Sale",
+//     sale: sale._id,
+//     createdBy:req.user._id,
     
-  });
- }
+//   });
+//  }
+
+
+
  //  Update SaleItems with saleRef
     await SaleItem.updateMany(
     { _id: { $in: saleItemIds } },
     { $set: { saleRef: sale._id } }
 );
+
+
+for (let item of items) {
+
+    await updateStock({
+      productId: item.product,
+      change: -item.quantity,
+      type: "Sale",
+      sale: sale._id,
+      user: req.user._id
+    });
+
+  }
 
         //  Update Customer balance & lastPaymentDate
          const remainingBalance = totalAmount - (paidAmount || 0);
@@ -104,12 +126,14 @@ export const createSale = async (req, res) =>{
                 recievedBy: req.user._id
             });
         }
-        return res.status(201).json({
+
+         res.status(201).json({
             success: true,
             message: "Sale created successfully",
             sale
         });
-     }
+     
+}
 
   // api/sale/:id
   export const updateSale = async (req, res) => {
@@ -210,17 +234,28 @@ export const createSale = async (req, res) =>{
             )
         }
     }
+for (let item of sale.items) {
+
+    await updateStock({
+      productId: item.product,
+      change: +item.quantity,
+      type: "Sale Cancellation",
+      sale: sale._id,
+      user: req.user._id
+    });
+
+  }
 
     // Inventory log banao (quantity restore nahi, sirf record)
-    for (let item of sale.items) {
-        await inventoryLogChange({
-            product: item.product,
-            quantityChange: 0,          
-            type: "Sale Cancellation",
-            sale: sale._id,
-            createdBy: req.user._id || null,
-        });
-    }
+    // for (let item of sale.items) {
+    //     await inventoryLogChange({
+    //         product: item.product,
+    //         quantityChange: 0,          
+    //         type: "Sale Cancellation",
+    //         sale: sale._id,
+    //         createdBy: req.user._id || null,
+    //     });
+    // }
 
     // SaleItems delete
     await SaleItem.deleteMany({ _id: { $in: sale.items } });
@@ -246,13 +281,16 @@ export const createSale = async (req, res) =>{
 export const getSalesByCustomer = async (req, res) => {
          const { customerId } = req.params;
          const customer = await Customer.findById(customerId);
+
          if (!customer) {
             throw new ExpressError("Custoomer is not Found" ,404)
         }
+
         const sales = await Sale.find({ customer: customerId })
             .populate('items')
             .populate('createdBy')
             .sort({ createdAt: -1 });
+
 
         // Calculate customer statistics
         let totalPurchased = 0;
@@ -261,7 +299,11 @@ export const getSalesByCustomer = async (req, res) => {
         let paidSalesCount = 0;
         let pendingSalesCount = 0;
 
-        sales.forEach(sale => {
+
+        
+       
+    sales.forEach(sale => {
+
             totalPurchased += sale.totalAmount;
             totalPaid += sale.paidAmount;
             const pending = sale.totalAmount - sale.paidAmount;
@@ -274,6 +316,8 @@ export const getSalesByCustomer = async (req, res) => {
             }
         });
 
+        
+
         // Format sales data
         const formattedSales = sales.map(sale => ({
             saleId: sale._id,
@@ -283,7 +327,7 @@ export const getSalesByCustomer = async (req, res) => {
             itemCount: sale.items.length,
             createdDate: sale.createdAt,
             updatedDate: sale.updatedAt,
-            createdBy: sale.createdBy.name,
+            createdBy: sale.createdBy?.name || 'Unknown', // ✅ Safe access
             status: sale.totalAmount === sale.paidAmount ? 'Paid' : 'Pending',
             items: sale.items.map(item => ({
                 itemId: item._id,
@@ -371,152 +415,143 @@ export const getAllSales = async (req, res) => {
 
 
 
-// // GET SALE BY ID api/sale/id
-// export const getSaleById = async (req, res) => {
-//         const { id } = req.params;
-//         const sale = await Sale.findById(id)
-//             .populate('customer')
-//             .populate('items')
-//             .populate('createdBy');
+// GET SALE BY ID api/sale/id
+export const getSaleById = async (req, res) => {
+        const { id } = req.params;
+        const sale = await Sale.findById(id)
+            .populate('customer')
+            .populate('items')
+            .populate('createdBy');
 
-//         if (!sale) {
-//             throw new ExpressError("Sale not Found" ,404)
-//         }
-//         const remainingBalance = sale.totalAmount - sale.paidAmount;
+        if (!sale) {
+            throw new ExpressError("Sale not Found" ,404)
+        }
+        const remainingBalance = sale.totalAmount - sale.paidAmount;
 
-//         return res.status(200).json({
-//         success: true,
-//         message: "Sale retrieved successfully",
-//         data: {
-//             sale: sale,
-//             saleDetails: {
-//                 saleId: sale._id,
-//                 totalAmount: sale.totalAmount,
-//                 paidAmount: sale.paidAmount,
-//                 remainingBalance: remainingBalance,
-//                 itemCount: sale.items.length,
-//                 createdDate: sale.createdAt,
-//                 updatedDate: sale.updatedAt
-//             },
-//             customerDetails: {
-//                 customerId: sale.customer?._id || null,        
-//                 customerName: sale.customer?.name || 'Unknown', 
-//                 phoneNumber: sale.customer?.phoneNumber || 'N/A', 
-//                 customerType: sale.customer?.customerType || 'N/A', 
-//                 currentBalance: sale.customer?.currentBalance || 0,  
-//                 lastPaymentDate: sale.customer?.lastPaymentDate || null 
-//             },
-//             createdByDetails: {
-//                 userId: sale.createdBy?._id || null,          
-//                 userName: sale.createdBy?.name || 'Admin',    
-//                 userEmail: sale.createdBy?.email || 'Admin'   
-//             }
-//         }
-//     });
-// };
-
-
-export const processReturn = async(req , res)=>{
-    
-    const {saleId , productId , quantity , approve}= req.body;
-   
-       // Find sale 
-       const sale = await Sale.findById(saleId)
-      .populate('customer')
-      .populate('items');
-
-      if (!sale) {
-        throw new ExpressError("Sale in not Fond" ,404)
-    }
-     // Find sale item
-     const saleItem = await SaleItem.findOne({
-      saleRef: saleId,
-      product: productId
-    }).populate('product');
-
-      if (!saleItem || saleItem.quantity < quantity) {
-        throw new ExpressError("Cannot return more than purchase" ,400)
-     }
-     
-    // Calculate refund
-    const price = saleItem.sellPrice;
-    const returnAmount = quantity * price;
-
-     //  Restore product stock
-    const product = saleItem.product;
-    product.quantity += quantity;
-    await product.save();
-
-     // STEP 2: Create inventory log
-    await inventoryLogChange({
-      product: productId,
-      quantityChange: +quantity,
-      type: "Return",
-      sale: saleId,
-      createdBy: req.user._id
+        return res.status(200).json({
+        success: true,
+        message: "Sale retrieved successfully",
+        data: {
+            sale: sale,
+            saleDetails: {
+                saleId: sale._id,
+                totalAmount: sale.totalAmount,
+                paidAmount: sale.paidAmount,
+                remainingBalance: remainingBalance,
+                itemCount: sale.items.length,
+                createdDate: sale.createdAt,
+                updatedDate: sale.updatedAt
+            },
+            customerDetails: {
+                customerId: sale.customer?._id || null,        
+                customerName: sale.customer?.name || 'Unknown', 
+                phoneNumber: sale.customer?.phoneNumber || 'N/A', 
+                customerType: sale.customer?.customerType || 'N/A', 
+                currentBalance: sale.customer?.currentBalance || 0,  
+                lastPaymentDate: sale.customer?.lastPaymentDate || null 
+            },
+            createdByDetails: {
+                userId: sale.createdBy?._id || null,          
+                userName: sale.createdBy?.name || 'Admin',    
+                userEmail: sale.createdBy?.email || 'Admin'   
+            }
+        }
     });
+};
 
-   //  Update sale item quantity
-    saleItem.quantity -= quantity;
-    if (saleItem.quantity === 0) {
-      // Remove item from sale if all returned
-      await SaleItem.findByIdAndDelete(saleItem._id);
-      
-      // Remove from sale.items array
-      await Sale.updateOne(
-        { _id: saleId },
-        { $pull: { items: saleItem._id } }
-      );
-    } else {
-      await saleItem.save();
+export const processReturn = async (req, res) => {
+
+  const { saleId, productId, quantity } = req.body;
+
+  // 1️⃣ Find Sale
+  const sale = await Sale.findById(saleId)
+    .populate("customer")
+    .populate("items");
+
+  if (!sale) {
+    throw new ExpressError("Sale not found", 404);
+  }
+
+  // 2️⃣ Find Sale Item
+  const saleItem = await SaleItem.findOne({
+    saleRef: saleId,
+    product: productId
+  }).populate("product");
+
+  if (!saleItem) {
+    throw new ExpressError("Sale item not found", 404);
+  }
+
+  if (saleItem.quantity < quantity) {
+    throw new ExpressError("Cannot return more than purchased quantity", 400);
+  }
+
+  // 3️⃣ Calculate refund
+  const price = saleItem.sellPrice;
+  const returnAmount = price * quantity;
+
+  // 4️⃣ STOCK RESTORE + LOG (IMPORTANT)
+  await updateStock({
+    productId,
+    change: +quantity,
+    type: "Return",
+    sale: saleId,
+    user: req.user._id
+  });
+
+  // 5️⃣ Update Sale Item
+  saleItem.quantity -= quantity;
+
+  if (saleItem.quantity === 0) {
+    await SaleItem.findByIdAndDelete(saleItem._id);
+
+    await Sale.updateOne(
+      { _id: saleId },
+      { $pull: { items: saleItem._id } }
+    );
+  } else {
+    await saleItem.save();
+  }
+
+  // 6️⃣ Update Sale Total
+  sale.totalAmount -= returnAmount;
+
+  // safe paid adjustment
+  if (sale.paidAmount > sale.totalAmount) {
+    sale.paidAmount = sale.totalAmount;
+  }
+
+  await sale.save();
+
+  // 7️⃣ Update Customer Balance
+  const customer = sale.customer;
+
+  if (customer.customerType === "credit") {
+    customer.currentBalance -= returnAmount;
+  }
+
+  customer.lastPaymentDate = new Date();
+  await customer.save();
+
+  // 8️⃣ Create Refund Payment
+  await Payment.create({
+    sale: saleId,
+    customer: customer._id,
+    amount: -returnAmount,
+    paymentMethod: "Refund",
+    recievedBy: req.user._id
+  });
+
+  // 9️⃣ Response
+  return res.status(200).json({
+    success: true,
+    message: "Return processed successfully",
+    data: {
+      returnedQuantity: quantity,
+      refundAmount: returnAmount,
+      newSaleTotal: sale.totalAmount,
+      newSalePaid: sale.paidAmount,
+      newCustomerBalance: customer.currentBalance
     }
-
-  // : Adjust sale total
-    const oldSaleTotal = sale.totalAmount;
-    sale.totalAmount -= (quantity * price);
-    
-    // Adjust paid amount (if customer paid for returned items)
-    const paidForReturned = (quantity * price * (sale.paidAmount / oldSaleTotal));
-    sale.paidAmount -= paidForReturned;
-    await sale.save();
-
-    // Process refund
-    const customer = sale.customer;
-   if (customer.customerType === 'credit') {
-      // Reduce balance (refund)
-      customer.currentBalance -= returnAmount;
-    }
-    await customer.save();
-
-    // STEP 6: Create refund payment
-    await Payment.create({
-      sale: saleId,
-      customer: customer._id,
-      amount: -returnAmount, // Negative = refund
-      paymentMethod: 'Refund',
-      recievedBy: req.user._id
-    });
-
-    return res.json({
-      success: true,
-      message: "Return processed successfully",
-      data: {
-        returnedQuantity: quantity,
-        refundAmount: returnAmount,
-        newSaleTotal: sale.totalAmount,
-        newSalePaid: sale.paidAmount,
-        newCustomerBalance: customer.currentBalance
-      }
-    });
-}
-
-
-    
-
-
-
-
-
-
-
-  
+  });
+};

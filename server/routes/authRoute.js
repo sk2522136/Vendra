@@ -2,7 +2,7 @@ import express from 'express';
 import wrapAsync from '../utils/wrapAsync.js'
 import {validateSchema} from '../middleware/validateSchema.js'
 import {loginSchema,registerSchema} from '../schemas/index.js' 
-import {userLogin,logout,registerStaff, isAuth} from '../controllers/authController.js';
+import {userLogin,logout,registerStaff, isAuth,getAllStaff} from '../controllers/authController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { allowRoles } from '../middleware/roleMiddleware.js';
 
@@ -20,6 +20,9 @@ router.route('/logout')
 
 router.route('/is-auth')
 .get(authMiddleware,wrapAsync(isAuth))
+
+router.route('/staff') // 👈 ADD یہ
+  .get(authMiddleware, allowRoles(['admin']), wrapAsync(getAllStaff));
 
 export default router;
 

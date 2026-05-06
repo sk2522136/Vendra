@@ -3,32 +3,33 @@ import Product from "../models/Product.js";
 import ExpressError from "../utils/expressError.js";
 
 
-// create history
-export const inventoryLogChange =  async (data ) =>{
-  const {product ,quantityChange ,type,createdBy,sale} = data;
-      // validate
-      if(!data.product){
-        throw new ExpressError("Product is required", 400);      }
-      if(!["Sale", "Return", "Adjustment", "Purchase","Sale Cancellation"].includes(data.type)){
-        throw new ExpressError("Invalid type", 400);
-      }
-      if (data.quantityChange === undefined) {
-        throw new ExpressError("Quantity change required", 400);
-    }
+export const inventoryLogChange = async (data) => {
 
-    const logEntry = await InventoryLog.create({
-        product,
-        quantityChange,
-        type,
-        sale,
-        createdBy,
-        date:new Date(),
- })
- return {success : true}
+  const { product, quantityChange, type, createdBy, sale } = data;
 
+  // validation
+  if (!product) throw new ExpressError("Product is required", 400);
 
+  if (!["Sale", "Return", "Adjustment", "Purchase", "Sale Cancellation"].includes(type)) {
+    throw new ExpressError("Invalid type", 400);
+  }
 
-}
+  if (quantityChange === undefined) {
+    throw new ExpressError("Quantity change required", 400);
+  }
+
+  const logEntry = await InventoryLog.create({
+    product,
+    quantityChange,
+    type,
+    sale,
+    createdBy,
+    date: new Date()
+  });
+
+  return { success: true };
+};
+
 
  // check status of stock  api/inventory/status?type=....
 export const getInventoryStatus = async(req ,res)=>{
@@ -58,16 +59,19 @@ export const getInventoryStatus = async(req ,res)=>{
 
   }
 
-  let filterproduct ;
-  if(type=='low'){
-    filterproduct=inventory.filter( p =>
-       p.status === "Low" || 
-        p.status === "Critical" || 
-        p.status === "Out of Stock"
- )
-  }else if(type === "current"){
-    filterproduct=inventory;
-  }
+  let filterproduct;
+
+if(type === 'low'){
+  filterproduct = inventory.filter(p =>
+    p.status === "Low" ||
+    p.status === "Critical" ||
+    p.status === "Out of Stock"
+  );
+}
+else {
+  // ✅ DEFAULT
+  filterproduct = inventory;
+}
 
   const summary = {
       outOfStock: inventory.filter(p => p.status === "Out of Stock").length,

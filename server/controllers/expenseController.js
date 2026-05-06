@@ -1,16 +1,27 @@
 import Expense from '../models/Expense.js'
+import mongoose from 'mongoose';
 
 
 // create expense api/expense/create
 export const createExpense = async (req , res)=> {
+
+
+
+
    const {category , amount , description,paidBy , paymentMethod ,  date} = req.body;
+
+   let paidById = req.user._id;
+  if (req.user._id === 'admin') {
+    paidById = new mongoose.Types.ObjectId(); // Dummy ID
+  }
+
     const expense = await Expense.create({
       category,
       amount,
       description,
       paymentMethod: paymentMethod || 'Cash',
       date: date || new Date(),
-      paidBy: req.user._id
+      paidBy: paidById
     });
 
       return res.status(201).json({

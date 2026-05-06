@@ -8,16 +8,17 @@ export const categorySchema = Joi.object({
 
 // EXPENSE
 export const expenseSchema = Joi.object({
-  category: Joi.string()
-    .valid('Salary', 'Rent', 'Utilities', 'Maintenance')
-    .required(),
-  amount: Joi.number().required(),
-  description: Joi.string().required(),
-  paymentMethod: Joi.string()
-    .valid('Cash', 'Bank Transfer', 'Check')
-    .required(),
-  status: Joi.string().valid('pending', 'approved').optional()  
-}).unknown(false);
+     category: Joi.string()
+       .valid('Salary', 'Rent', 'Utilities', 'Maintenance')
+       .required(),
+     amount: Joi.number().required(),
+     description: Joi.string().required(),
+     paymentMethod: Joi.string()
+       .valid('Cash', 'Bank Transfer', 'Check')
+       .required(),
+     status: Joi.string().valid('pending', 'approved').optional(),
+     date: Joi.date().optional()
+   }).unknown(false);
 
 // PRODUCT
 export const productSchema = Joi.object({

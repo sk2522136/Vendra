@@ -55,7 +55,9 @@ export const logout = (req,res) => {
 
 // post :/api/auth/register
 export const registerStaff = async (req , res) =>  {
-    const {name , email , password ,role} = req.body;
+   
+  
+  const {name , email , password ,role} = req.body;
     const existingUser = await User.findOne({email});
     if(existingUser){
             throw new ExpressError("User Already Exist", 400);
@@ -79,6 +81,16 @@ export const registerStaff = async (req , res) =>  {
   }
 }); 
 }
+
+export const getAllStaff = async (req, res) => {
+  const users = await User.find().select('-password');
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Staff retrieved successfully',
+    users: users
+  });
+};
 
 export const isAuth = async (req, res) => {
     if (req.user) {
