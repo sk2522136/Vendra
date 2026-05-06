@@ -1,153 +1,464 @@
-import React, { useState } from 'react';
-import { FiSearch, FiShoppingCart, FiTrash2, FiPlus, FiMinus, FiCreditCard, FiDollarSign, FiFilter } from "react-icons/fi";
+import React, { useState, useEffect } from 'react';
+import { FiSearch, FiShoppingCart, FiTrash2, FiPlus, FiMinus, FiCreditCard, FiDollarSign, FiFilter, FiSave, FiPrinter, FiX } from "react-icons/fi";
+import { fetchProduct, createSale, getAllCategories } from '../services/api.js';
+import { toast } from 'react-toastify';
 
 const Pos = () => {
-  // 1. Dummy Data with Categories
-  const [products] = useState([
-    { id: 1, name: "Premium Basmati Rice", price: 450, stock: 45, category: "Grocery", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 2, name: "Cooking Oil 5L", price: 1800, stock: 12, category: "Oil", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 3, name: "Organic Wheat Flour", price: 550, stock: 20, category: "Grocery", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 4, name: "Dairy Milk Chocolate", price: 100, stock: 100, category: "Snacks", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 5, name: "Green Tea Pack", price: 320, stock: 15, category: "Beverages", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 6, name: "Fresh Apple 1kg", price: 250, stock: 30, category: "Fruits", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 7, name: "Coca Cola 1.5L", price: 150, stock: 50, category: "Beverages", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-    { id: 8, name: "Maggi Noodles", price: 60, stock: 80, category: "Snacks", image: { url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop" } },
-  ]);
-
-  const [cart, setCart] = useState([
-    { id: 1, name: "Premium Basmati Rice", price: 450, qty: 1 },
-    { id: 4, name: "Dairy Milk Chocolate", price: 100, qty: 2 },
-  ]);
-
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [savedCarts, setSavedCarts] = useState([]);
+  const [productPrices, setProductPrices] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    loadProducts();
+    loadSavedCarts();
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const res = await getAllCategories();
+      setCategories(res.data.categories || []);
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+      toast.error("Failed to load categories");
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchProduct();
+      setProducts(response.data.products || response.products || []);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSavedCarts = () => {
+    const saved = localStorage.getItem('savedCarts');
+    if (saved) {
+      setSavedCarts(JSON.parse(saved));
+    }
+  };
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const addToCart = (product, customPrice = null) => {
+    if (!product.quantity || product.quantity <= 0) {
+      toast.error("Product out of stock!");
+      return;
+    }
+
+    const sellPrice = customPrice || productPrices[product._id] || product.costPrice;
+    const existingItem = cart.find(item => item.productId === product._id);
+
+    if (existingItem) {
+      if (existingItem.qty >= product.quantity) {
+        toast.error(`Only ${product.quantity} items available!`);
+        return;
+      }
+      setCart(cart.map(item =>
+        item.productId === product._id
+          ? { ...item, qty: item.qty + 1, price: sellPrice }
+          : item
+      ));
+    } else {
+      setCart([...cart, {
+        productId: product._id,
+        name: product.name,
+        price: sellPrice,
+        qty: 1
+      }]);
+    }
+  };
+
+  const increaseQty = (productId) => {
+    const product = products.find(p => p._id === productId);
+
+    setCart(prevCart =>
+      prevCart.map(item => {
+        if (item.productId === productId) {
+          if (item.qty + 1 > product.quantity) {
+            toast.error(`Only ${product.quantity} items available!`);
+            return item;
+          }
+          return { ...item, qty: item.qty + 1 };
+        }
+        return item;
+      })
+    );
+  };
+
+  const decreaseQty = (productId) => {
+    setCart(cart.map(item =>
+      item.productId === productId && item.qty > 1
+        ? { ...item, qty: item.qty - 1 }
+        : item
+    ).filter(item => item.qty > 0));
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.productId !== productId));
+  };
+
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+  const totalAmount = subtotal;
+
+  const saveCart = () => {
+    if (cart.length === 0) {
+      toast.error("Cart is empty!");
+      return;
+    }
+
+    const cartName = `Cart-${new Date().toLocaleTimeString()}`;
+    const newCart = {
+      id: Date.now(),
+      name: cartName,
+      items: cart,
+      subtotal
+    };
+
+    const updated = [...savedCarts, newCart];
+    setSavedCarts(updated);
+    localStorage.setItem('savedCarts', JSON.stringify(updated));
+    toast.success("Cart saved successfully!");
+  };
+
+  const loadSavedCart = (savedCart) => {
+    setCart(savedCart.items);
+    toast.success("Cart loaded!");
+  };
+
+  const deleteSavedCart = (id) => {
+    const updated = savedCarts.filter(c => c.id !== id);
+    setSavedCarts(updated);
+    localStorage.setItem('savedCarts', JSON.stringify(updated));
+    toast.success("Cart deleted!");
+  };
+
+  const completeSale = async () => {
+    if (cart.length === 0) {
+      toast.error("Cart khali hai!");
+      return;
+    }
+    if (!customerName || !customerPhone) {
+      toast.error("Customer details fill karo!");
+      return;
+    }
+
+    try {
+      const saleData = {
+        name: customerName,
+        phoneNumber: customerPhone,
+        items: cart.map(item => ({
+          product: item.productId,
+          quantity: item.qty,
+          sellPrice: item.price
+        })),
+        customerType: paymentMethod,
+        paidAmount: paymentMethod === 'cash' ? totalAmount : 0
+      };
+
+      const response = await createSale(saleData);
+
+      toast.success("Sale complete!");
+
+      setCart([]);
+      setCustomerName("");
+      setCustomerPhone("");
+      setPaymentMethod("cash");
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to complete sale");
+    }
+  };
+
+  if (loading) return <div className="p-4 text-center">Loading...</div>;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-screen lg:h-screen p-3 lg:p-6 overflow-x-hidden lg:overflow-hidden items-start">
-      
-      {/* Left Pane - Product Grid (Height matched with Cart) */}
-      <div className="flex-1 w-full lg:h-[88%] flex flex-col bg-white border border-b border-gray-200 rounded-3xl p-4 lg:p-5 overflow-hidden shadow-sm">
-        
-        {/* Search & Category Filter */}
-        <div className="flex flex-col md:flex-row gap-3 lg:gap-4 mb-4 lg:mb-6 shrink-0">
-          <div className="relative flex-1">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input 
-              type="text"
-              placeholder="Search products..."
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-3 lg:py-3.5 focus:outline-none focus:ring-2 focus:ring-green/30 focus:border-green transition-all text-sm"
-            />
-          </div>
-          
-          <div className="relative w-50 ">
-            <FiFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-green" size={16} />
-            <select 
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-white border border-gray-200 rounded-2xl pl-10 pr-4 py-3 lg:py-3.5 appearance-none focus:outline-none focus:border-green font-bold text-sm cursor-pointer shadow-sm"
-            >
-              <option value="All">All Categories</option>
-              <option value="Grocery">Grocery</option>
-              <option value="Oil">Oil</option>
-              <option value="Snacks">Snacks</option>
-              <option value="Beverages">Beverages</option>
-              <option value="Fruits">Fruits</option>
-            </select>
-          </div>
-        </div>
+    <div className="flex flex-col h-screen sm:h-[98vh] p-2 sm:p-3 md:p-4 lg:p-6 rounded-2xl sm:rounded-3xl bg-gray-100 overflow-y-auto custom-scrollbar lg:overflow-hidden">
 
-        {/* Product Grid - Yeh section scroll karega */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 lg:pr-2">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-            {products.map(p => (
-              <div 
-                key={p.id} 
-                className="bg-white border border-gray-200 rounded-2xl p-3 lg:p-4 cursor-pointer group active:scale-95 hover:border-green hover:shadow-md transition-all relative overflow-hidden"
-              >
-                <div className="h-20 lg:h-24 bg-gray-50 rounded-xl mb-3 flex items-center justify-center border border-gray-100 relative">
-                   <img src={p.image.url} alt={p.name} className="w-full rounded-xl h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                   <span className="absolute top-1 right-1 lg:top-2 lg:right-2 text-[7px] lg:text-[8px] bg-white px-1.5 py-0.5 rounded-md border border-gray-200 font-black text-gray-400 uppercase tracking-tighter">{p.category}</span>
-                </div>
-                <h4 className="font-bold text-gray-800 truncate text-[10px] lg:text-xs uppercase tracking-tight">{p.name}</h4>
-                <div className="mt-1 lg:mt-2 flex items-center justify-between">
-                  <span className="text-green font-black text-xs lg:text-sm">Rs {p.price}</span>
-                  <div className="w-6 h-6 lg:w-7 lg:h-7 bg-green/10 text-green rounded-lg flex items-center justify-center group-hover:bg-green group-hover:text-white transition-all">
-                    <FiPlus size={14} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* HEADER */}
+      <div className="mb-4 sm:mb-5 md:mb-6 pl-1 sm:pl-2 shrink-0">
+        <h1 className="text-2xl sm:text-2.5xl md:text-3xl lg:text-4xl font-black text-black uppercase tracking-tight">Point of Sale</h1>
+        <p className="text-gray-500 text-xs sm:text-sm font-medium mt-1">Process transactions with quick saved carts and receipt printing.</p>
       </div>
 
-      {/* Right Pane - Cart (Height 88%) */}
-      <div className="w-full lg:w-85 flex flex-col shrink-0 lg:h-[88%]">
-        <div className="flex flex-col h-125 lg:h-full bg-white border border-gray-200 rounded-4xl lg:rounded-[2.5rem] shadow-xl overflow-hidden w-full">
-          
-          {/* Cart Header */}
-          <div className="p-4 lg:p-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
-            <div className="p-2 bg-green rounded-xl shadow-lg shadow-green/20">
-              <FiShoppingCart className="text-white" size={18} />
+      {/* MAIN CONTAINER */}
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 md:gap-5 lg:gap-6 flex-1 overflow-hidden min-h-0">
+
+        {/* LEFT PANE - PRODUCTS */}
+        <div className="flex-1 w-full min-h-[45vh] sm:min-h-[50vh] lg:h-full flex flex-col bg-white border border-gray-100 rounded-2xl sm:rounded-2.5xl lg:rounded-3xl p-2 sm:p-3 md:p-4 lg:p-5 overflow-hidden shadow-sm">
+
+          {/* SEARCH & FILTER */}
+          <div className="flex flex-col sm:flex-row gap-2 mb-3 sm:mb-4 shrink-0">
+            <div className="relative flex-1">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-50 border text-black border-gray-100 rounded-xl sm:rounded-2xl pl-9 pr-3 py-2 sm:py-2.5 lg:py-3 focus:outline-none shadow-sm focus:border-black transition-all text-xs sm:text-sm"
+              />
             </div>
-            <div>
-              <h2 className="font-black text-gray-800 text-sm uppercase tracking-tighter leading-none">My Cart</h2>
-              <p className="text-[9px] text-gray-400 font-bold">{cart.length} ITEMS SELECTED</p>
+
+            <div className="relative w-full sm:w-40 lg:w-48">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-black" size={14} />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full bg-white text-black border border-gray-100 rounded-xl sm:rounded-2xl pl-8 pr-2 py-2 sm:py-2.5 lg:py-3 appearance-none focus:outline-none font-bold text-xs sm:text-sm cursor-pointer shadow-sm"
+              >
+                <option value="All">All</option>
+                {categories.map(c => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-5 space-y-3">
-            {cart.map(item => (
-              <div key={item.id} className="flex items-center gap-2 lg:gap-3 bg-white p-3 rounded-2xl border border-gray-100 hover:border-green/30 transition-colors shadow-sm">
-                <div className="flex-1 min-w-0">
-                  <h5 className="text-gray-800 text-[10px] lg:text-[11px] font-black truncate uppercase leading-none">{item.name}</h5>
-                  <p className="text-green font-bold text-[10px] lg:text-xs mt-1">Rs {item.price}</p>
+          {/* PRODUCTS GRID */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+              {filteredProducts.map(p => (
+                <div
+                  key={p._id}
+                  className="bg-white border border-gray-100 rounded-xl sm:rounded-2xl p-2 sm:p-3 cursor-pointer group active:scale-95 hover:border-black hover:shadow-md transition-all relative overflow-hidden"
+                >
+                  {/* PRODUCT IMAGE */}
+                  <div className="h-20 sm:h-24 md:h-28 bg-gray-50 rounded-lg sm:rounded-xl mb-2 flex items-center justify-center border border-gray-100 relative">
+                    <img
+                      src={p.image?.url || "placeholder"}
+                      alt={p.name}
+                      className="w-full rounded-lg h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+
+                  {/* PRODUCT NAME */}
+                  <h4 className="font-bold text-black truncate text-xs sm:text-sm uppercase tracking-tight mb-1">{p.name}</h4>
+
+                  {/* PRICE & ADD BUTTON */}
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-black font-black text-xs sm:text-sm">Rs {productPrices[p._id] || p.costPrice}</span>
+                    <button
+                      onClick={() => addToCart(p, productPrices[p._id])}
+                      className={`w-6 h-6 sm:w-7 lg:w-8 lg:h-8 ${p.quantity > 0 ? 'bg-black' : 'bg-gray-300'} text-white rounded-lg flex items-center justify-center hover:bg-black shadow-sm transition-all`}
+                    >
+                      <FiPlus size={14} />
+                    </button>
+                  </div>
+
+                  {/* OUT OF STOCK BADGE */}
+                  {p.quantity === 0 && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                      Out
+                    </div>
+                  )}
                 </div>
-                
-                <div className="flex items-center gap-1.5 lg:gap-2 bg-gray-50 rounded-lg border border-gray-200 p-1">
-                  <button className="p-0.5 hover:text-red-500 transition-colors"><FiMinus size={10} /></button>
-                  <span className="text-gray-800 font-black text-[10px] lg:text-xs w-3 text-center">{item.qty}</span>
-                  <button className="p-0.5 hover:text-green transition-colors"><FiPlus size={10} /></button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANE - CART */}
+        <div className="w-full lg:w-96 min-h-[35vh] sm:min-h-[40vh] lg:h-full flex flex-col shrink-0">
+          <div className="flex flex-col h-full bg-white border border-gray-100 rounded-2xl sm:rounded-2.5xl lg:rounded-3xl shadow-sm overflow-hidden">
+
+            {/* CART HEADER */}
+            <div className="p-2 sm:p-3 md:p-4 lg:p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50 shrink-0">
+              <div className="p-1.5 sm:p-2 bg-black rounded-lg sm:rounded-xl shadow-lg">
+                <FiShoppingCart className="text-white" size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-black text-black text-xs sm:text-sm uppercase tracking-tighter">Cart</h2>
+                <p className="text-xs sm:text-sm text-gray-500 font-bold">{cart.length} Items</p>
+              </div>
+            </div>
+
+            {/* SAVED CARTS */}
+            {savedCarts.length > 0 && (
+              <div className="p-2 sm:p-3 border-b border-gray-100 max-h-20 sm:max-h-24 overflow-y-auto">
+                <p className="text-xs font-black text-gray-600 mb-2">SAVED CARTS</p>
+                <div className="flex gap-2 overflow-x-auto">
+                  {savedCarts.map(sc => (
+                    <div key={sc.id} className="flex-shrink-0 bg-gray-50 p-2 rounded-lg border border-gray-200 text-center min-w-max">
+                      <p className="text-xs font-bold text-black truncate">{sc.name}</p>
+                      <p className="text-xs text-gray-600">{sc.items.length} items</p>
+                      <div className="flex gap-1 mt-1">
+                        <button
+                          onClick={() => loadSavedCart(sc)}
+                          className="flex-1 text-xs bg-black text-white py-1 px-2 rounded hover:opacity-80"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => deleteSavedCart(sc.id)}
+                          className="flex-1 text-xs bg-red-500 text-white py-1 px-2 rounded hover:opacity-80"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                
-                <button className="p-1 text-gray-300 hover:text-red-500 transition-all">
-                  <FiTrash2 size={14} />
+              </div>
+            )}
+
+            {/* CART ITEMS */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-3 md:p-4 lg:p-5 space-y-2 sm:space-y-3">
+              {cart.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm">Cart khali hai</p>
+              ) : (
+                cart.map(item => (
+                  <div key={item.productId} className="flex flex-col gap-2 bg-gray-50 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-gray-100">
+                    {/* ITEM HEADER */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-black text-xs sm:text-sm font-black truncate uppercase">{item.name}</h5>
+                        {item.costPrice && (
+                          <p className="text-black font-bold text-xs">Cost: Rs {item.costPrice}</p>
+                        )}
+                      </div>
+
+                      {/* QTY CONTROLS */}
+                      <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-200 p-1">
+                        <button
+                          className="p-0.5 text-black hover:text-red-500"
+                          onClick={() => decreaseQty(item.productId)}
+                        >
+                          <FiMinus size={12} />
+                        </button>
+                        <span className="text-black font-black text-xs w-4 text-center">{item.qty}</span>
+                        <button
+                          className="p-0.5 text-black"
+                          onClick={() => increaseQty(item.productId)}
+                        >
+                          <FiPlus size={12} />
+                        </button>
+                      </div>
+
+                      {/* DELETE BUTTON */}
+                      <button
+                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                        onClick={() => removeFromCart(item.productId)}
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+
+                    {/* SELL PRICE INPUT */}
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <label className="text-xs font-bold text-gray-600">Sell Price</label>
+                        <input
+                          type="number"
+                          value={item.price}
+                          onChange={(e) => {
+                            const newPrice = parseFloat(e.target.value) || item.price;
+                            setCart(cart.map(cartItem =>
+                              cartItem.productId === item.productId
+                                ? { ...cartItem, price: newPrice }
+                                : cartItem
+                            ));
+                          }}
+                          className="w-full px-2 py-1 text-xs bg-white border text-black border-gray-200 rounded outline-none focus:border-black"
+                        />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-600">Total</p>
+                        <p className="text-sm sm:text-base font-black text-black">Rs {(item.price * item.qty).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* CHECKOUT SECTION */}
+            <div className="p-2 sm:p-3 md:p-4 lg:p-6 border-t border-gray-100 bg-white space-y-2 sm:space-y-3 shrink-0">
+              {/* CUSTOMER DETAILS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 text-black rounded-lg px-3 py-2 text-xs sm:text-sm outline-none focus:border-black"
+                />
+                <input
+                  type="text"
+                  placeholder="Phone"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 text-black rounded-lg px-3 py-2 text-xs sm:text-sm outline-none focus:border-black"
+                />
+              </div>
+
+              {/* PAYMENT METHOD */}
+              <div className="flex gap-2">
+                <button
+                  className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-black uppercase flex items-center justify-center gap-1 transition-all ${
+                    paymentMethod === 'cash'
+                      ? 'bg-black text-white'
+                      : 'border border-gray-200 bg-gray-50 text-black hover:border-black'
+                  }`}
+                  onClick={() => setPaymentMethod('cash')}
+                >
+                  <FiDollarSign size={14} /> Cash
+                </button>
+                <button
+                  className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-black uppercase flex items-center justify-center gap-1 transition-all ${
+                    paymentMethod === 'credit'
+                      ? 'bg-black text-white'
+                      : 'border border-gray-200 bg-gray-50 text-black hover:border-black'
+                  }`}
+                  onClick={() => setPaymentMethod('credit')}
+                >
+                  <FiCreditCard size={14} /> Credit
                 </button>
               </div>
-            ))}
-          </div>
 
-          {/* Checkout Details */}
-          <div className="p-5 lg:p-6 border-t border-gray-100 bg-gray-50 rounded-t-[2.5rem] lg:rounded-t-[3rem] shrink-0">
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-3">
-              <input type="text" placeholder="Name" className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-[10px] lg:text-xs w-full focus:border-green outline-none shadow-sm" />
-              <input type="text" placeholder="Phone" className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-[10px] lg:text-xs w-full focus:border-green outline-none shadow-sm" />
-            </div>
-
-            <div className="flex gap-2 mb-3">
-               <button className="flex-1 py-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 border-2 border-green bg-green text-white shadow-md active:scale-95">
-                  <FiDollarSign size={14} /> Cash
-               </button>
-               <button className="flex-1 py-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 active:scale-95">
-                  <FiCreditCard size={14} /> Credit
-               </button>
-            </div>
-
-            <div className="space-y-1 mb-3">
-              <div className="flex justify-between text-gray-400 text-[9px] font-black uppercase px-1">
-                <span>Subtotal</span>
-                <span>Rs {subtotal}</span>
+              {/* TOTAL */}
+              <div className="bg-gray-50 p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl border border-gray-200">
+                <div className="flex justify-between items-center text-black">
+                  <span className="font-black text-xs sm:text-sm uppercase">Total</span>
+                  <span className="text-xl sm:text-2xl md:text-3xl font-black text-black">Rs {totalAmount.toLocaleString()}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-gray-800 pt-1 border-t border-dashed border-gray-300 px-1">
-                <span className="font-black text-[10px] uppercase tracking-widest">Total</span>
-                <span className="text-xl lg:text-2xl font-black text-green tracking-tighter leading-none">Rs {subtotal}</span>
+
+              {/* ACTION BUTTONS */}
+              <div className="flex gap-2">
+                <button
+                  onClick={saveCart}
+                  className="flex-1 bg-gray-100 text-black py-2 rounded-lg text-xs sm:text-sm font-black uppercase flex items-center justify-center gap-1 hover:bg-gray-200 transition-all"
+                >
+                  <FiSave size={14} /> Save
+                </button>
+                <button
+                  onClick={completeSale}
+                  className="flex-1 bg-black text-white py-2 rounded-lg text-xs sm:text-sm font-black uppercase hover:opacity-90 transition-all"
+                >
+                  Complete Sale
+                </button>
               </div>
             </div>
-
-            <button className="w-full bg-green hover:bg-green-700 text-white py-3 lg:py-4 rounded-2xl text-[10px] lg:text-xs font-black shadow-lg shadow-green/20 transition-all transform active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest">
-              Complete Sale
-            </button>
           </div>
         </div>
       </div>

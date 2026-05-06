@@ -1,29 +1,37 @@
-const TopProducts = () => {
-  const products = [
-    { name: "Organic Flour 10kg", sales: "120 Units", growth: "+15%" },
-    { name: "Cooking Oil 5L", sales: "95 Units", growth: "+10%" },
-    { name: "Basmati Rice 5kg", sales: "88 Units", growth: "+8%" },
-    { name: "Sugar 2kg", sales: "70 Units", growth: "-2%" },
-  ];
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+function TopProducts({ data }) {
+  
+  if (!data || !data.topProducts || data.topProducts.length === 0) {
+    return <div className="text-center text-gray-500 py-8">No product data available</div>;
+  }
+
+  const chartData = data.topProducts.slice(0, 5).map(product => ({
+    name: product.name.substring(0, 12), // Truncate long names
+    quantity: product.quantity,
+    revenue: product.revenue
+  }));
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-border shadow-sm">
-      <h3 className="text-lg font-bold text-text mb-4">Top Selling Products</h3>
-      <div className="space-y-4">
-        {products.map((p, index) => (
-          <div key={index} className="flex justify-between items-center p-3 hover:bg-nomo-light rounded-xl transition-colors">
-            <div>
-              <p className="text-sm font-bold text-text">{p.name}</p>
-              <p className="text-xs text-hint">{p.sales}</p>
-            </div>
-            <span className={`text-xs font-bold ${p.growth.includes('+') ? 'text-green' : 'text-red'}`}>
-              {p.growth}
-            </span>
-          </div>
-        ))}
-      </div>
+    <div>
+      <h2 className='text-lg font-bold mb-4 text-black'>Top 5 Selling Products</h2>
+      
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="name" fontSize={12} />
+          <YAxis fontSize={12} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc' }}
+            formatter={(value) => [value, 'Units']}
+          />
+          <Legend />
+          <Bar dataKey="quantity" fill="#000" name="Units Sold" />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
-};
+}
 
-export default TopProducts
+export default TopProducts;

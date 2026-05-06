@@ -4,400 +4,486 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 import { TrendingUp, DollarSign, Package, CreditCard } from 'lucide-react';
+import { getSaleChart, getTopSellProducts, getProfitChart, getPaymentMethod } from '../services/api.js';
 
-// Theme Colors
 const THEME = {
   green: '#1D9E75',
-  greenLight: '#E1F5EE',
-  greenDark: '#0F6E56',
-  greenMid: '#5DCAA5',
+  black: '#000000',
   red: '#E24B4A',
-  redLight: '#FCEBEB',
-  amber: '#EF9F27',
-  amberLight: '#FAEEDA',
-  amberDark: '#854F0B',
-  blue: '#185FA5',
-  blueLight: '#E6F1FB',
+  blue: '#3B82F6',
   purple: '#3C3489',
-  purpleLight: '#EEEDFE',
-  bg: '#F4F7F5',
-  card: '#FFFFFF',
-  border: '#E8EDE9',
-  border2: '#D4DDD5',
-  text: '#1A2E1E',
-  muted: '#5C7A62',
-  hint: '#9DB5A1',
-  sBack: '#F0F7F2'
+  gray: '#F9FAFB'
 };
 
 const AnalyticsDashboard = () => {
   const [loading, setLoading] = useState(false);
-  const [period, setPeriod] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear() });
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [error, setError] = useState(null);
 
-  // Dummy data - Replace with API calls
-  const [salesData, setSalesData] = useState({
-    daily: Array.from({ length: 30 }, (_, i) => ({ day: i + 1, sales: Math.floor(Math.random() * 50) })),
-    weekly: [
-      { week: 'Week 1', count: 45 },
-      { week: 'Week 2', count: 38 },
-      { week: 'Week 3', count: 52 },
-      { week: 'Week 4', count: 41 }
-    ],
-    monthly: { total: 176, average: 5.87 }
+  const [period, setPeriod] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
   });
 
-  const [profitData, setProfitData] = useState({
-    Jan: { revenue: 45000, cogs: 28000, expenses: 8000, netProfit: 9000 },
-    Feb: { revenue: 52000, cogs: 31000, expenses: 9000, netProfit: 12000 },
-    Mar: { revenue: 48000, cogs: 29000, expenses: 8500, netProfit: 10500 },
-    Apr: { revenue: 56000, cogs: 33000, expenses: 9500, netProfit: 13500 },
-    May: { revenue: 61000, cogs: 36000, expenses: 10000, netProfit: 15000 },
-  });
+  // ✅ All data from API
+  const [salesData, setSalesData] = useState(null);
+  const [topProducts, setTopProducts] = useState([]);
+  const [profitData, setProfitData] = useState({});
+  const [paymentData, setPaymentData] = useState(null);
 
-  const [topProducts, setTopProducts] = useState([
-    { id: 1, name: 'MacBook Pro', quantity: 45, revenue: 67500, avgPrice: 1500 },
-    { id: 2, name: 'iPhone 15', quantity: 120, revenue: 84000, avgPrice: 700 },
-    { id: 3, name: 'iPad Air', quantity: 68, revenue: 40800, avgPrice: 600 },
-    { id: 4, name: 'Apple Watch', quantity: 92, revenue: 27600, avgPrice: 300 },
-    { id: 5, name: 'AirPods Pro', quantity: 156, revenue: 18720, avgPrice: 120 },
-  ]);
+  // ✅ Fetch all data on mount & when period changes
+  useEffect(() => {
+    fetchAllData();
+  }, [period]);
 
-  const [paymentData, setPaymentData] = useState({
-    cash: { count: 45, revenue: 45000, paid: 45000, pending: 0, collectionRate: 100 },
-    credit: { count: 78, revenue: 85000, paid: 68000, pending: 17000, collectionRate: 80 }
-  });
-
-  // API Call functions (uncomment when backend is ready)
-  const fetchSalesChart = async () => {
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      // const res = await fetch(`/api/analytics/sales?month=${period.month}&year=${period.year}`);
-      // const data = await res.json();
-      // setSalesData(data);
-    } catch (error) {
-      console.error('Error fetching sales:', error);
+      // Parallel API calls
+      const [saleRes, productsRes, profitRes, paymentRes] = await Promise.all([
+        getSaleChart(period.month, period.year),
+        getTopSellProducts(period.month, period.year, 5),
+        getProfitChart(period.year),
+        getPaymentMethod(period.month, period.year)
+      ]);
+
+      // 1️⃣ Process Sales Data
+      if (saleRes.data.success) {
+        const dailyArray = Object.entries(saleRes.data.daily).map(([day, sales]) => ({
+          day: parseInt(day),
+          sales: sales
+        }));
+
+        const weeklyArray = Object.entries(saleRes.data.weekly).map(([week, count]) => ({
+          week: `Week ${week}`,
+          count: count
+        }));
+
+        setSalesData({
+          daily: dailyArray,
+          weekly: weeklyArray,
+          monthly: saleRes.data.monthly
+        });
+      }
+
+      // 2️⃣ Process Top Products
+      if (productsRes.data.success) {
+        setTopProducts(productsRes.data.topProducts);
+      }
+
+      // 3️⃣ Process Profit Data
+      if (profitRes.data.success) {
+        const monthlyObj = {};
+        Object.entries(profitRes.data.monthlyProfitData).forEach(([month, data]) => {
+          monthlyObj[data.month] = {
+            revenue: data.revenue,
+            cogs: data.cogs,
+            netProfit: data.netProfit
+          };
+        });
+        setProfitData(monthlyObj);
+      }
+
+      // 4️⃣ Process Payment Data
+      if (paymentRes.data.success) {
+        setPaymentData({
+          cash: paymentRes.data.cash,
+          credit: paymentRes.data.credit
+        });
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load analytics data');
+      console.error('Analytics Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProfitChart = async () => {
-    try {
-      setLoading(true);
-      // const res = await fetch(`/api/analytics/profit?year=${year}`);
-      // const data = await res.json();
-      // setProfitData(data.monthlyProfitData);
-    } catch (error) {
-      console.error('Error fetching profit:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Calculations
+  const totalRevenue = paymentData 
+    ? paymentData.cash.revenue + paymentData.credit.revenue 
+    : 0;
 
-  const fetchTopProducts = async () => {
-    try {
-      setLoading(true);
-      // const res = await fetch(`/api/analytics/products?month=${period.month}&year=${period.year}&limit=10`);
-      // const data = await res.json();
-      // setTopProducts(data.topProducts);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalProfit = Object.values(profitData).reduce(
+    (sum, month) => sum + (month.netProfit || 0),
+    0
+  );
 
-  const fetchPaymentMethod = async () => {
-    try {
-      setLoading(true);
-      // const res = await fetch(`/api/analytics/payment-method?month=${period.month}&year=${period.year}`);
-      // const data = await res.json();
-      // setPaymentData({ cash: data.cash, credit: data.credit });
-    } catch (error) {
-      console.error('Error fetching payment data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalCollected = paymentData
+    ? paymentData.cash.paid + paymentData.credit.paid
+    : 0;
 
-  // Format currency
-  const formatCurrency = (value) => `$${(value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-  const formatPercent = (value) => `${(value || 0).toFixed(2)}%`;
+  const totalProductsSold = topProducts.reduce(
+    (sum, p) => sum + p.quantity,
+    0
+  );
 
-  // Calculate KPIs
-  const totalRevenue = paymentData.cash.revenue + paymentData.credit.revenue;
-  const totalProfit = Object.values(profitData).reduce((sum, month) => sum + (month.netProfit || 0), 0);
-  const totalCollected = paymentData.cash.paid + paymentData.credit.paid;
+  const formatCurrency = (value) =>
+    `$${(value || 0).toLocaleString('en-US')}`;
+
+  const formatPercent = (value) => {
+  // If it's already a string, return as-is
+  if (typeof value === 'string') {
+    return `${value}%`;
+  }
+  // If it's a number, format it
+  return `${(value || 0).toFixed(2)}%`;
+};
+  // ✅ Loading state
+  if (loading && !salesData) {
+    return (
+      <div className="p-6 md:p-8 h-[98vh] flex items-center justify-center bg-bg-mainCard rounded-2xl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Error state
+  if (error && !salesData) {
+    return (
+      <div className="p-6 md:p-8 h-[98vh] flex items-center justify-center bg-bg-mainCard rounded-2xl">
+        <div className="text-center">
+          <p className="text-red-600 font-bold">{error}</p>
+          <button
+            onClick={fetchAllData}
+            className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ backgroundColor: THEME.bg, minHeight: '100vh' }} className="p-6 md:p-8">
+    <div className="p-6 md:p-8 h-[98vh] overflow-y-auto custom-scrollbar rounded-2xl bg-bg-mainCard">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Header */}
         <div className="mb-8">
-          <h1 style={{ color: THEME.text }} className="text-4xl font-bold mb-2">Analytics Dashboard</h1>
-          <p style={{ color: THEME.muted }}>Real-time business performance metrics</p>
-        </div>
-
-        {/* Period Selector */}
-        <div className="mb-8 flex flex-wrap gap-4">
-          <div className="flex gap-2">
-            <select 
-              value={period.month} 
-              onChange={(e) => setPeriod({...period, month: parseInt(e.target.value)})}
-              style={{ 
-                backgroundColor: THEME.card,
-                borderColor: THEME.border,
-                color: THEME.text
-              }}
-              className="px-4 py-2 rounded-lg border hover:border-[--color-border2] focus:outline-none focus:ring-2"
-              onFocus={(e) => e.target.style.boxShadow = `0 0 0 3px ${THEME.blueLight}`}
-              onBlur={(e) => e.target.style.boxShadow = 'none'}
-            >
-              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                <option key={m} value={m}>{new Date(2024, m-1).toLocaleString('default', {month: 'long'})}</option>
-              ))}
-            </select>
-            <select 
-              value={period.year} 
-              onChange={(e) => setPeriod({...period, year: parseInt(e.target.value)})}
-              style={{ 
-                backgroundColor: THEME.card,
-                borderColor: THEME.border,
-                color: THEME.text
-              }}
-              className="px-4 py-2 rounded-lg border hover:border-[--color-border2] focus:outline-none focus:ring-2"
-              onFocus={(e) => e.target.style.boxShadow = `0 0 0 3px ${THEME.blueLight}`}
-              onBlur={(e) => e.target.style.boxShadow = 'none'}
-            >
-              {[2024, 2025, 2026].map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </div>
-          <button 
-            onClick={fetchSalesChart}
-            style={{ 
-              backgroundColor: THEME.green,
-              color: 'white'
-            }}
-            className="px-6 py-2 rounded-lg hover:opacity-90 transition-opacity font-medium"
-          >
-            Load Data
-          </button>
+          <h1 className="text-3xl font-black text-black mb-2">
+            Analytics Dashboard
+          </h1>
+          <p className="text-gray-500 font-medium">
+            Real-time business performance metrics
+          </p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <p style={{ color: THEME.muted }} className="text-sm font-medium">Total Revenue</p>
-              <DollarSign style={{ color: THEME.green }} className="w-5 h-5" />
+          {[
+            {
+              title: "Total Revenue",
+              val: formatCurrency(totalRevenue),
+              icon: DollarSign,
+              color: "text-black"
+            },
+            {
+              title: "Net Profit",
+              val: formatCurrency(totalProfit),
+              icon: TrendingUp,
+              color: "text-green-600"
+            },
+            {
+              title: "Total Collections",
+              val: formatCurrency(totalCollected),
+              icon: CreditCard,
+              color: "text-blue-600"
+            },
+            {
+              title: "Products Sold",
+              val: totalProductsSold,
+              icon: Package,
+              color: "text-black"
+            }
+          ].map((card, i) => (
+            <div
+              key={i}
+              className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  {card.title}
+                </p>
+                <card.icon className={`w-5 h-5 ${card.color}`} />
+              </div>
+              <h3 className="text-2xl font-black text-black">
+                {card.val}
+              </h3>
             </div>
-            <h3 style={{ color: THEME.text }} className="text-3xl font-bold">{formatCurrency(totalRevenue)}</h3>
-            <p style={{ color: THEME.hint }} className="text-xs mt-2">From all payment methods</p>
-          </div>
+          ))}
+        </div>
 
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <p style={{ color: THEME.muted }} className="text-sm font-medium">Net Profit</p>
-              <TrendingUp style={{ color: THEME.green }} className="w-5 h-5" />
-            </div>
-            <h3 style={{ color: THEME.text }} className="text-3xl font-bold">{formatCurrency(totalProfit)}</h3>
-            <p style={{ color: THEME.hint }} className="text-xs mt-2">After all expenses</p>
-          </div>
-
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <p style={{ color: THEME.muted }} className="text-sm font-medium">Total Collections</p>
-              <CreditCard style={{ color: THEME.blue }} className="w-5 h-5" />
-            </div>
-            <h3 style={{ color: THEME.text }} className="text-3xl font-bold">{formatCurrency(totalCollected)}</h3>
-            <p style={{ color: THEME.hint }} className="text-xs mt-2">Cash & credit received</p>
-          </div>
-
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <p style={{ color: THEME.muted }} className="text-sm font-medium">Products Sold</p>
-              <Package style={{ color: THEME.amber }} className="w-5 h-5" />
-            </div>
-            <h3 style={{ color: THEME.text }} className="text-3xl font-bold">{topProducts.reduce((sum, p) => sum + p.quantity, 0)}</h3>
-            <p style={{ color: THEME.hint }} className="text-xs mt-2">{topProducts.length} unique products</p>
-          </div>
+        {/* Filter Section */}
+        <div className="flex items-center m-2 mb-4 gap-2 bg-white text-black p-2 rounded-2xl border border-gray-100 w-fit">
+          <select
+            className="bg-transparent px-4 py-2 text-sm font-bold outline-none"
+            onChange={(e) => {
+              const [month, year] = e.target.value.split('-');
+              setPeriod({ month: parseInt(month), year: parseInt(year) });
+            }}
+          >
+            <option value={`${period.month}-${period.year}`}>
+              {new Date(period.year, period.month - 1).toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+              })}
+            </option>
+          </select>
+          <button
+            onClick={fetchAllData}
+            disabled={loading}
+            className="bg-black text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : 'Update Data'}
+          </button>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Daily Sales Chart */}
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold mb-4">Daily Sales</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesData.daily}>
-                <CartesianGrid strokeDasharray="3 3" stroke={THEME.border} />
-                <XAxis dataKey="day" stroke={THEME.muted} />
-                <YAxis stroke={THEME.muted} />
-                <Tooltip 
-                  contentStyle={{backgroundColor: THEME.text, border: 'none', borderRadius: '8px', color: THEME.card}}
-                  formatter={(value) => [`${value} sales`, 'Daily']}
-                />
-                <Line type="monotone" dataKey="sales" stroke={THEME.green} strokeWidth={3} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+          {/* Daily Sales */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <h3 className="text-sm font-black text-black mb-6 uppercase">
+              Daily Sales
+            </h3>
+            {salesData?.daily && salesData.daily.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={salesData.daily}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="sales"
+                    stroke={THEME.green}
+                    strokeWidth={3}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-400 text-center py-12">No sales data</p>
+            )}
           </div>
 
-          {/* Profit vs COGS Chart */}
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold mb-4">Profit Analysis</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={Object.entries(profitData).map(([month, data]) => ({ month, ...data }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke={THEME.border} />
-                <XAxis dataKey="month" stroke={THEME.muted} />
-                <YAxis stroke={THEME.muted} />
-                <Tooltip 
-                  contentStyle={{backgroundColor: THEME.text, border: 'none', borderRadius: '8px', color: THEME.card}}
-                  formatter={(value) => formatCurrency(value)}
-                />
-                <Legend />
-                <Bar dataKey="revenue" fill={THEME.blue} radius={[8, 8, 0, 0]} />
-                <Bar dataKey="cogs" fill={THEME.red} radius={[8, 8, 0, 0]} />
-                <Bar dataKey="netProfit" fill={THEME.green} radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Weekly Sales Chart */}
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold mb-4">Weekly Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={salesData.weekly}>
-                <CartesianGrid strokeDasharray="3 3" stroke={THEME.border} />
-                <XAxis dataKey="week" stroke={THEME.muted} />
-                <YAxis stroke={THEME.muted} />
-                <Tooltip 
-                  contentStyle={{backgroundColor: THEME.text, border: 'none', borderRadius: '8px', color: THEME.card}}
-                  formatter={(value) => [`${value} sales`, 'Weekly']}
-                />
-                <Bar dataKey="count" fill={THEME.purple} radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Payment Method Distribution */}
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold mb-4">Payment Methods</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Cash', value: paymentData.cash.revenue },
-                    { name: 'Credit', value: paymentData.credit.revenue }
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
+          {/* Profit */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <h3 className="text-sm font-black text-black mb-6 uppercase">
+              Profit Analysis
+            </h3>
+            {Object.keys(profitData).length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
+                  data={Object.entries(profitData).map(([month, data]) => ({
+                    month,
+                    ...data
+                  }))}
                 >
-                  <Cell fill={THEME.blue} />
-                  <Cell fill={THEME.green} />
-                </Pie>
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-              </PieChart>
-            </ResponsiveContainer>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="revenue" fill={THEME.blue} />
+                  <Bar dataKey="cogs" fill={THEME.green} />
+                  <Bar dataKey="netProfit" fill={THEME.red} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-400 text-center py-12">No profit data</p>
+            )}
           </div>
+
+          {/* Weekly */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <h3 className="text-sm font-black text-black mb-6 uppercase">
+              Weekly Distribution
+            </h3>
+            {salesData?.weekly && salesData.weekly.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={salesData.weekly}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="week" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill={THEME.green} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-400 text-center py-12">No weekly data</p>
+            )}
+          </div>
+
+          {/* Payment Pie */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+            <h3 className="text-sm font-black text-black mb-6 uppercase">
+              Payment Methods
+            </h3>
+            {paymentData ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Cash', value: paymentData.cash.revenue },
+                      { name: 'Credit', value: paymentData.credit.revenue }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    <Cell fill={THEME.red} />
+                    <Cell fill={THEME.green} />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-400 text-center py-12">No payment data</p>
+            )}
+          </div>
+
         </div>
 
         {/* Payment Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold mb-4">Cash Sales</h3>
-            <div className="space-y-3">
-              <div style={{ borderColor: THEME.border }} className="flex justify-between items-center py-2 border-b">
-                <span style={{ color: THEME.muted }} className="text-sm">Total Revenue</span>
-                <span style={{ color: THEME.text }} className="font-semibold">{formatCurrency(paymentData.cash.revenue)}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+          {/* Cash Sales */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+            <h3 className="text-sm font-black text-black mb-6 uppercase">
+              Cash Sales
+            </h3>
+            {paymentData ? (
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Total Revenue</span>
+                  <span className="font-bold">
+                    {formatCurrency(paymentData.cash.revenue)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Amount Paid</span>
+                  <span className="font-bold text-green-600">
+                    {formatCurrency(paymentData.cash.paid)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Pending</span>
+                  <span className="font-bold">
+                    {formatCurrency(paymentData.cash.pending)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-500">Collection Rate</span>
+                  <span className="font-bold text-blue-600">
+                    {formatPercent(paymentData.cash.collectionRate)}
+                  </span>
+                </div>
               </div>
-              <div style={{ borderColor: THEME.border }} className="flex justify-between items-center py-2 border-b">
-                <span style={{ color: THEME.muted }} className="text-sm">Amount Paid</span>
-                <span style={{ color: THEME.green }} className="font-semibold">{formatCurrency(paymentData.cash.paid)}</span>
-              </div>
-              <div style={{ borderColor: THEME.border }} className="flex justify-between items-center py-2 border-b">
-                <span style={{ color: THEME.muted }} className="text-sm">Pending</span>
-                <span style={{ color: THEME.text }} className="font-semibold">{formatCurrency(paymentData.cash.pending)}</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span style={{ color: THEME.muted }} className="text-sm">Collection Rate</span>
-                <span style={{ color: THEME.blue }} className="font-semibold">{formatPercent(paymentData.cash.collectionRate)}</span>
-              </div>
-            </div>
+            ) : (
+              <p className="text-gray-400">Loading...</p>
+            )}
           </div>
 
-          <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border p-6">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold mb-4">Credit Sales</h3>
-            <div className="space-y-3">
-              <div style={{ borderColor: THEME.border }} className="flex justify-between items-center py-2 border-b">
-                <span style={{ color: THEME.muted }} className="text-sm">Total Revenue</span>
-                <span style={{ color: THEME.text }} className="font-semibold">{formatCurrency(paymentData.credit.revenue)}</span>
+          {/* Credit Sales */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+            <h3 className="text-sm font-black text-black mb-6 uppercase">
+              Credit Sales
+            </h3>
+            {paymentData ? (
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Total Revenue</span>
+                  <span className="font-bold">
+                    {formatCurrency(paymentData.credit.revenue)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Amount Paid</span>
+                  <span className="font-bold text-green-600">
+                    {formatCurrency(paymentData.credit.paid)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Pending</span>
+                  <span className="font-bold text-red-500">
+                    {formatCurrency(paymentData.credit.pending)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-500">Collection Rate</span>
+                  <span className="font-bold text-blue-600">
+                    {formatPercent(paymentData.credit.collectionRate)}
+                  </span>
+                </div>
               </div>
-              <div style={{ borderColor: THEME.border }} className="flex justify-between items-center py-2 border-b">
-                <span style={{ color: THEME.muted }} className="text-sm">Amount Paid</span>
-                <span style={{ color: THEME.green }} className="font-semibold">{formatCurrency(paymentData.credit.paid)}</span>
-              </div>
-              <div style={{ borderColor: THEME.border }} className="flex justify-between items-center py-2 border-b">
-                <span style={{ color: THEME.muted }} className="text-sm">Pending</span>
-                <span style={{ color: THEME.red }} className="font-semibold">{formatCurrency(paymentData.credit.pending)}</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span style={{ color: THEME.muted }} className="text-sm">Collection Rate</span>
-                <span style={{ color: THEME.blue }} className="font-semibold">{formatPercent(paymentData.credit.collectionRate)}</span>
-              </div>
-            </div>
+            ) : (
+              <p className="text-gray-400">Loading...</p>
+            )}
           </div>
+
         </div>
 
         {/* Top Products Table */}
-        <div style={{ backgroundColor: THEME.card, borderColor: THEME.border }} className="rounded-lg shadow-sm border overflow-hidden">
-          <div style={{ backgroundColor: THEME.sBack, borderColor: THEME.border }} className="p-6 border-b">
-            <h3 style={{ color: THEME.text }} className="text-lg font-bold">Top Selling Products</h3>
+        <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+          <div className="p-6 border-b border-gray-100 bg-gray-50">
+            <h3 className="text-sm font-black text-black uppercase">
+              Top Selling Products
+            </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-left">
               <thead>
-                <tr style={{ backgroundColor: THEME.sBack, borderColor: THEME.border }} className="border-b">
-                  <th style={{ color: THEME.text }} className="px-6 py-3 text-left text-sm font-semibold">Product Name</th>
-                  <th style={{ color: THEME.text }} className="px-6 py-3 text-right text-sm font-semibold">Quantity</th>
-                  <th style={{ color: THEME.text }} className="px-6 py-3 text-right text-sm font-semibold">Avg Price</th>
-                  <th style={{ color: THEME.text }} className="px-6 py-3 text-right text-sm font-semibold">Total Revenue</th>
+                <tr className="border-b border-gray-100">
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Product Name
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
+                    Quantity
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
+                    Avg Price
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
+                    Total Revenue
+                  </th>
                 </tr>
               </thead>
-              <tbody>
-                {topProducts.map((product, idx) => (
-                  <tr 
-                    key={product.id} 
-                    style={{ 
-                      backgroundColor: idx % 2 === 0 ? THEME.card : THEME.sBack,
-                      borderColor: THEME.border
-                    }}
-                    className="border-b"
-                  >
-                    <td style={{ color: THEME.text }} className="px-6 py-4 text-sm font-medium">{product.name}</td>
-                    <td style={{ color: THEME.muted }} className="px-6 py-4 text-sm text-right">{product.quantity}</td>
-                    <td style={{ color: THEME.muted }} className="px-6 py-4 text-sm text-right">{formatCurrency(product.avgPrice)}</td>
-                    <td style={{ color: THEME.text }} className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(product.revenue)}</td>
+              <tbody className="divide-y divide-gray-100">
+                {topProducts.length > 0 ? (
+                  topProducts.map((product) => (
+                    <tr key={product.productId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-bold text-black">
+                        {product.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 text-right">
+                        {product.quantity}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 text-right">
+                        {formatCurrency(product.avgPrice)}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-black text-right">
+                        {formatCurrency(product.revenue)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-12 text-center text-gray-400">
+                      No products data available
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Footer */}
-        <div style={{ color: THEME.hint }} className="mt-8 text-center text-sm">
-          <p>Last updated: {new Date().toLocaleString()}</p>
-          <p className="mt-2">Uncomment API calls in component when backend is ready</p>
-        </div>
       </div>
     </div>
   );
