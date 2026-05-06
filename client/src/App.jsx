@@ -14,6 +14,7 @@ import Login from './pages/Login.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import ProductHistory from "./components/inventory/ProductHistory";
 import { useAuth } from './context/AuthContext.jsx';
+import ErrorPage from './pages/ErrorPage.jsx'
 
 function App() {
   const { user } = useAuth();
@@ -120,6 +121,8 @@ function App() {
           />
 
         </Route>
+                <Route path='*' element={<ErrorPage />} />
+
       </Routes>
     </BrowserRouter>
   );

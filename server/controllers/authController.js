@@ -19,7 +19,7 @@ export const userLogin = async (req , res ) => {
             } 
          const token = generateToken(payload)
          setAuthCookie(res,token)
-         return res.status(200).json({success: true,message: "Logged In"});
+         return res.status(200).json({success: true,message: "Logged In" });
         }else{
             // staff /user login
              const user = await User.findOne({email})

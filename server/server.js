@@ -45,10 +45,17 @@ app.all(/.*/,(req , res , next)=>{
 });
 
 
-app.use((err,req, res ,next)=>{
-    let {message = 'something went wrong' ,statusCode=500 }=err
-    res.status(statusCode).json({message})
-})
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  let { message = 'something went wrong', statusCode = 500 } = err;
+  res.status(statusCode).json({ 
+    success: false,
+    message 
+  });
+});
 
 
 const PORT = process.env.PORT || 4000;

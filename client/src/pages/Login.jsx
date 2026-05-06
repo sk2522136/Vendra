@@ -27,29 +27,29 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
-
-
   setIsLoading(true);
   setError('');
 
   try {
-    const response =await login(formData);
-    // Success toast
-    toast.success('Login successful! 🎉', {
-      position: "top-right",
-      autoClose: 2000,
-    });
+    const response = await login(formData);
     
-  setTimeout(() => {
-      navigate('/dashboard');
-    }, 1500);
+    // ✅ Check کر - response میں success ہے یا نہیں
+    if (response.success) {
+      toast.success('Login successful! 🎉', {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
+    }
     
   } catch (err) {
     const errorMessage = 
       err.response?.data?.message || 
       "Invalid Email or Password";
     
-    // Error toast
     toast.error(errorMessage, {
       position: "top-right",
       autoClose: 3000,
@@ -58,7 +58,6 @@ const Login = () => {
     setError(errorMessage);
 
   } finally {
-
     setIsLoading(false);
   }
 };
@@ -122,7 +121,6 @@ const Login = () => {
                     'Real-time inventory tracking',
                     'Automated stock alerts',
                     'Sales analytics dashboard',
-                    '24/7 customer support'
                   ].map((feature, i) => (
 
                     <div key={i} className="flex items-center gap-3">

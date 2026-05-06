@@ -8,27 +8,33 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
   const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+  
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data } = await isAuth();
       
-      if (data.success) {
-        setUser(data.user); 
+      if (data.success && data.user) {
+        setUser(data.user);
       }
     } catch (error) {
-            setUser(null); 
+      localStorage.removeItem('token');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  checkAuth();
+}, []);
 
-      toast.error("Authentication check failed. Please try again.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    }finally {
-      setLoading(false); 
-    }};
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   const login = async (credentials) => {
     try {
@@ -43,10 +49,7 @@ export const AuthProvider = ({ children }) => {
       
       return data;
     } catch (error) {
-       toast.error("Authentication check failed. Please try again.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+       console
     }
   };
 
@@ -55,10 +58,7 @@ export const AuthProvider = ({ children }) => {
       await logoutApi();
       setUser(null); 
     } catch (error) {
-       toast.error("Authentication check failed. Please try again.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+       console.error("Logout failed.", error);
     }
   };
 
