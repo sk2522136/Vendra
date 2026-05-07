@@ -16,7 +16,7 @@ const Staff = () => {
   const loadStaff = async () => {
     try {
       setLoading(true);
-      const res = await getAllStaff(); // 👈 API call
+      const res = await getAllStaff(); 
       setStaff(res.data.users || res.data);
     } catch (error) {
       toast.error("Failed to load staff");

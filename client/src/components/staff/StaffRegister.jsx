@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import { registerStaff } from '../../services/api'; // 👈 API import
+import { registerStaff } from '../../services/api'; 
 import { toast } from 'react-toastify';
 
 const StaffRegister = ({ onClose ,onStaffAdded}) => {

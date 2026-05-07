@@ -14,7 +14,7 @@ function Dashboard() {
   const [topProducts, setTopProducts] = useState(null);
   const [paymentData, setPaymentData] = useState(null);
   
-  // ✅ Search aur Filter states
+  //  Search aur Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFrame, setTimeFrame] = useState('month');
 
@@ -29,7 +29,7 @@ function Dashboard() {
       let month = now.getMonth() + 1;
       let year = now.getFullYear();
 
-      // ✅ Time frame ke hisaab se month/year change kar
+      //  Time frame ke hisaab se month/year change kar
       if (timeFrame === 'today') {
         // Today ka data (aaj ka month/year)
       } else if (timeFrame === 'week') {

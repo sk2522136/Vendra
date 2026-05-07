@@ -33,12 +33,19 @@ const Login = () => {
   try {
     const response = await login(formData);
     
-    // ✅ Check کر - response میں success ہے یا نہیں
+   
+   setTimeout(() => {
+    navigate('/dashboard');
+  }, 1500);
+
+   
     if (response.success) {
-      toast.success('Login successful! 🎉', {
+      toast.success('Login successful! ', {
         position: "top-right",
         autoClose: 2000,
       });
+      
+      
       
       setTimeout(() => {
         navigate('/dashboard');

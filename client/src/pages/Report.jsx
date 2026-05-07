@@ -24,13 +24,13 @@ const AnalyticsDashboard = () => {
     year: new Date().getFullYear()
   });
 
-  // ✅ All data from API
+  //  All data from API
   const [salesData, setSalesData] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [profitData, setProfitData] = useState({});
   const [paymentData, setPaymentData] = useState(null);
 
-  // ✅ Fetch all data on mount & when period changes
+  //  Fetch all data 
   useEffect(() => {
     fetchAllData();
   }, [period]);
@@ -40,7 +40,7 @@ const AnalyticsDashboard = () => {
     setError(null);
     
     try {
-      // Parallel API calls
+      //  API calls
       const [saleRes, productsRes, profitRes, paymentRes] = await Promise.all([
         getSaleChart(period.month, period.year),
         getTopSellProducts(period.month, period.year, 5),
@@ -48,7 +48,7 @@ const AnalyticsDashboard = () => {
         getPaymentMethod(period.month, period.year)
       ]);
 
-      // 1️⃣ Process Sales Data
+      //  Process Sales Data
       if (saleRes.data.success) {
         const dailyArray = Object.entries(saleRes.data.daily).map(([day, sales]) => ({
           day: parseInt(day),
@@ -67,12 +67,12 @@ const AnalyticsDashboard = () => {
         });
       }
 
-      // 2️⃣ Process Top Products
+      //  Top Products
       if (productsRes.data.success) {
         setTopProducts(productsRes.data.topProducts);
       }
 
-      // 3️⃣ Process Profit Data
+      //  Profit Data
       if (profitRes.data.success) {
         const monthlyObj = {};
         Object.entries(profitRes.data.monthlyProfitData).forEach(([month, data]) => {
@@ -85,7 +85,7 @@ const AnalyticsDashboard = () => {
         setProfitData(monthlyObj);
       }
 
-      // 4️⃣ Process Payment Data
+      //  Payment Data
       if (paymentRes.data.success) {
         setPaymentData({
           cash: paymentRes.data.cash,
@@ -119,8 +119,8 @@ const AnalyticsDashboard = () => {
     0
   );
 
-  const formatCurrency = (value) =>
-    `$${(value || 0).toLocaleString('en-US')}`;
+ const formatCurrency = (value) =>
+  `Rs ${(value || 0).toLocaleString('en-US')}`;
 
   const formatPercent = (value) => {
   // If it's already a string, return as-is
@@ -130,7 +130,7 @@ const AnalyticsDashboard = () => {
   // If it's a number, format it
   return `${(value || 0).toFixed(2)}%`;
 };
-  // ✅ Loading state
+  //  Loading state
   if (loading && !salesData) {
     return (
       <div className="p-6 md:p-8 h-[98vh] flex items-center justify-center bg-bg-mainCard rounded-2xl">
@@ -142,7 +142,7 @@ const AnalyticsDashboard = () => {
     );
   }
 
-  // ✅ Error state
+  //  Error state
   if (error && !salesData) {
     return (
       <div className="p-6 md:p-8 h-[98vh] flex items-center justify-center bg-bg-mainCard rounded-2xl">

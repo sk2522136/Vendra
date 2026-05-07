@@ -71,19 +71,6 @@ export const createSale = async (req, res) =>{
             paidAmount: paidAmount || 0,
             createdBy: userId
         });
- 
- 
- // create Inventory log for History
-//  for (let item of items){
-//  await inventoryLogChange({
-//     product : item.product,
-//     quantityChange:-item.quantity,
-//     type:"Sale",
-//     sale: sale._id,
-//     createdBy:req.user._id,
-    
-//   });
-//  }
 
 
 
@@ -246,17 +233,6 @@ for (let item of sale.items) {
 
   }
 
-    // Inventory log banao (quantity restore nahi, sirf record)
-    // for (let item of sale.items) {
-    //     await inventoryLogChange({
-    //         product: item.product,
-    //         quantityChange: 0,          
-    //         type: "Sale Cancellation",
-    //         sale: sale._id,
-    //         createdBy: req.user._id || null,
-    //     });
-    // }
-
     // SaleItems delete
     await SaleItem.deleteMany({ _id: { $in: sale.items } });
 
@@ -366,99 +342,6 @@ export const getSalesByCustomer = async (req, res) => {
 };
 
  
-// GET ALL SALES  /api/sale
-export const getAllSales = async (req, res) => {
-   
-        const { page = 1, limit = 10 } = req.query;
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
-        const skip = (pageNum - 1) * limitNum;
-
-        // Paginated sales with details
-        const sales = await Sale.find()
-            .populate('customer')
-            .populate('items')
-            .populate('createdBy','name')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum);
-
-        const totalSales = await Sale.countDocuments();
-
-        // Format sales data
-        const formattedSales = sales.map(sale => ({
-            saleId: sale._id,
-            customerName: sale.customer?.name || 'Unknown',
-            customerPhone: sale.customer?.phoneNumber || 'N/A',
-            customerType: sale.customer?.customerType || 'N/A',
-            totalAmount: sale.totalAmount,
-            paidAmount: sale.paidAmount,
-            remainingBalance: sale.totalAmount - sale.paidAmount,
-            itemCount: sale.items.length,
-            createdDate: sale.createdAt,
-            createdBy: sale.createdBy || 'Unknown',  
-            status: sale.totalAmount === sale.paidAmount ? 'Paid' : 'Pending'
-        }));
-
-        return res.status(200).json({
-            success: true,
-            message: "All sales retrieved successfully",
-            pagination: {
-                currentPage: pageNum,
-                limit: limitNum,
-                totalSales: totalSales,
-                totalPages: Math.ceil(totalSales / limitNum)
-            },
-            data: formattedSales  
-        });
-};
-
-
-
-// GET SALE BY ID api/sale/id
-export const getSaleById = async (req, res) => {
-        const { id } = req.params;
-        const sale = await Sale.findById(id)
-            .populate('customer')
-            .populate('items')
-            .populate('createdBy');
-
-        if (!sale) {
-            throw new ExpressError("Sale not Found" ,404)
-        }
-        const remainingBalance = sale.totalAmount - sale.paidAmount;
-
-        return res.status(200).json({
-        success: true,
-        message: "Sale retrieved successfully",
-        data: {
-            sale: sale,
-            saleDetails: {
-                saleId: sale._id,
-                totalAmount: sale.totalAmount,
-                paidAmount: sale.paidAmount,
-                remainingBalance: remainingBalance,
-                itemCount: sale.items.length,
-                createdDate: sale.createdAt,
-                updatedDate: sale.updatedAt
-            },
-            customerDetails: {
-                customerId: sale.customer?._id || null,        
-                customerName: sale.customer?.name || 'Unknown', 
-                phoneNumber: sale.customer?.phoneNumber || 'N/A', 
-                customerType: sale.customer?.customerType || 'N/A', 
-                currentBalance: sale.customer?.currentBalance || 0,  
-                lastPaymentDate: sale.customer?.lastPaymentDate || null 
-            },
-            createdByDetails: {
-                userId: sale.createdBy?._id || null,          
-                userName: sale.createdBy?.name || 'Admin',    
-                userEmail: sale.createdBy?.email || 'Admin'   
-            }
-        }
-    });
-};
-
 export const processReturn = async (req, res) => {
 
   const { saleId, productId, quantity } = req.body;

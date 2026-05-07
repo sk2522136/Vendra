@@ -10,22 +10,17 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-  
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
     try {
+      
       const { data } = await isAuth();
       
       if (data.success && data.user) {
         setUser(data.user);
+      } else {
+        setUser(null);
       }
     } catch (error) {
-      localStorage.removeItem('token');
+      console.error("Auth check failed:", error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -40,16 +35,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await loginApi(credentials);
       
-  
-      const authResponse = await isAuth();
-      
-      if (authResponse.data.success) {
-        setUser(authResponse.data.user);
+      if (data.success) {
+        const authResponse = await isAuth();
+        
+        if (authResponse.data.success) {
+          setUser(authResponse.data.user);
+        }
       }
       
       return data;
     } catch (error) {
-       console
+      console.error("Login error:", error);
+      throw error;
     }
   };
 

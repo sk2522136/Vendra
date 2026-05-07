@@ -21,7 +21,7 @@ const ExpenseTracker = () => {
   const loadExpenses = async (month = selectedMonth, year = selectedYear) => {
     try {
       setLoading(true);
-      const res = await getExpenses({ month, year }); // 👈 API call with params
+      const res = await getExpenses({ month, year }); 
       
       
       setExpenses(res.data.expenses);

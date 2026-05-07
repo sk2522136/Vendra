@@ -33,7 +33,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
     try {
       await logout();
       
-      toast.success('Logged out successfully! 👋', {
+      toast.success('Logged out successfully!', {
         position: "top-right",
         autoClose: 2000,
       });
@@ -72,7 +72,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
       }`}
     >
       {/* Brand Name */}
-      <div className="h-20 flex items-center justify-center border-gray-800">
+      <div className="h-20 flex items-center justify-center  border-gray-800">
         <h1 className="text-white text-2xl font-extrabold tracking-wide">VENDARA</h1>
       </div>
 
@@ -87,7 +87,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
             onClick={() => window.innerWidth < 1024 && setMobileOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-4 px-6 py-3 ${
-                isActive ? 'bg-bg-hover text-white' : 'text-gray-400'
+                isActive ? 'bg-bg-hover rounded-2xl text-white' : 'text-gray-400'
               }`
             }
           >

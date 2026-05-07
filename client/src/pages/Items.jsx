@@ -56,7 +56,7 @@ const statsData = [
       const res = await fetchProduct({ search, category, stock, page, limit, sortBy, order });
     setProducts(res.data.products);
     setStats(res.data.stats)
-    setTotalPages(res.data.totalPages); // ✅ now works
+    setTotalPages(res.data.totalPages); 
 setPage(res.data.page);
 
   } catch (error) {
@@ -134,7 +134,6 @@ setPage(res.data.page);
     sendData.append("unit", formData.unit);
     sendData.append("description", formData.description);
 
-    // ✅ IMPORTANT: only send image if user changed it
     if (formData.image instanceof File) {
       sendData.append("image", formData.image);
     }

@@ -152,11 +152,11 @@ const Pos = () => {
 
   const completeSale = async () => {
     if (cart.length === 0) {
-      toast.error("Cart khali hai!");
+      toast.error("Cart is empty!");
       return;
     }
     if (!customerName || !customerPhone) {
-      toast.error("Customer details fill karo!");
+      toast.error("Please fill in customer details!");
       return;
     }
 

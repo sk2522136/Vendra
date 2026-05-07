@@ -29,11 +29,9 @@ export const updateCategory = (id, data) =>API.put(`/category/${id}`, data);
 export const deleteCategory = (id) =>API.delete(`/category/${id}`);
 
 // sales route
-export const fetchSales = ()=> API.get('/sale')
 export const createSale = (data)=> API.post('/sale/create',data)
 export const getSaleByCustomer = (id)=> API.get(`/sale/customer/${id}`)
 export const updateSale = (id, data) => API.put(`/sale/${id}`, data)
-export const getSaleById = (id)=>API.get(`/sale/${id}`)
 export const deleteSale = (id )=> API.delete(`/sale/${id}`)
 export const processReturn = (id, data) => API.post(`/sale/${id}/return`, data);
 
