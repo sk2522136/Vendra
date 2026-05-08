@@ -14,7 +14,6 @@ const ProductCards = () => {
       setLoading(true);
       const res = await fetchProduct({ page: 1, limit: 50 });
       setProducts(res.data.products || res.data);
-      toast.success("Products loaded!");
     } catch (err) {
       console.log(err);
       toast.error("Failed to load products");
@@ -67,8 +66,8 @@ const ProductCards = () => {
           >
             {/* HEADER WITH ICON */}
             <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-bg-chart rounded-xl sm:rounded-2xl flex items-center justify-center group-hover:bg-icon group-hover:text-white transition-all">
-                <FiPackage size={18} className="text-icon group-hover:text-white sm:text-xl" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-bg-chart rounded-xl sm:rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                <FiPackage size={18} className="text-black group-hover:text-white sm:text-xl" />
               </div>
 
               {/* STOCK BADGE */}
