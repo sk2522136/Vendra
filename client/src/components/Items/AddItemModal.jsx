@@ -83,12 +83,12 @@ useEffect(() => {
       <div className='bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl'>
         
         {/* Header - Fixed text color and styles */}
-        <div className='flex justify-between items-center px-8 py-6 border-b border-border bg-gray-50 sticky top-0 z-10'>
+        <div className='flex justify-between items-center px-8 py-6 border-b border-border  bg-bg-body sticky top-0 z-10'>
           <div>
-            <h3 className='text-xl font-bold text-text'>
+            <h3 className='text-xl font-bold text-bg-secondary'>
               {isEditMode ? "Edit Product Details" : "Create New Product"}
             </h3>
-            <p className='text-sm text-black'>Enter detail to add a new item to inventory</p>
+            <p className='text-sm text-bg-primary'>Enter detail to add a new item to inventory</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-red-50 text-black hover:text-red-500 rounded-full transition-all"><FiX size={20} /></button>
         </div>
@@ -99,16 +99,16 @@ useEffect(() => {
             <div className='space-y-4'>
               <div>
                 <label className='block text-xs font-bold text-black uppercase mb-1.5 ml-1'>Product Name</label>
-                <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} type="text" placeholder="e.g. Organic Sugar" className='w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black text-sm transition-all' />
+                <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} type="text" placeholder="e.g. Organic Sugar" className='w-full px-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 text-sm transition-all shadow-sm' />
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div>
                   <label className='block text-xs font-bold text-black uppercase mb-1.5 ml-1'>SKU Code</label>
-                  <input value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} type="text" placeholder="e.g. SUG-001" className='w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black text-sm transition-all' />
+                  <input value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} type="text" placeholder="e.g. SUG-001" className='w-full px-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 text-sm transition-all shadow-sm' />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-black uppercase mb-1.5 ml-1">Category</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className='w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black transition-all text-sm'>
+                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className='w-full px-4 py-3 bg-white rounded-2xl text-black border focus:bg-white appearance-none border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm'>
                     <option value="">Select Category</option>
                      {categories.map((cat) => (
                        <option key={cat._id} value={cat._id}  >
@@ -125,19 +125,19 @@ useEffect(() => {
                   <label className="block text-xs font-bold text-black uppercase mb-1.5 ml-1">Cost Price</label>
                   <div className="relative">
                     <FiDollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-black" />
-                    <input value={formData.costPrice} onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })} type="number" placeholder="0.00" className="w-full pl-9 pr-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black transition-all text-sm" />
+                    <input value={formData.costPrice} onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })} type="number" placeholder="0.00" className="w-full pl-9 pr-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm" />
                   </div>
                  </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-black uppercase mb-1.5 ml-1">Initial Stock</label>
-                  <input value={formData.quantity} onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} type="number" placeholder="100" className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black transition-all text-sm" />
+                  <input value={formData.quantity} onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} type="number" placeholder="100" className="w-full px-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                 <label className=" text-xs font-bold text-black uppercase mb-1.5 ml-1">Unit</label>
-                <select value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className='w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black transition-all text-sm'>
+                <select value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className='w-full px-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm'>
                   <option>kg</option>
                   <option>g</option>
                   <option>L</option>
@@ -150,7 +150,7 @@ useEffect(() => {
               </label>
               <select
               value={formData.supplier} onChange={(e) =>setFormData({ ...formData, supplier: e.target.value })}
-              className='w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-black transition-all text-sm'>
+              className='w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm'>
               <option value ="" >Select suppliers</option>
                {suppliers.map((sup) => (
                        <option key={sup._id} value={sup._id}  >
@@ -164,7 +164,7 @@ useEffect(() => {
 
             <div className="space-y-5">
               <label className="block text-[11px] font-bold text-black uppercase mb-2 ml-1">Product Media</label>
-              <div className="relative group border-2 border-dashed border-border rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-black transition-all cursor-pointer min-h-40">
+              <div className="relative group border-2 border-dashed border-border rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-bg-primary/50 transition-all cursor-pointer min-h-40">
                 {preview ? (
                   <div className="relative w-full h-full flex flex-col items-center">
                     <img src={preview} alt="preview" className="w-24 h-24 object-cover rounded-xl shadow-md border border-border mb-2" />
@@ -172,9 +172,9 @@ useEffect(() => {
                   </div>
                 ) : (
                   <>
-                    <FiUploadCloud className="text-black mb-2" size={32} />
-                    <p className="text-sm font-bold text-text">Drag or Click to Upload</p>
-                    <p className="text-[10px] text-black">Supports: JPG, PNG, WEBP</p>
+                    <FiUploadCloud className="text-bg-secondary mb-2" size={32} />
+                    <p className="text-sm font-bold text-bg-secondary">Drag or Click to Upload</p>
+                    <p className="text-[10px] text-bg-primary">Supports: JPG, PNG, WEBP</p>
                   </>
                 )}
                 <input type="file" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -182,7 +182,7 @@ useEffect(() => {
               <div>
                 {/* Description added back */}
                 <label className="block text-xs font-bold text-black uppercase mb-1.5 ml-1">Description (Optional)</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="3" placeholder="Add some notes about the product..." className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-black border border-border outline-none focus:border-black focus:bg-white transition-all text-sm resize-none"></textarea>
+                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="3" placeholder="Add some notes about the product..." className="w-full px-4 py-3 bg-white rounded-2xl text-black border border-border outline-none focus:border-bg-primary/50 focus:bg-white transition-all text-sm resize-none"></textarea>
               </div>
             </div>
           </div>
@@ -191,7 +191,7 @@ useEffect(() => {
             <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl border border-border text-sm font-bold text-text hover:bg-gray-50 transition-all">
               Discard
             </button>
-            <button type="submit" className="px-10 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 shadow-lg shadow-black/20 transition-all">
+            <button type="submit" className="px-10 py-2.5 rounded-xl bg-bg-primary text-white text-sm font-bold hover:bg-bg-secondary shadow-lg shadow-black/20 transition-all">
               {isEditMode ? "Save Changes" : "Confirm & Add Item"}
             </button>
           </div>

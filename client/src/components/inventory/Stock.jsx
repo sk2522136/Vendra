@@ -46,84 +46,62 @@ const loadInventory = async () => {
 
   
   return (
-    <div className="space-y-6">
-      {/* Stats Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[ 
-          { label: "Total", val: stats.total },
-          { label: "OK", val: stats.ok },
-          { label: "Critical", val: stats.critical },
-          { label: "Out of Stock", val: stats.outOfStock }
-        ].map((s, i) => (
-          <div key={i} className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm text-center">
-            <p className="text-[10px] font-bold text-black/70 uppercase tracking-wider">{s.label}</p>
-            <h3 className="text-xl font-black text-black">{s.val}</h3>
-          </div>
-        ))}
+   <div className="space-y-6">
+  {/* Stats Summary */}
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {[ 
+      { label: "Total", val: stats.total },
+      { label: "OK", val: stats.ok },
+      { label: "Critical", val: stats.critical },
+      { label: "Out of Stock", val: stats.outOfStock }
+    ].map((s, i) => (
+      <div key={i} className="bg-bg-card p-5 rounded-3xl border border-border shadow-sm text-center">
+        <p className="text-[10px] font-black text-muted uppercase tracking-widest">{s.label}</p>
+        <h3 className="text-2xl font-black text-text mt-1">{s.val}</h3>
       </div>
+    ))}
+  </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50">
-              <tr className="text-xs text-black/70 uppercase">
-                <th className="px-8 py-4">Product</th>
-                <th className="px-6 py-4">Stock</th>
-                <th className="px-6 py-4">Status</th>
+  {/* Table */}
+  <div className="bg-bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
+    <div className="overflow-x-auto custom-scrollbar">
+      <table className="w-full text-left">
+        <thead className="bg-bg-body">
+          <tr className="text-[10px] text-muted uppercase tracking-wider">
+            <th className="px-8 py-5">Product</th>
+            <th className="px-6 py-5">Stock</th>
+            <th className="px-6 py-5">Status</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {loading ? (
+            <tr>
+              <td colSpan="3" className="text-center py-10 text-muted font-bold">Loading inventory...</td>
+            </tr>
+          ) : (
+            products.map((p) => (
+              <tr key={p.productId} className="hover:bg-bg-body transition-colors">
+                <td className="text-text px-8 py-4 font-bold text-sm">{p.productName}</td>
+                <td className="text-text px-6 py-4 font-black text-sm">{p.currentStock}</td>
+                <td className="px-6 py-4">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    p.status === "OK" 
+                      ? "bg-green-100 text-green-600" 
+                      : p.status === "Critical" 
+                      ? "bg-orange-100 text-orange-600" 
+                      : "bg-red-100 text-red-600"
+                  }`}>
+                    {p.status}
+                  </span>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y border-gray-100">
-                {loading ? (
-
-                <tr>
-                  <td colSpan="3" className="text-center py-6">
-                    Loading...
-                  </td>
-                </tr>
-
-              ) : (
-
-                products.map((p) => (
-
-                  <tr key={p.productId}
-                      className="  hover:bg-gray-50">
-
-                    <td className="text-black px-8 py-4 font-bold">
-                      {p.productName}
-                    </td>
-
-                    <td className=" text-black px-6 py-4 font-bold">
-                      {p.currentStock}
-                    </td>
-
-                    <td className="px-6 py-4">
-
-                      <span
-                        className={`px-2 py-1 rounded text-[10px] font-bold 
-                        ${
-                          p.status === "OK"
-                            ? "bg-green-100 text-green-700"
-                            : p.status === "Critical"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
-
-                    </td>
-
-                  </tr>
-
-                ))
-
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
+  </div>
+</div>
   );
 };
 

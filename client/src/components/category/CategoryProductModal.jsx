@@ -32,23 +32,44 @@ const [products, setProducts] = useState([]);
   }, [category]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-sm p-8 rounded-3xl border border-gray-100 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-black">Products in {category?.name}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><FiX /></button>
-        </div>
-        
-        <div className="space-y-2 max-h-75 overflow-y-auto mb-6">
-          {products.map((p, i) => (
-            <div key={i} className="p-4 bg-gray-50 rounded-2xl text-black font-bold text-sm border border-gray-100">
-              {p.name}
-            </div>
-          ))}
-        </div>
-        <button onClick={onClose} className="w-full bg-black text-white font-bold py-3 rounded-2xl hover:bg-gray-800">Close</button>
-      </div>
+   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+  {/* Modal Container with Shining Effect */}
+  <div className="bg-bg-card w-full max-w-sm p-8 rounded-3xl border border-border shadow-2xl modal-shine-effect">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-xl font-black text-text uppercase tracking-tight">
+        Products in {category?.name}
+      </h2>
+      <button 
+        onClick={onClose} 
+        className="p-2 hover:bg-bg-body text-text rounded-full transition-colors"
+      >
+        <FiX />
+      </button>
     </div>
+    
+    <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar mb-6 pr-2">
+      {products.length > 0 ? (
+        products.map((p, i) => (
+          <div 
+            key={i} 
+            className="p-4 bg-bg-body rounded-2xl text-text font-bold text-sm border border-border"
+          >
+            {p.name}
+          </div>
+        ))
+      ) : (
+        <p className="text-center text-muted text-sm font-bold py-4">No products found</p>
+      )}
+    </div>
+
+    <button 
+      onClick={onClose} 
+      className="w-full bg-bg-primary text-white font-bold py-3 rounded-2xl hover:opacity-90 transition-all"
+    >
+      Close
+    </button>
+  </div>
+</div>
   );
 };
 

@@ -84,72 +84,74 @@ const AddExpenseModal = ({ isOpen, onClose ,onExpenseAdded}) => {
 
 
   return (
-    <ActionModal isOpen={isOpen} onClose={onClose} title="Add New Expense">
-      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-        
-        <input 
-          type="number" 
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          placeholder="Amount (Rs)" 
-          className="w-full p-3 sm:p-4 rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:border-black font-bold text-sm text-text required" 
-        />
-        
-        <input 
-          type="text" 
-          name='description'
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Description" 
-          className="w-full p-3 sm:p-4 rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:border-black font-bold text-sm text-text required" 
-        />
-        
-        <select 
-          name='category'
-          value={formData.category}
-          onChange={handleChange}
-          className="w-full p-3 sm:p-4 rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:border-black font-bold text-sm text-text"
-        >
-          <option >Select Category</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
+   <ActionModal isOpen={isOpen} onClose={onClose} title="Add New Expense">
+  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+    
+    <input 
+      type="number" 
+      name="amount"
+      value={formData.amount}
+      onChange={handleChange}
+      placeholder="Amount (Rs)" 
+      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-bg-body border border-border outline-none focus:border-bg-primary font-bold text-sm text-text transition-all" 
+      required
+    />
+    
+    <input 
+      type="text" 
+      name='description'
+      value={formData.description}
+      onChange={handleChange}
+      placeholder="Description" 
+      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-bg-body border border-border outline-none focus:border-bg-primary font-bold text-sm text-text transition-all" 
+      required
+    />
+    
+    <select 
+      name='category'
+      value={formData.category}
+      onChange={handleChange}
+      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-bg-body border border-border outline-none focus:border-bg-primary font-bold text-sm text-text transition-all"
+    >
+      <option value="">Select Category</option>
+      {categories.map((cat) => (
+        <option key={cat} value={cat}>
+          {cat}
+        </option>
+      ))}
+    </select>
 
-        <input 
-          type="date" 
-          name='date'
-          value={formData.date}
-          onChange={handleChange}
-          className="w-full p-3 sm:p-4 rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:border-black font-bold text-sm text-text" 
-        />
+    <input 
+      type="date" 
+      name='date'
+      value={formData.date}
+      onChange={handleChange}
+      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-bg-body border border-border outline-none focus:border-bg-primary font-bold text-sm text-text transition-all" 
+    />
 
-        <select 
-          name='paymentMethod'
-          value={formData.paymentMethod}
-          onChange={handleChange}
-          className="w-full p-3 sm:p-4 rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:border-black font-bold text-sm text-text"
-        >
-          <option value="" disabled selected>Payment Method</option>
-          {paymentMethods.map( method=> (
-            <option key={method} value={method}>
-              {method}
-            </option>
-        ))}
-        </select>
+    <select 
+      name='paymentMethod'
+      value={formData.paymentMethod}
+      onChange={handleChange}
+      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-bg-body border border-border outline-none focus:border-bg-primary font-bold text-sm text-text transition-all"
+    >
+      <option value="" disabled>Payment Method</option>
+      {paymentMethods.map(method => (
+        <option key={method} value={method}>
+          {method}
+        </option>
+      ))}
+    </select>
 
-        <button 
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white font-black py-3 sm:py-4 rounded-lg sm:rounded-2xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all uppercase text-xs tracking-widest mt-3 sm:mt-2"
-        >
-          {loading ? "Saving..." : "Save Expense"}
-        </button>
-      </form>
-    </ActionModal>
+    <button 
+      type="submit"
+      disabled={loading}
+      className="w-full bg-bg-primary text-white font-black py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all uppercase text-xs tracking-widest mt-3 sm:mt-2"
+    >
+      {loading ? "Saving..." : "Save Expense"}
+    </button>
+  </form>
+</ActionModal>
   );
 };
 

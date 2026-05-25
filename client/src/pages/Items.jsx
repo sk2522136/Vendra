@@ -191,153 +191,121 @@ setPage(res.data.page);
 
 
   return (
-    <div className='p-6 h-[98vh] overflow-y-auto space-y-8 bg-bg-mainCard rounded-3xl'>
-      
-     <div className="mb-2">
-    <h1 className='text-3xl font-black text-black uppercase tracking-tight'>Items Catalog</h1>
-    <p className='text-gray-500 text-sm font-medium mt-1'>Manage your product inventory, track stock levels, and update pricing details.</p>
+    <div className='p-6 overflow-y-auto space-y-8 bg-bg-body rounded-3xl'>
+  
+  <div className="mb-2">
+    <h1 className='text-3xl font-black text-text uppercase tracking-tight'>Items Catalog</h1>
+    <p className='text-muted text-sm font-medium mt-1'>Manage your product inventory, track stock levels, and update pricing details.</p>
   </div>
 
-      <div className='grid md:grid-cols-3 grid-cols-1 gap-6'>
-        {statsData.map((stat, i) => (
-          <div key={i} className='border border-gray-100 rounded-3xl shadow-sm p-5 flex items-center gap-4 bg-white'>
-            <div className={`w-12 h-12 bg-gray-50 ${stat.color} rounded-2xl flex justify-center items-center`}><FiPackage size={24} /></div>
-            <div><p className='text-xs text-black font-extrabold uppercase'>{stat.title}</p><h4 className='text-2xl font-black text-text'>{stat.val}</h4></div>
-          </div>
-        ))}
+  <div className='grid md:grid-cols-3 grid-cols-1 gap-6'>
+    {statsData.map((stat, i) => (
+      <div key={i} className='border border-border rounded-3xl shadow-sm p-5 flex items-center gap-4 bg-bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'>
+        <div className={`w-12 h-12 bg-bg-body ${stat.color} rounded-2xl flex justify-center items-center`}><FiPackage size={24} /></div>
+        <div><p className='text-xs text-muted font-extrabold uppercase'>{stat.title}</p><h4 className='text-2xl font-black text-text'>{stat.val}</h4></div>
       </div>
+    ))}
+  </div>
 
-      <div className='p-4 border border-gray-100 bg-white rounded-3xl shadow-sm flex flex-col justify-between items-center lg:flex-row gap-4'>
-        <div className='relative w-full lg:w-96'>
-          <FiSearch className='absolute left-4 top-1/2 -translate-y-1/2 text-black' />
-          <input value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1); // reset pagination
-                }} type="text" placeholder='Search SKU, Product Name...' className='w-full pr-4 pl-11 border border-gray-100 bg-gray-50 rounded-2xl py-3 text-black text-sm outline-none focus:border-black transition-all' />
-        </div>
-        <div className='flex items-center w-full lg:w-auto gap-3'>
-          <select
-              value={stock}
-              onChange={(e) => {
-                setStock(e.target.value);
-                setPage(1);
-              }}
-              className='flex-1 lg:flex-none flex items-center justify-center border gap-2 px-6 py-3 border-gray-100 text-text font-bold rounded-2xl hover:bg-gray-50 text-sm transition-all bg-white'
-            >
-              <option value="in">In Stock</option>
-              <option value="out">Out of Stock</option>
-              <option value="low">Low Stock</option>
-            </select>
-          <button onClick={() => openAddModal()} className='flex-1 lg:flex-none flex items-center justify-center border gap-2 px-6 py-3 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 text-sm transition-all'>
-            <FiPlus /> Add Product
-          </button>
-        </div>
-      </div>
-
-      <div className='border border-gray-100 rounded-3xl shadow-sm overflow-hidden bg-white'>
-        <div className='overflow-x-auto'>
-          <table className='w-full text-left'>
-            <thead>
-              <tr className='bg-gray-50 text-black font-extrabold border-b border-gray-100'>
-                <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>PRODUCT INFO</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">SKU</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Stock Status</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Price</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-border-gray-100'>
-              {products.map((item) => (
-                <tr key={item._id} className='hover:bg-gray-50 transition-colors group'>
-                  <td className='px-6 py-4 text-black font-bold'>
-                    <div className='flex items-center gap-4'>
-                      <div className='w-12 h-12 rounded-xl border border-gray-100 bg-gray-100 overflow-hidden group-hover:border-black transition-all'>
-                        <img src={item.image?.url} alt="" className='w-full h-full object-cover' />
-                      </div>
-                      <div>
-                        <p className="text-sm">{item.name}</p>
-                        <p className="text-[11px] text-muted">{item.unit}</p>
-                        
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center text-black font-bold">
-                    <span className="px-3 py-1 bg-gray-100 text-black text-[11px] font-bold rounded-xl border border-border">{item.sku}</span>
-                  </td>
-                  <td className="px-6 py-4 text-[13px] font-bold text-black">{item.category}</td>
-                  <td className="px-6 py-4 text-black font-bold">
-                    <div className="flex flex-col gap-1.5">
-                      <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${item.quantity > 10 ? 'bg-black' : item.quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${Math.min(item.quantity, 100)}%` }}></div>
-                      </div>
-                      <span className={`text-[10px] font-bold ${item.quantity <= 10 ? 'text-red-500' : 'text-black'}`}>
-                        {item.quantity === 0 ? 'Out of Stock' : `${item.quantity} In Stock`}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-black font-bold">Rs {item.costPrice}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => openEditModal(item)} className="p-2 bg-gray-100 text-black  hover:bg-black hover:text-white rounded-lg transition-all"><FiEdit2 size={16} /></button>
-                      <button onClick={() => handleDeleteProduct(item._id)} className="p-2 bg-gray-100 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><FiTrash2 size={16} /></button>
-                    </div>
-                  </td>
-                  
-                </tr>
-              ))}
-            </tbody>
-            
-          </table>
-
-        </div>
-        
-      </div>
-     {/* Pagination */}
-<div className="flex items-center justify-center gap-2 mt-6">
-
-  {/* ⬅️ Previous Arrow */}
-  <button
-    disabled={page === 1}
-    onClick={() => setPage(page - 1)}
-    className="w-10 h-10 flex items-center justify-center border border-gray-200 bg-black rounded-xl text-white hover:bg-white hover:text-black disabled:opacity-40 transition-all"
-  >
-    ‹
-  </button>
-
-  {/* Page Numbers */}
-  {[...Array(totalPages)].map((_, index) => {
-    const pageNumber = index + 1;
-
-    return (
-      <button
-        key={pageNumber}
-        onClick={() => setPage(pageNumber)}
-        className={`w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-bold transition-all
-          ${page === pageNumber
-            ? "bg-black text-white border-black"
-            : "border-gray-200 text-black hover:bg-gray-50"
-          }`}
-      >
-        {pageNumber}
-      </button>
-    );
-  })}
-
-  {/* ➡️ Next Arrow */}
-  <button
-    disabled={page === totalPages}
-    onClick={() => setPage(page + 1)}
-    className="w-10 h-10 flex items-center justify-center border border-gray-200 bg-black rounded-xl text-white hover:bg-white hover:text-black disabled:opacity-40 transition-all"
-  >
-    ›
-  </button>
-
-</div>
-
-      <AddItemModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialData={selectedItem} onAddProduct={handleAddProduct}  onUpdateProduct={handleEditProduct} />
+  <div className='p-4 border border-border bg-bg-card rounded-3xl shadow-sm flex flex-col justify-between items-center lg:flex-row gap-4'>
+    <div className='relative w-full lg:w-96'>
+      <FiSearch className='absolute left-4 top-1/2 -translate-y-1/2 text-muted' />
+      <input value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }} type="text" placeholder='Search SKU, Product Name...' className='w-full pr-4 pl-11 border border-border bg-bg-body rounded-2xl py-3 text-text text-sm outline-none focus:border-bg-primary transition-all' />
     </div>
+    <div className='flex items-center w-full lg:w-auto gap-3'>
+      <select
+          value={stock}
+          onChange={(e) => {
+            setStock(e.target.value);
+            setPage(1);
+          }}
+          className='flex-1 lg:flex-none flex items-center justify-center border gap-2 px-6 py-3 border-border text-text font-bold rounded-2xl hover:bg-hover text-sm transition-all bg-bg-card'
+        >
+          <option value="in">In Stock</option>
+          <option value="out">Out of Stock</option>
+          <option value="low">Low Stock</option>
+        </select>
+      <button onClick={() => openAddModal()} className='flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-bg-primary text-white font-bold rounded-2xl hover:bg-bg-secondary text-sm transition-all'>
+        <FiPlus /> Add Product
+      </button>
+    </div>
+  </div>
+
+  <div className='border border-border rounded-3xl shadow-sm overflow-hidden bg-bg-card'>
+    <div className='overflow-x-auto'>
+      <table className='w-full text-left'>
+        <thead>
+          <tr className='bg-bg-body text-text font-extrabold border-b border-border'>
+            <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>PRODUCT INFO</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">SKU</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Category</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Stock Status</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Price</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className='divide-y divide-border'>
+          {products.map((item) => (
+            <tr key={item._id} className='hover:bg-hover transition-colors group'>
+              <td className='px-6 py-4 text-text font-bold'>
+                <div className='flex items-center gap-4'>
+                  <div className='w-12 h-12 rounded-xl border border-border bg-bg-body overflow-hidden'>
+                    <img src={item.image?.url} alt="" className='w-full h-full object-cover' />
+                  </div>
+                  <div>
+                    <p className="text-sm text-text">{item.name}</p>
+                    <p className="text-[11px] text-muted">{item.unit}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4 text-center text-text font-bold">
+                <span className="px-3 py-1 bg-bg-body text-text text-[11px] font-bold rounded-xl border border-border">{item.sku}</span>
+              </td>
+              <td className="px-6 py-4 text-[13px] font-bold text-text">{item.category}</td>
+              <td className="px-6 py-4 text-text font-bold">
+                <div className="flex flex-col gap-1.5">
+                  <div className="w-24 h-1.5 bg-bg-body rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${item.quantity > 10 ? 'bg-bg-primary' : item.quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${Math.min(item.quantity, 100)}%` }}></div>
+                  </div>
+                  <span className={`text-[10px] font-bold ${item.quantity <= 10 ? 'text-red-500' : 'text-muted'}`}>
+                    {item.quantity === 0 ? 'Out of Stock' : `${item.quantity} In Stock`}
+                  </span>
+                </div>
+              </td>
+              <td className="px-6 py-4 text-text font-bold">Rs {item.costPrice}</td>
+              <td className="px-6 py-4">
+                <div className="flex items-center justify-end gap-2">
+                  <button onClick={() => openEditModal(item)} className="p-2 bg-bg-body text-text hover:bg-bg-primary hover:text-white rounded-lg transition-all"><FiEdit2 size={16} /></button>
+                  <button onClick={() => handleDeleteProduct(item._id)} className="p-2 bg-bg-body text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><FiTrash2 size={16} /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {/* Pagination */}
+  <div className="flex items-center justify-center gap-2 mt-6">
+    <button disabled={page === 1} onClick={() => setPage(page - 1)} className="w-10 h-10 flex items-center justify-center border border-border bg-bg-primary text-white rounded-xl hover:bg-bg-secondary disabled:opacity-40 transition-all">‹</button>
+    {[...Array(totalPages)].map((_, index) => {
+      const pageNumber = index + 1;
+      return (
+        <button key={pageNumber} onClick={() => setPage(pageNumber)} className={`w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-bold transition-all ${page === pageNumber ? "bg-bg-primary text-white border-bg-primary" : "border-border text-text hover:bg-hover"}`}>
+          {pageNumber}
+        </button>
+      );
+    })}
+    <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="w-10 h-10 flex items-center justify-center border border-border bg-bg-primary text-white rounded-xl hover:bg-bg-secondary disabled:opacity-40 transition-all">›</button>
+  </div>
+
+  <AddItemModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialData={selectedItem} onAddProduct={handleAddProduct} onUpdateProduct={handleEditProduct} />
+</div>
   );
 }
 

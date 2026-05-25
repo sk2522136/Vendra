@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { login as loginApi, logout as logoutApi, isAuth } from "../services/api.js";
 import { toast } from "react-toastify";
 
@@ -7,60 +7,59 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
+   const authCheckInProgress = useRef(false);
+  
   const checkAuth = async () => {
+   if (authCheckInProgress.current) {
+      return;
+    }
+
+        authCheckInProgress.current = true; 
+
+
     try {
-      
       const { data } = await isAuth();
-      
-      if (data.success && data.user) {
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
+      setUser(data?.success ? data.user : null);
+    } catch {
       setUser(null);
     } finally {
+      authCheckInProgress.current = false;
       setLoading(false);
     }
   };
-  
-  checkAuth();
-}, []);
 
-
+  // ✅ Sirf ek baar chalega jab App load hogi
+  useEffect(() => {
+    checkAuth();
+  }, []);
   const login = async (credentials) => {
-    try {
-      const { data } = await loginApi(credentials);
-      
-      if (data.success) {
-        const authResponse = await isAuth();
-        
-        if (authResponse.data.success) {
-          setUser(authResponse.data.user);
-        }
-      }
-      
-      return data;
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
-  };
+  setLoading(true);
+  try {
+    const { data } = await loginApi(credentials);
+    setUser(data.user);
+    return { success: true, data }; // Success case
+  } catch (error) {
+    const message = error.response?.data?.message || "Invalid email or password";
+    return { success: false, message: message }; // Error case
+  } finally {
+    setLoading(false);
+  }
+};
 
   const logout = async () => {
     try {
+      setLoading(true);
       await logoutApi();
-      setUser(null); 
+      setUser(null);
+      setLoading(false);
     } catch (error) {
-       console.error("Logout failed.", error);
+      console.error("Logout failed:", error);
+      setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

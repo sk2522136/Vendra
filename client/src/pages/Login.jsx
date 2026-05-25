@@ -1,279 +1,144 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { FaArrowRight, FaLock, FaEnvelope, FaCheck } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { replace, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 
 const Login = () => {
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [Loading, setLoading] = useState(false);
+  const { user, loading,login  } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleSubmit = async (e) => {
   e.preventDefault();
-  setIsLoading(true);
-  setError('');
+  setLoading(true);
 
   try {
-    const response = await login(formData);
-    
-   
-   setTimeout(() => {
-    navigate('/dashboard');
-  }, 1500);
+      const response = await login({ email, password });
 
-   
-    if (response.success) {
-      toast.success('Login successful! ', {
-        position: "top-right",
-        autoClose: 2000,
-      });
-      
-      
-      
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+      if (response.success) {
+        toast.success("Login successful! 🎉");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 500);
+      } else {
+        console.error("Login failed:", response.message);
+        toast.error(response.message || "Invalid email or password");
+        setPassword(""); // Clear password field
+      }
+    } catch (error) {
+      console.error("Login error:", error.message);
+      toast.error(error.message || "Login failed");
+    } finally {
+      setLoading(false); 
     }
-    
-  } catch (err) {
-    const errorMessage = 
-      err.response?.data?.message || 
-      "Invalid Email or Password";
-    
-    toast.error(errorMessage, {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    
-    setError(errorMessage);
 
-  } finally {
-    setIsLoading(false);
-  }
-};
+  
+  };
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-br from-white via-gray-100 to-black overflow-hidden relative flex items-center justify-center">
-
-      {/* Background Effects */}
+ <div className="w-screen h-screen bg-bg-body overflow-hidden relative flex items-center justify-center p-4 font-mona">
+      
+      {/* Background Subtle Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-black opacity-20 rounded-full blur-3xl animate-pulse"></div>
-
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-30 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: '1.5s' }}></div>
-
-        <div className="absolute top-1/2 left-1/2 
-        -translate-x-1/2 -translate-y-1/2 
-        w-80 h-80 bg-gray-400 opacity-10 
-        rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: '0.75s' }}></div>
-
+        <div className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-bg-secondary opacity-[0.08] rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-20 w-[600px] h-[600px] bg-bg-primary opacity-[0.05] rounded-full blur-3xl"></div>
       </div>
 
-      {/* Main Container */}
-      <div className="relative z-10 w-full h-screen flex items-center justify-center px-3">
+      {/* Main Card Container */}
+      <div className="relative z-10 w-full max-w-5xl h-[600px] bg-bg-card rounded-[2rem] shadow-2xl overflow-hidden flex border border-border">
 
-        <div className="w-full max-w-6xl h-[600px]">
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 w-full h-full rounded-3xl overflow-hidden border border-gray-300 shadow-2xl">
-
-            {/* LEFT SIDE */}
-            <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-black to-gray-900 p-10">
-
-              {/* Logo */}
-              <div>
-
-                <h1 className="text-5xl font-black text-white mb-3">
-                  VENDARA<span className="text-gray-500">.</span>
-                </h1>
-
-                <div className="w-20 h-1.5 bg-gradient-to-r from-white to-gray-500 rounded-full"></div>
-
-              </div>
-
-              {/* Content */}
-              <div>
-
-                <h2 className="text-3xl font-black text-white mb-4">
-                  Control Your Inventory
-                </h2>
-
-                <p className="text-gray-400 text-sm mb-8">
-                  Real-time stock tracking, sales management,
-                  and business insights all in one powerful platform.
-                </p>
-
-                {/* Features */}
-                <div className="space-y-3">
-
-                  {[
-                    'Real-time inventory tracking',
-                    'Automated stock alerts',
-                    'Sales analytics dashboard',
-                  ].map((feature, i) => (
-
-                    <div key={i} className="flex items-center gap-3">
-
-                      <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-
-                        <FaCheck size={10} className="text-white" />
-
-                      </div>
-
-                      <span className="text-gray-300 text-sm">
-                        {feature}
-                      </span>
-
-                    </div>
-
-                  ))}
-
+        {/* LEFT SIDE: Brand Branding */}
+        <div className="hidden lg:flex flex-col justify-between bg-bg-secondary p-12 w-[40%]">
+          <div>
+            {/* Logo Section */}
+            <div className="flex flex-col mb-8"> 
+              
+              <div className="flex items-center  mb-4"> 
+                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center">
+                  <span className="text-3xl font-black text-bg-secondary">V</span>
                 </div>
-
+                <span className="text-4xl font-black text-white tracking-tighter">endra</span>
               </div>
 
-              <div className="pt-6 border-t border-white border-opacity-10">
-
-                <p className="text-xs text-gray-500 uppercase">
-                  © 2026 VENDARA Systems
-                </p>
-
-              </div>
-
+              {/* Line ab neeche aa jayegi */}
+              <div className="w-16 h-1.5 bg-bg-primary rounded-full"></div>
             </div>
-
-            {/* RIGHT SIDE FORM */}
-            <div className="flex flex-col bg-white px-8 py-8">
-
-              {/* Header */}
-              <div className="mb-6">
-
-                <h2 className="text-3xl font-black text-black mb-1">
-                  Welcome Back
-                </h2>
-
-                <p className="text-gray-500 text-sm">
-                  Sign in to access your dashboard
-                </p>
-
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit}
-                className="space-y-4">
-
-                {/* Email */}
-                <div>
-
-                  <label className="block text-xs font-bold text-gray-600 mb-1 uppercase">
-                    Email
-                  </label>
-
-                  <div className="relative">
-
-                    <FaEnvelope className="absolute left-3 top-3 text-gray-400" size={12} />
-
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="you@example.com"
-                      className="w-full pl-10 pr-3 py-2 rounded-lg border-2 border-gray-300 focus:border-black outline-none"
-                    />
-
-                  </div>
-
-                </div>
-
-                {/* Password */}
-                <div>
-
-                  <label className="block text-xs font-bold text-gray-600 mb-1 uppercase">
-                    Password
-                  </label>
-
-                  <div className="relative">
-
-                    <FaLock className="absolute left-3 top-3 text-gray-400" size={12} />
-
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-3 py-2 rounded-lg border-2 border-gray-300 focus:border-black outline-none"
-                    />
-
-                  </div>
-
-                  {/* Error Message */}
-                  {error && (
-
-                    <p className="text-red-500 text-xs mt-1 font-medium">
-                      {error}
-                    </p>
-
-                  )}
-
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full mt-3 bg-black text-white font-black py-2.5 rounded-lg hover:bg-gray-800 transition-all uppercase text-xs flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-
-                  {isLoading ? (
-
-                    <>
-                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      Processing...
-                    </>
-
-                  ) : (
-
-                    <>
-                      Sign In
-                      <FaArrowRight size={10} />
-                    </>
-
-                  )}
-
-                </button>
-
-              </form>
-
-            </div>
-
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-3">Enterprise POS System</h2>
+            <p className="text-blue-200 text-sm leading-relaxed">
+              Manage your operations with precision. Designed for efficiency and scale.
+            </p>
           </div>
 
+          <p className="text-[10px] text-blue-400 uppercase font-black tracking-widest">© 2026 Vendra Systems</p>
         </div>
 
-      </div>
+        {/* RIGHT SIDE: Form */}
+        <div className="flex flex-col justify-center w-full lg:w-[60%] px-10 lg:px-20 py-12">
+          <div className="mb-10">
+            <h2 className="text-3xl font-black text-text mb-2">Welcome Back</h2>
+            <p className="text-muted text-sm">Sign in to access your secure dashboard</p>
+          </div>
 
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Input */}
+            <div>
+              <label className="block text-[10px] font-black text-muted mb-2 uppercase tracking-widest">Email Address</label>
+              <div className="relative">
+                <FaEnvelope className="absolute left-4 top-4 text-muted" size={14} />
+                <input
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@vendra.com"
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-border focus:border-bg-primary outline-none transition-all bg-hover text-sm font-bold text-text"
+                />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div>
+              <label className="block text-[10px] font-black text-muted mb-2 uppercase tracking-widest">Password</label>
+              <div className="relative">
+                <FaLock className="absolute left-4 top-4 text-muted" size={14} />
+                <input
+                  type="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-border focus:border-bg-primary outline-none transition-all bg-hover text-sm font-bold text-text"
+                />
+              </div>
+              
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={Loading}
+              className="w-full bg-bg-primary text-white font-black py-4 rounded-2xl hover:bg-bg-secondary transition-all flex items-center justify-center gap-3 shadow-lg shadow-blue-100 active:scale-[0.98]"
+            >
+              {Loading ? (
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              ) : (
+                <>SIGN IN <FaArrowRight size={12} /></>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
+
 };
 
 export default Login;

@@ -1,16 +1,83 @@
 import axios from 'axios';
 
-const API = axios.create({ 
-    baseURL: 'http://localhost:4000/api',
-    withCredentials:true,
+const API = axios.create({
+  baseURL: "http://localhost:4000/api",
+  withCredentials: true, 
 });
+
+let isRefreshing = false; // ✅ Global flag
+let failedQueue = []; // ✅ Queue pending requests
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  isRefreshing = false;
+  failedQueue = [];
+};
+
+API.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    const originalRequest = err.config;
+
+    // ❌ SKIP THESE ENDPOINTS - ye refresh nahi karega
+    if (
+      originalRequest.url.includes('/auth/login') ||
+      originalRequest.url.includes('/auth/register') ||
+      originalRequest.url.includes('/auth/refresh') ||
+      originalRequest.url.includes('/auth/is-auth') // ✅ YE BHI ADD KAR
+    ) {
+      return Promise.reject(err);
+    }
+
+    // ✅ 401 error aaya
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      // ✅ Agar already refresh chal raha hai
+      if (isRefreshing) {
+        // Wait karo refresh complete hone tak
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return API(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      // ✅ Refresh start karo
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const response = await API.post('/auth/refresh');
+        processQueue(null, response.data);
+        return API(originalRequest); // ✅ Retry karo
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(err);
+  }
+);
+
 
 // Authenticatin routes
 export const login = (data)=> API.post('/auth/login',data);
 export const logout = ()=>API.post('/auth/logout');
 export const registerStaff = (data)=>API.post('/auth/register',data)
 export const isAuth = ()=>API.get('/auth/is-auth')
-export const getAllStaff = () => API.get('/auth/staff'); // 👈 یہ backend mein banani padegi
+export const getAllStaff = () => API.get('/auth/staff'); 
+export const deleteStaff = (id) => API.delete(`/auth/staff/${id}`);
+
 
 
 // Product routes

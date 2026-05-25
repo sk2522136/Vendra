@@ -1,38 +1,48 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-sidebar: #171717;
-  --color-bg-mainCard: #f3f5ed;
+  --color-bg-primary: #1a3a99;
+  --color-bg-secondary: #0f2463;
+
+  --color-bg-body: #f8fafc;
   --color-bg-card: #ffffff;
-  --color-icon: #909611;
-  --color-bg-chart:#f7f7ed;
-  --color-text: #141414;
-   --color-border:#898a83;
-  --color-bg-hover:#3f4039;
 
-    
+  --color-text: #111827;
 
+  --color-muted: #94a3b8;
 
---font-mona: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-border: #dbeafe;
+
+  --color-hover: #f3f4f6;
+
+  --font-mona: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 body {
   font-family: var(--font-mona);
-  @apply bg-white text-[--color-text];
+
+  background: var(--color-bg-body);
+
+  color: var(--color-text);
 }
 
+* {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
 
-
-/* Scrollbar chupane ke liye utility class */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+
+  scrollbar-width: none;
 }
 
-/* Sidebar aur baki scrollable areas ke liye clean custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -42,10 +52,24 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #374151; /* Sidebar ke liye dark gray */
+  background-color: #64748b;
+
   border-radius: 20px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #4b5563; /* Hover par thoda light */
+  background-color: #475569;
+}
+
+/* Animation: Smooth subtle shine border effect */
+@keyframes borderShine {
+  0% { border-color: rgba(26, 58, 153, 0.2); }
+  50% { border-color: rgba(59, 130, 246, 0.8); } /* Blue-600 */
+  100% { border-color: rgba(26, 58, 153, 0.2); }
+}
+
+.modal-shine-effect {
+  animation: borderShine 3s infinite ease-in-out;
+  border-width: 2px;
+  border-style: solid;
 }

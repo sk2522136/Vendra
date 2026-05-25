@@ -179,30 +179,30 @@ const handleFormSubmit = (e) => {
 
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 min-h-screen overflow-y-auto space-y-6 sm:space-y-8 bg-white rounded-lg sm:rounded-2xl border border-gray-100 shadow-sm">
+   <div className="p-3 sm:p-4 md:p-6 min-h-screen overflow-y-auto space-y-6 sm:space-y-8  rounded-lg sm:rounded-2xl border bg-bg-body shadow-sm">
       
       {/* Header - Title & Description */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div className="flex-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-black uppercase tracking-tight">Supplier Management</h1>
-          <p className="text-gray-500 text-xs sm:text-sm font-medium mt-1">Track supplier purchases, payments, and outstanding balances.</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase tracking-tight">Supplier Management</h1>
+          <p className="text-muted text-xs sm:text-sm font-medium mt-1">Track supplier purchases, payments, and outstanding balances.</p>
         </div>
         <button 
           onClick={() => openModal('add')}
-          className="bg-black text-white px-4 sm:px-6 py-3 rounded-lg sm:rounded-2xl font-black text-[10px] sm:text-xs shadow-sm uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
+          className="bg-bg-primary text-white px-4 sm:px-6 py-3 rounded-lg sm:rounded-2xl font-black text-[10px] sm:text-xs shadow-sm uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
         >
           <FaPlus size={12} /> <span>Add New Supplier</span>
         </button>
       </div>
 
-      {loading && <p className="text-center text-gray-500 text-sm">Loading...</p>}
+      {loading && <p className="text-center text-muted text-sm">Loading...</p>}
       
       {/* Table - Responsive */}
-      <div className="bg-white border border-gray-100 rounded-lg sm:rounded-3xl overflow-hidden shadow-sm">
+      <div className="bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-full sm:min-w-[800px]">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr className="text-[9px] sm:text-[11px] text-black font-extrabold uppercase tracking-wider">
+            <thead className="bg-bg-body border-b border-border">
+              <tr className="text-[9px] sm:text-[11px] text-text font-extrabold uppercase tracking-wider">
                 <th className="px-3 sm:px-8 py-4 sm:py-5">Supplier</th>
                 <th className="px-2 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">Contact</th>
                 <th className="px-2 sm:px-6 py-4 sm:py-5 text-right hidden md:table-cell">Total Purchase</th>
@@ -211,45 +211,45 @@ const handleFormSubmit = (e) => {
                 <th className="px-2 sm:px-6 py-4 sm:py-5 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {suppliers.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={s.id} className="hover:bg-bg-body transition-colors">
                   <td className="px-3 sm:px-8 py-3 sm:py-4 flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg sm:rounded-xl flex items-center justify-center text-black flex-shrink-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-body rounded-lg sm:rounded-xl flex items-center justify-center text-text flex-shrink-0 border border-border">
                       <FaUserTie size={14} className="sm:w-5 sm:h-5" />
                     </div>
                     <span className="font-bold text-text text-xs sm:text-sm break-words">{s.name}</span>
                   </td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-black font-medium text-xs hidden sm:table-cell break-words">{s.contact}</td>
+                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-muted font-medium text-xs hidden sm:table-cell break-words">{s.contact}</td>
                   <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-text text-xs sm:text-sm hidden md:table-cell whitespace-nowrap">Rs {s.totalPurchase.toLocaleString()}</td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-black text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">Rs {s.paidAmount.toLocaleString()}</td>
+                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-text text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">Rs {s.paidAmount.toLocaleString()}</td>
                   <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-red-500 text-xs sm:text-sm whitespace-nowrap">Rs {s.unpaidAmount.toLocaleString()}</td>
                   <td className="px-2 sm:px-6 py-3 sm:py-4">
                     <div className="flex items-center justify-end gap-1 sm:gap-2">
                       <button 
                         onClick={() => openModal('purchase', s)} 
-                        className="p-1.5 sm:p-2.5 bg-gray-100 text-black rounded-md sm:rounded-lg hover:bg-black hover:text-white transition-all flex-shrink-0"
+                        className="p-1.5 sm:p-2.5 bg-bg-body text-text border border-border rounded-md sm:rounded-lg hover:bg-bg-primary hover:text-white transition-all flex-shrink-0"
                         title="Add Purchase"
                       >
                         <FaCartPlus size={12} className="sm:w-3.5 sm:h-3.5" />
                       </button>
                       <button 
                         onClick={() => openModal('payment', s)} 
-                        className="p-1.5 sm:p-2.5 bg-gray-100 text-black rounded-md sm:rounded-lg hover:bg-black hover:text-white transition-all flex-shrink-0"
+                        className="p-1.5 sm:p-2.5 bg-bg-body text-text border border-border rounded-md sm:rounded-lg hover:bg-bg-primary hover:text-white transition-all flex-shrink-0"
                         title="Add Payment"
                       >
                         <FaWallet size={12} className="sm:w-3.5 sm:h-3.5" />
                       </button>
                       <button 
                         onClick={() => openModal('edit', s)} 
-                        className="p-1.5 sm:p-2.5 bg-gray-100 text-black rounded-md sm:rounded-lg hover:bg-black hover:text-white transition-all flex-shrink-0"
+                        className="p-1.5 sm:p-2.5 bg-bg-body text-text border border-border rounded-md sm:rounded-lg hover:bg-bg-primary hover:text-white transition-all flex-shrink-0"
                         title="Edit"
                       >
                         <FaEdit size={12} className="sm:w-3.5 sm:h-3.5" />
                       </button>
                       <button 
                         onClick={() => handleDeleteSupplier(s._id)} 
-                        className="p-1.5 sm:p-2.5 bg-gray-100 text-red-500 rounded-md sm:rounded-lg hover:bg-red-600 hover:text-white transition-all flex-shrink-0"
+                        className="p-1.5 sm:p-2.5 bg-bg-body text-red-500 border border-border rounded-md sm:rounded-lg hover:bg-red-600 hover:text-white transition-all flex-shrink-0"
                         title="Delete"
                       >
                         <FaTrash size={12} className="sm:w-3.5 sm:h-3.5" />
@@ -266,7 +266,7 @@ const handleFormSubmit = (e) => {
 
       {/* Empty State */}
       {!loading && suppliers.length === 0 && (
-        <p className="text-center text-gray-500 py-8 text-sm">No suppliers found</p>
+        <p className="text-center text-muted py-8 text-sm">No suppliers found</p>
       )}
 
       {/* Modal Logic */}
@@ -284,7 +284,7 @@ const handleFormSubmit = (e) => {
                 placeholder="Name" 
                 value={formData.name} 
                 onChange={handleInputChange}
-                className="w-full p-3 sm:p-4 text-black rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 focus:border-black outline-none font-bold text-sm" 
+                className="w-full p-3 sm:p-4 text-text rounded-lg sm:rounded-2xl bg-bg-body border border-border focus:border-bg-primary outline-none font-bold text-sm" 
               />
               
               <input 
@@ -293,7 +293,7 @@ const handleFormSubmit = (e) => {
                 placeholder="Contact" 
                 value={formData.contact} 
                 onChange={handleInputChange}
-                className="w-full p-3 sm:p-4 text-black rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 focus:border-black outline-none font-bold text-sm" 
+                className="w-full p-3 sm:p-4 text-text rounded-lg sm:rounded-2xl bg-bg-body border border-border focus:border-bg-primary outline-none font-bold text-sm" 
               />
             </>
           )}
@@ -304,13 +304,13 @@ const handleFormSubmit = (e) => {
               placeholder="Enter Amount" 
               value={formData.amount} 
               onChange={handleInputChange}
-              className="w-full p-3 sm:p-4 text-black rounded-lg sm:rounded-2xl bg-gray-50 border border-gray-200 focus:border-black outline-none font-bold text-sm" 
+              className="w-full p-3 sm:p-4 text-text rounded-lg sm:rounded-2xl bg-bg-body border border-border focus:border-bg-primary outline-none font-bold text-sm" 
             />
           )}
           <button
             type="submit"
             disabled={loading} 
-            className="w-full bg-black font-black py-3 sm:py-4 text-white rounded-lg sm:rounded-2xl hover:bg-gray-800 transition-all uppercase text-xs tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-bg-primary font-black py-3 sm:py-4 text-white rounded-lg sm:rounded-2xl hover:opacity-90 transition-all uppercase text-xs tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Processing...' : 'Confirm'}
           </button>

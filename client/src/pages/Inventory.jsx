@@ -6,25 +6,25 @@ const Inventory = () => {
   const [activeTab, setActiveTab] = useState('stock');
 
   return (
-    <div className="p-4 md:p-8 h-[98vh] rounded-2xl bg-bg-mainCard overflow-y-auto">
+    <div className="p-4 md:p-6 rounded-3xl bg-bg-body overflow-y-auto custom-scrollbar">
       
-      {/* Page Title & Description */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-black uppercase tracking-tight">Inventory Management</h1>
-        <p className="text-gray-500 text-sm font-medium mt-1">Monitor real-time stock status and review your transaction logs.</p>
+      {/* Page Title & Description with Gradient Theme */}
+      <div className="mb-8 p-6 rounded-3xl bg-gradient-to-br from-bg-primary to-bg-secondary shadow-lg">
+        <h1 className="text-3xl font-black text-white uppercase tracking-tight">Inventory Management</h1>
+        <p className="text-blue-100 text-sm font-medium mt-1">Monitor real-time stock status and review your transaction logs.</p>
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex gap-2 mb-8 bg-white p-1.5 rounded-2xl border border-gray-100 w-fit shadow-sm">
+      <div className="flex gap-2 mb-8 bg-bg-card p-1.5 rounded-2xl border border-border w-fit shadow-sm">
         <button 
           onClick={() => setActiveTab('stock')}
-          className={`px-6 py-2 rounded-xl font-bold text-xs uppercase transition-all ${activeTab === 'stock' ? 'bg-bg-sidebar text-white' : 'text-text hover:bg-gray-50'}`}
+          className={`px-6 py-2 rounded-xl font-bold text-xs uppercase transition-all ${activeTab === 'stock' ? 'bg-bg-primary text-white' : 'text-text hover:bg-hover'}`}
         >
           Stock Status
         </button>
         <button 
           onClick={() => setActiveTab('log')}
-          className={`px-6 py-2 rounded-xl font-bold text-xs uppercase transition-all ${activeTab === 'log' ? 'bg-bg-sidebar text-white' : 'text-text hover:bg-gray-50'}`}
+          className={`px-6 py-2 rounded-xl font-bold text-xs uppercase transition-all ${activeTab === 'log' ? 'bg-bg-primary text-white' : 'text-text hover:bg-hover'}`}
         >
           Inventory Log
         </button>
@@ -32,7 +32,8 @@ const Inventory = () => {
 
       {/* Content */}
       <div className="h-full">
-{activeTab === 'stock' ? <StockPage /> : <ProductCards />}      </div>
+        {activeTab === 'stock' ? <StockPage /> : <ProductCards />}
+      </div>
     </div>
   );
 };

@@ -42,52 +42,67 @@ const Category = () => {
   
 
   return (
-    <div className='p-6 h-[98vh] overflow-y-auto custom-scrollbar space-y-8 bg-bg-mainCard rounded-3xl'>
+   <div className='p-6  overflow-y-auto custom-scrollbar space-y-8 bg-bg-body rounded-3xl'>
       
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className='text-3xl font-black text-black uppercase tracking-tight'>Product Categories</h1>
-          <p className='text-gray-500 text-sm font-medium mt-1'>Organize your inventory by grouping items into logical categories.</p>
-        </div>
-        <button 
-          onClick={() => { setSelectedCat(null); setIsModalOpen(true); }} 
-          className="flex items-center gap-2 px-6 py-3 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 text-sm transition-all"
-        >
-          <FaPlus /> Add Category
-        </button>
-      </div>
-
-      <div className='border border-gray-100 shadow-sm rounded-3xl shadow-sm overflow-hidden bg-white'>
-        <div className='overflow-x-auto'>
-          <table className='w-full text-left'>
-            <thead>
-              <tr className='bg-gray-50 border-b border-gray-100 text-black font-extrabold'>
-                <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>Category Name</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Products</th>
-                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-border-gray-100 '>
-              {categories.map((c) => (
-                <tr key={c._id} className='hover:bg-gray-50 transition-colors group'>
-                  <td className="px-6 py-4 font-bold text-black">{c.name}</td>
-                  <td className="px-6 py-4 text-center">
-                    <button onClick={() => { setSelectedCat(c); setIsProductModalOpen(true); }} className="p-2 bg-gray-100 text-black rounded-lg hover:bg-black hover:text-white transition-all "><FaBox /></button>
-                  </td>
-                  <td className="px-6 py-4 flex justify-center gap-2">
-                    <button onClick={() => { setSelectedCat(c); setIsModalOpen(true); }} className="p-2 bg-gray-100 text-black rounded-lg hover:bg-black hover:text-white  transition-all "><FaEdit /></button>
-                    <button onClick={() => handleDelete(c._id)} className="p-2 bg-gray-100 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all "><FaTrash /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {isModalOpen && <CategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} category={selectedCat}  reloadCategories={fetchCategories} />}
-      {isProductModalOpen && <CategoryProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} category={selectedCat} />}
+  <div className="flex justify-between items-start">
+    <div>
+      <h1 className='text-3xl font-black text-text uppercase tracking-tight'>Product Categories</h1>
+      <p className='text-muted text-sm font-medium mt-1'>Organize your inventory by grouping items into logical categories.</p>
     </div>
+    <button 
+      onClick={() => { setSelectedCat(null); setIsModalOpen(true); }} 
+      className="flex items-center gap-2 px-6 py-3 bg-bg-primary text-white font-bold rounded-2xl hover:bg-bg-secondary shadow-sm  text-sm transition-all"
+    >
+      <FaPlus /> Add Category
+    </button>
+  </div>
+
+  <div className='border border-border shadow-sm rounded-3xl overflow-hidden bg-bg-card'>
+    <div className='overflow-x-auto custom-scrollbar'>
+      <table className='w-full text-left'>
+        <thead>
+          <tr className='bg-bg-body border-b border-border text-text font-extrabold'>
+            <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>Category Name</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Products</th>
+            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody className='divide-y divide-border'>
+          {categories.map((c) => (
+            <tr key={c._id} className='hover:bg-bg-body transition-colors group'>
+              <td className="px-6 py-4 font-bold text-text">{c.name}</td>
+              <td className="px-6 py-4 text-center">
+                <button 
+                  onClick={() => { setSelectedCat(c); setIsProductModalOpen(true); }} 
+                  className="p-2 bg-bg-body  text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                >
+                  <FaBox />
+                </button>
+              </td>
+              <td className="px-6 py-4 flex justify-center gap-2">
+                <button 
+                  onClick={() => { setSelectedCat(c); setIsModalOpen(true); }} 
+                  className="p-2 bg-bg-body  text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                >
+                  <FaEdit />
+                </button>
+                <button 
+                  onClick={() => handleDelete(c._id)} 
+                  className="p-2 bg-bg-body text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                >
+                  <FaTrash />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {isModalOpen && <CategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} category={selectedCat} reloadCategories={fetchCategories} />}
+  {isProductModalOpen && <CategoryProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} category={selectedCat} />}
+</div>
   );
 };
 

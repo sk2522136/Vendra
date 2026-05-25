@@ -1,30 +1,37 @@
-import { Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from "../context/AuthContext";
+import { Navigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import { FaSpinner } from "react-icons/fa";
+import { useEffect } from "react";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth(); // ✅ checkAuth import karo
+  const location = useLocation();
 
+  // ✅ Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-gray-600">Checking authentication...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center h-screen bg-white gap-3">
+        <FaSpinner className="animate-spin text-black text-2xl" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          Verifying Security Credentials...
+        </span>
       </div>
-    )
+    );
   }
 
+  // ✅ No user - redirect to login
   if (!user) {
-    return <Navigate to='/login' replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 🔥 NEW: Role check
+  // ✅ Role check
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to='/pos' replace />
+    let targetPath = user.role === "admin" ? "/dashboard" : "/pos";
+    return <Navigate to={targetPath} replace />;
   }
 
-  return children
-}
+  return children;
+};
 
 export default ProtectedRoute;
