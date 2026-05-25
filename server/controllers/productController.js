@@ -3,6 +3,8 @@ import {v2 as cloudinary} from 'cloudinary';
 import { filterProducts , getPaginatedProducts , getSortProducts } from '../utils/helperQuery.js';
 import ExpressError from "../utils/expressError.js";
 import { inventoryLogChange } from "./inventoryLog.js";
+import { io } from '../server.js';
+import { checkStockAlert } from '../utils/checkStockAlert.js';
 
 
 // Create Product : /api/product/create
@@ -14,10 +16,9 @@ export const createProduct = async (req, res) => {
     
     // Cloudinary file upload
     if (req.file) {
-        imageurl = req.file.path;        // ← multer-cloudinary direct url deta hai
-        filename = req.file.filename;    // ← aur filename bhi
+        imageurl = req.file.path;        
+        filename = req.file.filename;    
     }
-    // Direct link se save ← test ke liye
     else if (imageUrl) {
         imageurl = imageUrl;
         filename = imageUrl.split('/').pop()
@@ -60,7 +61,7 @@ export const getAllProducts = async (req , res) => {
         const products = await Product.find(filter).sort({[sortBy]: sortorder}).skip(skip).limit(limit);
         const total = await Product.countDocuments(filter);
         const allProducts = await Product.find(filter);
-          const totalPages = Math.ceil(total / limit); // ✅ IMPORTANT
+          const totalPages = Math.ceil(total / limit); // 
 
 
     const stats = {
@@ -92,7 +93,7 @@ export const updateProduct = async (req , res ) => {
             throw new ExpressError('Product Not found', 404);
         }
 
-            const oldQuantity = product.quantity;
+            const oldQuantity = updateProduct.quantity;
 
         // for partial update
         const allowedFields = ["name" ,"sku" ,"category" ,"sellPrice" ,"costPrice" ,"quantity" ,"description" ,"supplier" ,"unit"]
@@ -116,13 +117,19 @@ export const updateProduct = async (req , res ) => {
     updateProduct.image = {url : result.secure_url, filename: result.public_id}
 }
 await updateProduct.save();
-    const newQuantity = product.quantity;
+//socket notification 
+
+
+  checkStockAlert(updateProduct);
+
+
+    const newQuantity = updateProduct.quantity;
         const quantityDiff = newQuantity - oldQuantity;
 
         //  STEP 4: AUTO LOG
     if (quantityDiff !== 0) {
         await inventoryLogChange({
-            product: product._id,
+            product: updateProduct._id,
             quantityChange: quantityDiff,
             type: quantityDiff > 0 ? "Purchase" : "Sale",
             createdBy: req.user?._id

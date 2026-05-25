@@ -3,6 +3,8 @@ import express from 'express';
 import 'dotenv/config';
 import connectDb from './config/db.js';
 import cookieParser from 'cookie-parser';
+import http from 'http';  
+import { Server } from 'socket.io';  
 import authRouter from './routes/authRoute.js';
 import productRouter from './routes/productRoute.js';
 import categoryRouter from './routes/categoryRoute.js';
@@ -18,6 +20,26 @@ import cors from 'cors';
 
 
 const app = express();
+const server = http.createServer(app);
+
+//socket io setup
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
+});
+
+// CONNECTION
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+
 connectDb();
 
 const allowedOrigin = ['http://localhost:5173']
@@ -59,6 +81,8 @@ app.use((err, req, res, next) => {
 
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, ()=>{
+server.listen(PORT, ()=>{
     console.log(`Server is running on port ${PORT}`);
 })
+
+export { io };

@@ -1,5 +1,6 @@
 import Product from "../models/Product.js";
 import { inventoryLogChange } from "../controllers/inventoryLog.js";
+import { checkStockAlert } from "./checkStockAlert.js";
 
 export const updateStock = async ({
   productId,
@@ -17,6 +18,8 @@ export const updateStock = async ({
 
   product.quantity += change;
   await product.save();
+
+  checkStockAlert(product);
 
   await inventoryLogChange({
     product: productId,

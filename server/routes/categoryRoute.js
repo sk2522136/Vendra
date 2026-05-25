@@ -9,7 +9,7 @@ import {createCategory , getAllCategories , updateCategory , deleteCategory} fro
 const router = express.Router();
 
 router.route('/')
-.get( authMiddleware , allowRoles(['admin']) , wrapAsync(getAllCategories))
+.get( authMiddleware , allowRoles(['admin','staff']) , wrapAsync(getAllCategories))
 
 router.route('/create')
 .post(authMiddleware , allowRoles(['admin']) ,validateSchema(categorySchema), wrapAsync(createCategory))

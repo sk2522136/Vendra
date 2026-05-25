@@ -7,6 +7,8 @@ import { inventoryLogChange } from "./inventoryLog.js"
 import ExpressError from "../utils/expressError.js"
 import { updateStock } from '../utils/stockService.js'
 import mongoose from "mongoose"
+import { emitDashboardRefresh } from "../utils/emitDashboardRefresh.js";
+
 
 // api/sale/create
 export const createSale = async (req, res) =>{
@@ -72,7 +74,7 @@ export const createSale = async (req, res) =>{
             createdBy: userId
         });
 
-
+   
 
  //  Update SaleItems with saleRef
     await SaleItem.updateMany(
@@ -92,7 +94,7 @@ for (let item of items) {
     });
 
   }
-
+       emitDashboardRefresh();
         //  Update Customer balance & lastPaymentDate
          const remainingBalance = totalAmount - (paidAmount || 0);
         if (customer.customerType === 'credit' && remainingBalance > 0) {
@@ -182,11 +184,15 @@ for (let item of items) {
     });
   }
 
+
   // Fetch updated sale
   const updatedSale = await Sale.findById(id)
     .populate('customer')
     .populate('items')
     .populate('createdBy');
+    
+    //scket dashboard refresh
+    emitDashboardRefresh();
 
   return res.status(200).json({
     success: true,
@@ -241,6 +247,9 @@ for (let item of sale.items) {
 
     // Sale delete
     await Sale.findByIdAndDelete(id);
+    
+    // Socket dashboard refresh
+    emitDashboardRefresh();
 
     return res.status(200).json({
         success: true,
@@ -346,7 +355,7 @@ export const processReturn = async (req, res) => {
 
   const { saleId, productId, quantity } = req.body;
 
-  // 1️⃣ Find Sale
+  //  Find Sale
   const sale = await Sale.findById(saleId)
     .populate("customer")
     .populate("items");
@@ -355,7 +364,7 @@ export const processReturn = async (req, res) => {
     throw new ExpressError("Sale not found", 404);
   }
 
-  // 2️⃣ Find Sale Item
+  //  Find Sale Item
   const saleItem = await SaleItem.findOne({
     saleRef: saleId,
     product: productId
@@ -369,11 +378,11 @@ export const processReturn = async (req, res) => {
     throw new ExpressError("Cannot return more than purchased quantity", 400);
   }
 
-  // 3️⃣ Calculate refund
+  //  Calculate refund
   const price = saleItem.sellPrice;
   const returnAmount = price * quantity;
 
-  // 4️⃣ STOCK RESTORE + LOG (IMPORTANT)
+  //  STOCK RESTORE + LOG (IMPORTANT)
   await updateStock({
     productId,
     change: +quantity,
@@ -382,7 +391,7 @@ export const processReturn = async (req, res) => {
     user: req.user._id
   });
 
-  // 5️⃣ Update Sale Item
+  // Update Sale Item
   saleItem.quantity -= quantity;
 
   if (saleItem.quantity === 0) {
@@ -396,7 +405,7 @@ export const processReturn = async (req, res) => {
     await saleItem.save();
   }
 
-  // 6️⃣ Update Sale Total
+  //  Update Sale Total
   sale.totalAmount -= returnAmount;
 
   // safe paid adjustment
@@ -406,7 +415,8 @@ export const processReturn = async (req, res) => {
 
   await sale.save();
 
-  // 7️⃣ Update Customer Balance
+
+  // Update Customer Balance
   const customer = sale.customer;
 
   if (customer.customerType === "credit") {
@@ -416,7 +426,7 @@ export const processReturn = async (req, res) => {
   customer.lastPaymentDate = new Date();
   await customer.save();
 
-  // 8️⃣ Create Refund Payment
+  // Create Refund Payment
   await Payment.create({
     sale: saleId,
     customer: customer._id,
@@ -424,8 +434,11 @@ export const processReturn = async (req, res) => {
     paymentMethod: "Refund",
     recievedBy: req.user._id
   });
+ 
+  //Socket dashboard refresh
+ emitDashboardRefresh();
 
-  // 9️⃣ Response
+  // Response
   return res.status(200).json({
     success: true,
     message: "Return processed successfully",

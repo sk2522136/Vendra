@@ -3,7 +3,7 @@ import SaleItem from '../models/SaleItem.js';
 import Expense from '../models/Expense.js';
 import ExpressError from "../utils/expressError.js";
 
-// ✅ GET SALE CHART - /api/analytical/sale
+//  GET SALE CHART - /api/analytical/sale
 export const getSaleChart = async(req, res) => {
     try {
         const { month, year } = req.query;
@@ -11,7 +11,7 @@ export const getSaleChart = async(req, res) => {
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
 
-        // ✅ FIXED: $expr syntax
+        //  FIXED: $expr syntax
         const sales = await Sale.find({
             $expr: {
                 $and: [
@@ -61,7 +61,7 @@ export const getSaleChart = async(req, res) => {
     }
 };
 
-// ✅ TOP SELLING PRODUCTS - /api/analytical/products
+//  TOP SELLING PRODUCTS - /api/analytical/products
 export const getTopSellProd = async(req, res) => {
     try {
         const { month, year, limit = 10 } = req.query;
@@ -80,7 +80,7 @@ export const getTopSellProd = async(req, res) => {
 
         const products = {};
 
-        // ✅ FIXED: SaleItem.find() na SaleItem.findById()
+        //  FIXED: SaleItem.find() na SaleItem.findById()
         for (let sale of sales) {
             const items = await SaleItem.find({ saleRef: sale._id }).populate('product');
             
@@ -98,7 +98,7 @@ export const getTopSellProd = async(req, res) => {
             });
         }
 
-        // ✅ FIXED: Object.keys() na Object.key()
+        //  FIXED: Object.keys() na Object.key()
         Object.keys(products).forEach(key => {
             products[key].avgPrice = (products[key].revenue / products[key].quantity).toFixed(2);
         });
@@ -119,7 +119,7 @@ export const getTopSellProd = async(req, res) => {
     }
 };
 
-// ✅ PROFIT CHART - /api/analytical/profit
+//  PROFIT CHART - /api/analytical/profit
 export const getProfitChart = async(req, res) => {
     try {
         const { year } = req.query;
@@ -144,7 +144,7 @@ export const getProfitChart = async(req, res) => {
                 revenue += s.totalAmount;
             });
 
-            // ✅ COGS calculation
+            //  COGS calculation
             for (let sale of sales) {
                 const items = await SaleItem.find({ saleRef: sale._id }).populate('product');
                 items.forEach(item => {
@@ -194,7 +194,7 @@ export const getProfitChart = async(req, res) => {
     }
 };
 
-// ✅ PAYMENT METHOD - /api/analytical/payment
+//  PAYMENT METHOD - /api/analytical/payment
 export const getPaymentMethod = async(req, res) => {
     try {
         const { month, year } = req.query;

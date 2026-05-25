@@ -1,7 +1,7 @@
 import InventoryLog from "../models/InventoryLog.js";
 import Product from "../models/Product.js";
 import ExpressError from "../utils/expressError.js";
-
+import { io } from '../server.js';
 
 export const inventoryLogChange = async (data) => {
 
@@ -69,7 +69,7 @@ if(type === 'low'){
   );
 }
 else {
-  // ✅ DEFAULT
+  //  DEFAULT
   filterproduct = inventory;
 }
 
@@ -79,6 +79,31 @@ else {
       low: inventory.filter(p => p.status === "Low").length,
       ok: inventory.filter(p => p.status === "OK").length
     };
+
+          //EMIT STOCK ALERTS
+      inventory.forEach(item => {
+        if (item.status === "Out of Stock") {
+          io.emit('outOfStock', {
+            productId: item.productId,
+            productName: item.productName,
+            message: `❌ ${item.productName} - Out of Stock!`
+          });
+        } else if (item.status === "Critical") {
+          io.emit('lowStock', {
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.currentStock,
+            message: `🔴 ${item.productName} - Critical! Only ${item.currentStock} left!`
+          });
+        } else if (item.status === "Low") {
+          io.emit('lowStock', {
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.currentStock,
+            message: `⚠️ ${item.productName} - Low stock! ${item.currentStock} left`
+          });
+        }
+      });
 
 
       return res.status(200).json({
