@@ -73,16 +73,16 @@ const loadCustomers = async () => {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 min-h-screen overflow-y-auto space-y-6 sm:space-y-8 bg-bg-body sm:rounded-2xl  shadow-sm">
+   <div className="h-full flex flex-col overflow-hidden p-3 space-y-4 sm:space-y-6 sm:p-4 md:p-6 bg-bg-body">
       
   {/* Title and Description */}
-  <div>
+  <div className="flex-shrink-0">
     <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase">Customer Management</h1>
     <p className="text-xs sm:text-sm text-muted mt-1">Efficiently manage your customers, track their payment status, and review account balances.</p>
   </div>
   
   {/* Stats Summary Card - Responsive Grid */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+  <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
     <div className="bg-bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-border shadow-sm">
       <p className="text-[9px] sm:text-[11px] font-extrabold text-muted uppercase tracking-wider">Total credit Customer</p>
       <h3 className="text-lg sm:text-2xl font-black text-red-500 mt-1 break-words">Rs {stats.totalCreditAmount.toLocaleString()}</h3>
@@ -98,8 +98,8 @@ const loadCustomers = async () => {
   </div>
  
   {/* Customers Table/Grid */}
-  <div className="bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden custom-scrollbar shadow-sm">
-    <div className='p-3 sm:p-6 border-b border-border'>
+  <div className="flex-1 flex flex-col bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden shadow-sm">
+    <div className='flex-shrink-0 p-3 sm:p-6 border-b border-border'>
       <div className="relative flex gap-2">
         <FaSearch className="absolute top-1/2 -translate-y-1/2 left-4 text-muted flex-shrink-0" />
         <input 
@@ -114,9 +114,9 @@ const loadCustomers = async () => {
         />
       </div>
     </div>
-    <div className="overflow-x-auto">
+    <div className="flex-1 overflow-x-auto overflow-y-auto">
       <table className="w-full text-left min-w-full sm:min-w-[700px]">
-        <thead className="bg-bg-body border-b border-border">
+        <thead className="sticky top-0 bg-bg-body border-b border-border z-10">
           <tr className="text-[9px] sm:text-[11px] font-extrabold text-muted uppercase">
             <th className="px-3 sm:px-6 py-3 sm:py-4">Customer Details</th>
             <th className="px-3 sm:px-6 py-3 sm:py-4 hidden sm:table-cell">Type</th>
@@ -171,7 +171,7 @@ const loadCustomers = async () => {
   </div>
 
   {/* Pagination - Responsive */}
-  <div className="flex items-center justify-center gap-1 sm:gap-2 mt-6 overflow-x-auto pb-2">
+  <div className="flex-shrink-0 flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto pb-2">
     <button
       disabled={page === 1}
       onClick={() => setPage(page - 1)}

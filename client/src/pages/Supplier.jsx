@@ -179,7 +179,7 @@ const handleFormSubmit = (e) => {
 
 
   return (
-   <div className="p-3 sm:p-4 md:p-6 min-h-screen overflow-y-auto space-y-6 sm:space-y-8  rounded-lg sm:rounded-2xl border bg-bg-body shadow-sm">
+   <div className="h-full flex flex-col overflow-hidden p-3 space-y-4 sm:space-y-6 sm:p-4 md:p-6 bg-bg-body">
       
       {/* Header - Title & Description */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -199,7 +199,7 @@ const handleFormSubmit = (e) => {
       
       {/* Table - Responsive */}
       <div className="bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto">
           <table className="w-full text-left min-w-full sm:min-w-[800px]">
             <thead className="bg-bg-body border-b border-border">
               <tr className="text-[9px] sm:text-[11px] text-text font-extrabold uppercase tracking-wider">

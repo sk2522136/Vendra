@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { NavLink } from 'react-router-dom';
-import { FaSignOutAlt, FaUserCircle, FaCashRegister, FaUsers, FaBars } from 'react-icons/fa';
+import { FaSignOutAlt, FaUserCircle, FaCashRegister, FaUsers, FaBars, FaThLarge, FaBoxOpen, FaWarehouse, FaFileAlt, FaUserTie, FaTags, FaMoneyBillWave, FaTruck } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 function StaffNavbar() {
@@ -10,10 +10,20 @@ function StaffNavbar() {
   const { logout, user } = useAuth();
   const logoutRef = useRef(null);
 
-  const navItems = [
-    { to: '/pos', label: 'POS', icon: <FaCashRegister /> },
-    { to: '/customer', label: 'Customers', icon: <FaUsers /> },
+  const allNavItems = [
+    { to: '/dashboard', label: 'Dashboard', icon: <FaThLarge />, roles: ['admin'] },
+    { to: '/pos', label: 'POS', icon: <FaCashRegister />, roles: ['admin', 'staff'] },
+    { to: '/items', label: 'Items', icon: <FaBoxOpen />, roles: ['admin'] },
+    { to: '/inventory', label: 'Inventory', icon: <FaWarehouse />, roles: ['admin'] },
+    { to: '/category', label: 'Categories', icon: <FaTags />, roles: ['admin'] },
+    { to: '/expenses', label: 'Expenses', icon: <FaMoneyBillWave />, roles: ['admin'] },
+    { to: '/reports', label: 'Reports', icon: <FaFileAlt />, roles: ['admin'] },
+    { to: '/suppliers', label: 'Suppliers', icon: <FaTruck />, roles: ['admin'] },
+    { to: '/customer', label: 'Customers', icon: <FaUsers />, roles: ['admin', 'staff'] },
+    { to: '/staff', label: 'Staff', icon: <FaUserTie />, roles: ['admin'] },
   ];
+
+  const navItems = allNavItems.filter(item => item.roles.includes(user?.role));
 
   const handleLogout = async () => {
     try {
@@ -26,10 +36,11 @@ function StaffNavbar() {
   };
 
   return (
-    <div className="bg-bg-card m-4 rounded-4xl border-b border-border shadow-sm">
+    // 'shrink-0' add kiya hai taaki mobile par layout na dabbe
+    <div className="bg-bg-card m-4 rounded-4xl border-b border-border shadow-sm shrink-0">
       
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-3 md:px-6">
+      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         
         {/* Logo */}
         <div className="flex items-center ">
@@ -39,8 +50,8 @@ function StaffNavbar() {
           <h1 className="text-black text-xl font-black tracking-tighter">endra</h1>
         </div>
 
-        {/* Desktop Navigation + User */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop Navigation + User (md ki jagah lg use kiya) */}
+        <div className="hidden lg:flex items-center gap-8">
           
           {/* Nav Items */}
           <nav className="flex items-center gap-2">
@@ -98,18 +109,18 @@ function StaffNavbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button (md ki jagah lg use kiya) */}
         <button
           onClick={() => setShowNav(!showNav)}
-          className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
         >
           <FaBars size={20} />
         </button>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation (md ki jagah lg use kiya) */}
       {showNav && (
-        <div className="md:hidden bg-gray-50 border-t border-border px-4 py-3 space-y-2">
+        <div className="lg:hidden bg-bg-body border-t border-border px-4 py-3 space-y-2 ">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
