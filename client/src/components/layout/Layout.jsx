@@ -1,48 +1,31 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../layout/Sidebar.jsx';
 import StaffNavbar from '../layout/StaffNavbar.jsx';
-import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 function Layout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useAuth();
-
-  // ✅ Staff ke liye navbar dikhao, admin ke liye sidebar
-  const isStaff = user?.role === 'staff';
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      
-      {/* Mobile ke liye - Staff navbar ya Admin sidebar toggle */}
-      {isStaff ? (
-        // ✅ STAFF KE LIYE - Top navbar only
+      {/* Mobile/Tablet Navbar (lg se choti screens par) */}
+      <div className="lg:hidden shrink-0">
         <StaffNavbar />
-      ) : (
-        // ✅ ADMIN KE LIYE - Purana Layout
-        <div className="flex h-screen">
-          {mobileOpen && (
-            <div 
-              className="fixed inset-0 bg-bg-card lg:hidden z-30"
-              onClick={() => setMobileOpen(false)}
-            />
-          )}
+      </div>
 
-          <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-          
-          <main className="flex-1 overflow-y-auto custom-scrollbar">
-            <Outlet />
-          </main>
-        </div>
-      )}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar (lg se badi screen par) */}
+        {user?.role === 'admin' && (
+          <div className="hidden lg:block w-64 shrink-0">
+            <Sidebar />
+          </div>
+        )}
 
-      {/* STAFF - Content area */}
-      {isStaff && (
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-4">
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar pt-2 pr-2">
           <Outlet />
         </main>
-      )}
-
+      </div>
     </div>
   );
 }
