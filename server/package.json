@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.30.0",
     "cookie-parser": "^1.4.7",
@@ -25,7 +26,9 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^8.0.7",
-    "socket.io": "^4.8.3"
+    "pdfkit": "^0.19.1",
+    "socket.io": "^4.8.3",
+    "stripe": "^22.2.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

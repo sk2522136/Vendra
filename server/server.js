@@ -15,6 +15,11 @@ import expenseRouter from './routes/expenseRoute.js';
 import analyticalRouter from './routes/analyticalRoute.js';
 import ExpressError from "./utils/expressError.js";
 import customerRouter from './routes/customerRoute.js';
+import paymentRouter from './routes/paymentRoute.js';
+import chatbotRouter from './routes/chatbotRoute.js';
+
+
+
 import cors from 'cors';
 
 
@@ -60,6 +65,10 @@ app.use('/api/inventory',inventoryRouter);
 app.use('/api/expense',expenseRouter);
 app.use('/api/analytical',analyticalRouter);
 app.use('/api/customer',customerRouter);
+app.use('/api/payment', paymentRouter);
+app.use('/api/chatbot', chatbotRouter);
+
+
 
 
 app.all(/.*/,(req , res , next)=>{

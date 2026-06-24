@@ -1,6 +1,12 @@
 # dependencies
 node_modules/
 
+
+#receipts and invoices
+backend/receipts/
+*.pdf
+*.jpg
+
 # env files
 .env
 

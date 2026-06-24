@@ -49,6 +49,8 @@ export const createSaleSchema = Joi.object({
       quantity: Joi.number().required().positive(),
       sellPrice: Joi.number().required().positive()
     })),
+    discount: Joi.number().min(0).default(0).optional(), 
+  notes: Joi.string().allow('').optional(),
   customerType: Joi.string().valid('cash', 'credit').required(),
   paidAmount: Joi.number().required().min(0)
 }).unknown(false);

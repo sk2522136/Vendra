@@ -129,5 +129,10 @@ export const getProfitChart = (year) =>API.get(`/analytical/profit?year=${year |
 export const getPaymentMethod = (month, year) =>API.get(`/analytical/payment?month=${month || ''}&year=${year || ''}`);
 
 
+// payment route
+export const createStripeIntent = (data) => API.post('/payment/create-intent', data);
+export const confirmStripePayment = (data) => API.post('/payment/confirm-stripe-payment', data);
 
+//chatbot route
+export const getChatbotResponse = (data) => API.post('/chatbot/message',  data );
 export default API;
