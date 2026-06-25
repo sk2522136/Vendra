@@ -1,43 +1,15 @@
 import mongoose from 'mongoose'
 
 const customerSchema = new mongoose.Schema({
-    name: { 
-        type: String, 
-        required: true 
-    },
-    phoneNumber: { 
-        type: String, 
-        required: true, 
-        unique: true 
-    },
-   
-    currentBalance: { 
-        type: Number, 
-        default: 0 
-    },
-    lastPaymentDate: { 
-        type: Date 
-    },
-    customerType: { 
-        type: String, 
-        enum: ['cash', 'credit', 'card', 'online'],
-        default: 'cash' 
-    },
-    isActive: { 
-        type: Boolean, 
-        default: true 
-    },
-    totalPurchased: {
-        type: Number,
-        default: 0
-    },
-    totalPaid: {
-        type: Number,
-        default: 0
-    },
-    notes: {
-        type: String
-    }
+    name: { type: String,  required: true },
+    phoneNumber: { type: String, required: true, unique: true  },
+   currentBalance: { type: Number, default: 0 },
+    lastPaymentDate: { type: Date },
+    customerType: { type: String, enum: ['cash', 'credit', 'card', 'online'],default: 'cash' },
+    isActive: { type: Boolean, default: true },
+    totalPurchased: {type: Number,default: 0},
+    totalPaid: {type: Number,default: 0},
+    notes: {type: String}
 }, { timestamps: true })
 
 const Customer = mongoose.models.Customer || mongoose.model('Customer', customerSchema)

@@ -3,11 +3,8 @@ import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-
-// Services Endpoints Mapping
+import VoiceRecorder from "../components/voicerecord/VoiceRecorder.jsx"; // Import the VoiceRecorder component
 import { fetchProduct, createSale, getAllCategories, createStripeIntent, confirmStripePayment } from "../services/api.js";
-
-// Import Components Matrix
 import ProductSection from "../components/pos/ProductSection.jsx";
 import CartSection from "../components/pos/CartSection.jsx";
 import CheckoutForm from "../components/pos/CheckoutForm.jsx";
@@ -36,6 +33,9 @@ const PosComponent = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [receiptPdf, setReceiptPdf] = useState(null);
+
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+
 
   useEffect(() => {
     loadProducts();
@@ -178,6 +178,52 @@ const PosComponent = () => {
     setCart([]); setCustomerName(""); setCustomerPhone(""); setDiscount(0); setNotes(""); setPaymentMethod("cash");
   };
 
+
+  const handleVoiceCommand = (commandData) => {
+    const { action, product, quantity, paymentMethod } = commandData;
+
+    // 1. ADD TO CART 
+    if (action === "ADD_TO_CART" && product) {
+      const targetProduct = products.find(
+        (p) => p.name && p.name.toLowerCase() === product.toLowerCase()
+      );
+
+      if (targetProduct) {
+        const qtyToAdd = quantity || 1;
+        for (let i = 0; i < qtyToAdd; i++) {
+          addToCart(targetProduct);
+        }
+        toast.success(`Added ${qtyToAdd}x ${targetProduct.name} to cart via voice!`);
+      } else {
+        toast.error(`Product "${product}" not found in inventory.`);
+      }
+    } 
+    // 2. CHECKOUT & COMPLETE SALE 
+    else if (action === "CHECKOUT") {
+      if (paymentMethod === "cash" || paymentMethod === "credit") {
+        setPaymentMethod(paymentMethod);
+        toast.success(`Payment method set to ${paymentMethod.toUpperCase()}. Finalizing sale...`);
+        
+        
+        if (typeof completeOrder === "function") {
+          completeOrder();
+        } else {
+          console.warn("completeOrder function is not defined. Replace with your actual checkout function.");
+        }
+
+      } else {
+        toast.warning("Please specify a valid payment method (cash or credit).");
+      }
+    } 
+    // 3. UNKNOWN / FAILED
+    else {
+      toast.info("Voice command recognized but action could not be identified.");
+    }
+  };
+
+
+  
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-bg-body">
       <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-bg-primary"></div>
@@ -186,6 +232,8 @@ const PosComponent = () => {
 
   return (
     <div className="flex flex-col xl:flex-row h-screen w-full bg-bg-body text-text font-sans overflow-y-auto xl:overflow-hidden p-2 sm:p-4 gap-4">
+      
+      
       {/* 1. PRODUCT STATION COMPONENT */}
       <ProductSection 
         products={filteredProducts} 
@@ -204,9 +252,11 @@ const PosComponent = () => {
           cart={cart} savedCarts={savedCarts} saveCart={saveCart} 
           loadSavedCart={loadSavedCart} deleteSavedCart={deleteSavedCart} 
           increaseQty={increaseQty} decreaseQty={decreaseQty} removeFromCart={removeFromCart} 
+          isVoiceEnabled={isVoiceEnabled}
+          setIsVoiceEnabled={setIsVoiceEnabled}
         />
 
-        {/* 3. CHECKOUT SUMMARY BILLING STATION COMPONENT */}
+        {/* 3. CHECKOUT and BILLING  */}
         <CheckoutForm 
           customerName={customerName} setCustomerName={setCustomerName}
           customerPhone={customerPhone} setCustomerPhone={setCustomerPhone}
@@ -217,6 +267,12 @@ const PosComponent = () => {
           isProcessingPayment={isProcessingPayment} completeSale={completeSale}
         />
       </div>
+        {isVoiceEnabled && (
+          <VoiceRecorder 
+            onCommand={handleVoiceCommand} 
+            onClose={() => setIsVoiceEnabled(false)} 
+          />
+        )}
 
       {/* RECEIPT MODAL FRAME */}
       {showModal && (

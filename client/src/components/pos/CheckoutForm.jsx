@@ -83,6 +83,20 @@ const CheckoutForm = ({
         ))}
       </div>
 
+      {/* Stripe Card Credentials Box (Shows only when 'card' is selected) */}
+      {paymentMethod === "card" && (
+        <div className="bg-white border border-border rounded-xl p-3 shadow-xs space-y-1.5">
+          <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">Secure Card Details *</label>
+          <div className="p-2.5 border border-border rounded-lg bg-bg-body focus-within:border-bg-primary transition-all">
+            <CardElement options={{ 
+              style: { 
+                base: { fontSize: '13px', color: '#1A1A1A', fontFamily: 'Inter, sans-serif' },
+                invalid: { color: '#EF4444' } 
+              } 
+            }} />
+          </div>
+        </div>
+      )}
       
       {/* Financial Matrix Summary Totals */}
       <div className="bg-hover border border-border rounded-xl p-3 space-y-1.5 text-xs font-medium">

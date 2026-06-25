@@ -1,7 +1,7 @@
 import React from "react";
 import { FiShoppingCart, FiSave, FiTrash2, FiMinus, FiPlus } from "react-icons/fi";
 
-const CartSection = ({ cart, savedCarts, saveCart, loadSavedCart, deleteSavedCart, increaseQty, decreaseQty, removeFromCart }) => {
+const CartSection = ({ cart, savedCarts, saveCart, loadSavedCart, deleteSavedCart, increaseQty, decreaseQty, removeFromCart,isVoiceEnabled, setIsVoiceEnabled }) => {
   return (
     <div className="flex flex-col flex-1 min-h-[200px] overflow-hidden">
       {/* Receipt Header */}
@@ -13,6 +13,23 @@ const CartSection = ({ cart, savedCarts, saveCart, loadSavedCart, deleteSavedCar
             <p className="text-[11px] opacity-80 font-medium">{cart.length} items</p>
           </div>
         </div>
+           
+           {/* Beautiful Toggle Switch ON/OFF */}
+        <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl border border-white/20 text-white text-xs font-bold select-none">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={isVoiceEnabled} 
+              onChange={(e) => setIsVoiceEnabled(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-bg-primary"></div>
+            <span className="ml-2.5 font-black tracking-wider">
+              VOICE: {isVoiceEnabled ? "ON" : "OFF"}
+            </span>
+          </label>
+        </div>
+
         <button 
           onClick={saveCart}
           className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all text-xs font-bold flex items-center gap-1 shadow-sm"

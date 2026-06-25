@@ -15,7 +15,7 @@ const sendEmail = async (options) => {
     from: `"Inventos POS System" <${process.env.EMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
-    html: options.html, // design
+    html: options.html, 
   };
 
   // 3. Email send

@@ -4,11 +4,11 @@ import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Payment Intent create karne ke liye
+// Payment Intent create 
 export const createPaymentIntent = async (amount, currency = 'usd', metadata = {}) => {
   try {
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Stripe cents mein chahta hai
+      amount: Math.round(amount * 100), 
       currency: currency,
       metadata: metadata,
       automatic_payment_methods: {
@@ -47,25 +47,5 @@ export const getPaymentStatus = async (paymentIntentId) => {
   }
 };
 
-// Refund create karne ke liye
-export const createRefund = async (paymentIntentId, amount = null) => {
-  try {
-    const refund = await stripe.refunds.create({
-      payment_intent: paymentIntentId,
-      amount: amount ? Math.round(amount * 100) : undefined,
-    });
-
-    return {
-      success: true,
-      refundId: refund.id,
-      refund: refund,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-};
 
 export default stripe;

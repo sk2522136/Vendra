@@ -9,7 +9,7 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Auto scroll logic to stick to the latest message
+  // Auto scroll 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);

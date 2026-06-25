@@ -4,11 +4,10 @@ import Customer from '../models/Customer.js';
 import SaleItem from '../models/SaleItem.js';
 import Product from '../models/Product.js';
 import ExpressError from '../utils/expressError.js';
-import { createPaymentIntent, getPaymentStatus, createRefund } from '../utils/stripeService.js';
+import { createPaymentIntent, getPaymentStatus } from '../utils/stripeService.js';
 import generateReceipt from '../utils/receiptGenerator.js';
 import { emitDashboardRefresh } from '../utils/emitDashboardRefresh.js';
 
-// ===== 1. STRIPE PAYMENT INTENT CREATE =====
 // POST /api/payment/create-intent
 export const createStripePaymentIntent = async (req, res) => {
   try {
@@ -22,13 +21,13 @@ export const createStripePaymentIntent = async (req, res) => {
       throw new ExpressError('Sale ID required', 400);
     }
 
-    // Sale find karo
+    // Sale find
     const sale = await Sale.findById(saleId);
     if (!sale) {
       throw new ExpressError('Sale not found', 404);
     }
 
-    // Stripe payment intent create karo
+    // Stripe payment intent create 
     const result = await createPaymentIntent(amount, currency, {
       saleId: saleId.toString(),
     });
@@ -51,7 +50,6 @@ export const createStripePaymentIntent = async (req, res) => {
   }
 };
 
-// ===== 2. CONFIRM STRIPE PAYMENT =====
 // POST /api/payment/confirm-stripe-payment
 export const confirmStripePayment = async (req, res) => {
   try {
@@ -61,7 +59,7 @@ export const confirmStripePayment = async (req, res) => {
       throw new ExpressError('Payment intent ID and Sale ID required', 400);
     }
 
-    // Stripe se payment status check karo
+    // Stripe  payment status check 
     const result = await getPaymentStatus(paymentIntentId);
 
     if (!result.success) {
@@ -70,17 +68,17 @@ export const confirmStripePayment = async (req, res) => {
 
     const paymentStatus = result.status;
 
-    // Sale find karo
+    // Sale find
     const sale = await Sale.findById(saleId).populate('customer').populate('items');
     if (!sale) {
       throw new ExpressError('Sale not found', 404);
     }
 
-    // Agar payment succeed hua
+    //  payment succeed 
     if (paymentStatus === 'succeeded') {
       const customer = sale.customer;
 
-      // Payment record create karo
+      // Payment record create
       const payment = await Payment.create({
         sale: saleId,
         customer: customer._id,
@@ -91,31 +89,31 @@ export const confirmStripePayment = async (req, res) => {
         recievedBy: req.user._id
       });
 
-      // Sale update karo
+      // Sale update 
       sale.paidAmount = sale.totalAmount;
       sale.paymentStatus = 'success';
       sale.paymentId = payment._id;
       sale.paymentMethod = 'card';
       await sale.save();
 
-      // Customer lastPaymentDate update karo
+      // Customer lastPaymentDate update 
       customer.lastPaymentDate = new Date();
       if (customer.customerType === 'credit') {
         customer.currentBalance = 0;
       }
       await customer.save();
 
-      // Receipt generate karo
+      // Receipt generate 
       let receiptNumber = `RCP-${Date.now()}`;
       sale.receiptNumber = receiptNumber;
       await sale.save();
 
-      // Populate karo receipt generation ke liye
+      // Populate  receipt generation 
       const populatedSale = await Sale.findById(saleId)
         .populate('items')
         .populate('customer');
 
-      // Items ke saath product details
+      // Items with product details
       const itemsWithProducts = await Promise.all(
         populatedSale.items.map(async (item) => {
           const product = await Product.findById(item.product);
@@ -146,18 +144,7 @@ export const confirmStripePayment = async (req, res) => {
         console.error('Receipt generation error:', pdfError);
       }
 
-      // Confirmation email bhejo
-      try {
-        await sendPaymentConfirmationEmail(
-          customer.email || 'customer@email.com',
-          customer.name,
-          sale.totalAmount,
-          paymentIntentId,
-          receiptNumber
-        );
-      } catch (emailError) {
-        console.error('Email sending error:', emailError);
-      }
+     
 
       emitDashboardRefresh();
 

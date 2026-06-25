@@ -7,36 +7,13 @@ const saleSchema = new mongoose.Schema({
     paidAmount: {type: Number, required: true},
     createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     paymentId: {type: mongoose.Schema.Types.ObjectId, ref: 'Payment'},
-    paymentMethod: {
-        type: String,
-        enum: ['cash', 'credit', 'card', 'online'],
-        default: 'cash'
-    },
-    paymentStatus: {
-        type: String,
-        enum: ['pending', 'success', 'failed'],
-        default: 'pending'
-    },
-    receiptNumber: {
-        type: String,
-        unique: true,
-        sparse: true
-    },
-    receiptGenerated: {
-        type: Boolean,
-        default: false
-    },
-    stripePaymentIntentId: {
-        type: String,
-        sparse: true
-    },
-    discount: {
-        type: Number,
-        default: 0
-    },
-    notes: {
-        type: String
-    },
+    paymentMethod: {type: String,enum: ['cash', 'credit', 'card', 'online'],default: 'cash'},
+    paymentStatus: {type: String,enum: ['pending', 'success', 'failed'],default: 'pending'},
+    receiptNumber: {type: String,unique: true,sparse: true},
+    receiptGenerated: {type: Boolean,default: false},
+    stripePaymentIntentId: {type: String,sparse: true},
+    discount: {type: Number,default: 0},
+    notes: {type: String},
     
 }, {timestamps: true})
 

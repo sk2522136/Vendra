@@ -17,6 +17,7 @@ import ExpressError from "./utils/expressError.js";
 import customerRouter from './routes/customerRoute.js';
 import paymentRouter from './routes/paymentRoute.js';
 import chatbotRouter from './routes/chatbotRoute.js';
+import voiceRouter from './routes/voiceRoute.js';
 
 
 
@@ -67,7 +68,7 @@ app.use('/api/analytical',analyticalRouter);
 app.use('/api/customer',customerRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/chatbot', chatbotRouter);
-
+app.use('/api/voice', voiceRouter);
 
 
 

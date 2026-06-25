@@ -135,4 +135,8 @@ export const confirmStripePayment = (data) => API.post('/payment/confirm-stripe-
 
 //chatbot route
 export const getChatbotResponse = (data) => API.post('/chatbot/message',  data );
+
+// voice route
+export const parseVoiceCommand = (data) => API.post('/voice/parse-command', data);
+
 export default API;
