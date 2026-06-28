@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build: ./server
     ports:
       - "4000:4000"
     env_file:
@@ -11,7 +11,7 @@ services:
       - pos-network
 
   frontend:
-    build: ./frontend
+    build: ./client
     ports:
       - "80:80"
     env_file:

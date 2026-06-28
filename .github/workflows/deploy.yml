@@ -18,23 +18,23 @@ jobs:
           node-version: '18'
 
       - name: Install backend dependencies
-        run: cd backend && npm install
+        run: cd server && npm install
 
       - name: Run backend tests
-        run: cd backend && npm test || true
+        run: cd server && npm test || true
 
       # Frontend Tests
       - name: Install frontend dependencies
-        run: cd frontend && npm install
+        run: cd client && npm install
 
       - name: Build frontend
-        run: cd frontend && npm run build
+        run: cd client && npm run build
 
       # Docker Build
       - name: Build Docker images
         run: |
-          docker build -t backend:latest ./backend
-          docker build -t frontend:latest ./frontend
+          docker build -t backend:latest ./server
+          docker build -t frontend:latest ./client
 
       - name: Display success message
         run: echo "✅ Build successful! Ready for deployment"
