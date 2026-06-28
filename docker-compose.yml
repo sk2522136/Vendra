@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env  
+    networks:
+      - pos-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    env_file:
+      - .env  
+    depends_on:
+      - backend
+    networks:
+      - pos-network
+
+networks:
+  pos-network:
+    driver: bridge

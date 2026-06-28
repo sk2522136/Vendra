@@ -18,6 +18,8 @@ import customerRouter from './routes/customerRoute.js';
 import paymentRouter from './routes/paymentRoute.js';
 import chatbotRouter from './routes/chatbotRoute.js';
 import voiceRouter from './routes/voiceRoute.js';
+import backupRouter from './routes/backupRoute.js';
+import startScheduleBackup from './utils/scheduleBackup.js';
 
 
 
@@ -47,6 +49,7 @@ io.on('connection', (socket) => {
 
 
 connectDb();
+startScheduleBackup();
 
 const allowedOrigin = ['http://localhost:5173']
 
@@ -69,6 +72,9 @@ app.use('/api/customer',customerRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/chatbot', chatbotRouter);
 app.use('/api/voice', voiceRouter);
+app.use('/api/backup', backupRouter);
+
+
 
 
 

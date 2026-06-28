@@ -46,7 +46,7 @@ function Layout() {
         </main>
       )}
     </div>
-    <ChatbotToggle />
+     {user?.role === 'admin' && <ChatbotToggle />}
     </>
   );
 }

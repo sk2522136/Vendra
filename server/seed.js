@@ -33,3 +33,4 @@ const seedAdmin = async () => {
 };
 
 seedAdmin();
+

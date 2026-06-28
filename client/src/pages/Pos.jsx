@@ -8,6 +8,7 @@ import { fetchProduct, createSale, getAllCategories, createStripeIntent, confirm
 import ProductSection from "../components/pos/ProductSection.jsx";
 import CartSection from "../components/pos/CartSection.jsx";
 import CheckoutForm from "../components/pos/CheckoutForm.jsx";
+import { saveSaleToLocalStorage, savePaymentToLocalStorage } from '../utils/localStorageService.js';
 
 const stripePromise = loadStripe("pk_test_your_publishable_key_here");
 
@@ -139,7 +140,18 @@ const PosComponent = () => {
 
       if (paymentMethod !== "card") {
         const res = await createSale(saleData);
-        if (res.data?.pdfData) { setReceiptPdf(res.data.pdfData); setShowModal(true); }
+        if (res.data?.sale) {
+        saveSaleToLocalStorage({
+          saleId: res.data.sale._id,
+          totalAmount: res.data.sale.totalAmount,
+          paidAmount: res.data.sale.paidAmount,
+          items: res.data.sale.items.length,
+          customer: res.data.sale.customer,
+          timestamp: new Date().toISOString()
+        });
+      }
+        if (res.data?.pdfData) { 
+          setReceiptPdf(res.data.pdfData); setShowModal(true); }
         toast.success("Transaction processed successfully!");
         resetForm();
         return;
@@ -164,7 +176,17 @@ const PosComponent = () => {
       if (stripeResult.paymentIntent.status === "succeeded") {
         const confirmRes = await confirmStripePayment({ paymentIntentId, saleId });
         if (confirmRes.data.success) {
-          if (saleResponse.data?.pdfData) { setReceiptPdf(saleResponse.data.pdfData); setShowModal(true); }
+          savePaymentToLocalStorage({
+          paymentId: paymentIntentId,
+          amount: totalAmount,
+          saleId: saleId,
+          method: paymentMethod,
+          timestamp: new Date().toISOString()
+        });
+        
+        
+          if (saleResponse.data?.pdfData) {
+            setReceiptPdf(saleResponse.data.pdfData); setShowModal(true); }
           toast.success("Card Charged Successfully!");
           resetForm();
         }

@@ -58,7 +58,7 @@ export const getAllProducts = async (req , res) => {
         const filter = filterProducts(req);
         const { limit ,skip,page } =  getPaginatedProducts(req);
         const {sortBy , sortorder} =  getSortProducts(req );
-        const products = await Product.find(filter).sort({[sortBy]: sortorder}).skip(skip).limit(limit);
+        const products = await Product.find(filter).sort({[sortBy]: sortorder}).skip(skip).limit(limit).populate('category');
         const total = await Product.countDocuments(filter);
         const allProducts = await Product.find(filter);
           const totalPages = Math.ceil(total / limit); // 

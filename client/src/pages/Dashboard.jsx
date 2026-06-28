@@ -7,8 +7,13 @@ import socket from '../services/socket.js'
 import SalesTrend from '../components/charts/SalesTrend.jsx'
 import TopProducts from '../components/charts/TopProducts.jsx'
 import InventoryStatus from '../components/charts/InventoryStatus.jsx'
+import { BackupButtons } from '../components/BackupButtons.jsx';
+import { useAuth } from "../context/AuthContext";
 
 function Dashboard() {
+
+    const { user } = useAuth(); // Get current user
+
   const [loading, setLoading] = useState(true);
   const [saleData, setSaleData] = useState(null);
   const [profitData, setProfitData] = useState(null);
@@ -92,9 +97,12 @@ function Dashboard() {
             <h1 className="text-2xl md:text-3xl font-black text-black tracking-tighter">DASHBOARD</h1>
             <p className="text-sm text-muted mt-1 capitalize">{timeFrame} Overview</p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row w-full md:w-auto items-stretch sm:items-center gap-3">
            
+          
+<div className="flex items-center gap-3 w-full md:w-auto justify-end">
+    
+    {/* Humara Naya Backup/Database Icon Component */}
+    {user?.role === 'admin' && <BackupButtons />}           
             
             <div className="flex border border-gray-100 rounded-xl overflow-hidden bg-bg-card shadow-sm"> 
               {['today', 'week', 'month'].map((frame) => (

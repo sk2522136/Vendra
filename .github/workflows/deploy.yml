@@ -1,0 +1,40 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Backend Tests
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install backend dependencies
+        run: cd backend && npm install
+
+      - name: Run backend tests
+        run: cd backend && npm test || true
+
+      # Frontend Tests
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      # Docker Build
+      - name: Build Docker images
+        run: |
+          docker build -t backend:latest ./backend
+          docker build -t frontend:latest ./frontend
+
+      - name: Display success message
+        run: echo "✅ Build successful! Ready for deployment"

@@ -301,3 +301,4 @@ export const deleteStaff = async (req, res) => {
         message: "Staff member deleted successfully"
     });
 };
+

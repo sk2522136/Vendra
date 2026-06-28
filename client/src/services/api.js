@@ -139,4 +139,9 @@ export const getChatbotResponse = (data) => API.post('/chatbot/message',  data )
 // voice route
 export const parseVoiceCommand = (data) => API.post('/voice/parse-command', data);
 
+// backup route
+export const downloadBackup = () => API.get('/backup/download', { responseType: 'blob' });
+export const restoreBackup = (data) => API.post('/backup/restore', data);
+export const getBackupStatus = () => API.get('/backup/status');
+
 export default API;

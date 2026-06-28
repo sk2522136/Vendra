@@ -112,7 +112,7 @@ const ProductCards = () => {
             <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border flex items-center justify-between gap-2">
               <div className="flex-1">
                 <p className="text-xs font-bold text-muted uppercase">Category</p>
-                <p className="text-xs sm:text-sm font-bold text-text truncate">{p.category || "N/A"}</p>
+                <p className="text-xs sm:text-sm font-bold text-text truncate">{p.category.name || "N/A"}</p>
               </div>
 
               {p.price && (

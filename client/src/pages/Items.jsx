@@ -265,7 +265,7 @@ setPage(res.data.page);
               <td className="px-6 py-4 text-center text-text font-bold">
                 <span className="px-3 py-1 bg-bg-body text-text text-[11px] font-bold rounded-xl border border-border">{item.sku}</span>
               </td>
-              <td className="px-6 py-4 text-[13px] font-bold text-text">{item.category}</td>
+              <td className="px-6 py-4 text-[13px] font-bold text-text">{item.category.name}</td>
               <td className="px-6 py-4 text-text font-bold">
                 <div className="flex flex-col gap-1.5">
                   <div className="w-24 h-1.5 bg-bg-body rounded-full overflow-hidden">

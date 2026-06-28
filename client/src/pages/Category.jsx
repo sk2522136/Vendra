@@ -58,6 +58,13 @@ const Category = () => {
   </div>
 
   <div className='border border-border shadow-sm rounded-3xl overflow-hidden bg-bg-card'>
+    {categories.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
+            <div className="text-4xl mb-3">📦</div>
+            <p className="text-base font-bold text-text">No data available</p>
+            <p className="text-xs text-muted mt-1">No product categories have been created yet.</p>
+          </div>
+        ) : (
     <div className='overflow-x-auto custom-scrollbar'>
       <table className='w-full text-left'>
         <thead>
@@ -98,6 +105,7 @@ const Category = () => {
         </tbody>
       </table>
     </div>
+    )}
   </div>
 
   {isModalOpen && <CategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} category={selectedCat} reloadCategories={fetchCategories} />}
