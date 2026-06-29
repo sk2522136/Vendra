@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Receipt folder banaye (agar exist nahi karta)
+//reciept folder
 const receiptDir = path.join(__dirname, '../receipts');
 if (!fs.existsSync(receiptDir)) {
   fs.mkdirSync(receiptDir, { recursive: true });
@@ -15,7 +15,6 @@ if (!fs.existsSync(receiptDir)) {
 export const generateReceipt = async (saleData, receiptNumber) => {
   return new Promise((resolve, reject) => {
     try {
-      // PDF document create karo
       const doc = new PDFDocument({
         size: 'A4',
         margin: 50
@@ -28,7 +27,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
 
       doc.pipe(stream);
 
-      // ===== HEADER (Branding Fixed to VENDRA) =====
+      //  HEADER 
       doc.fontSize(24).font('Helvetica-Bold').text('VENDRA', { align: 'center' });
       doc.fontSize(9).font('Helvetica').text('AUTOMATED INVENTORY MANAGEMENT SYSTEM', { align: 'center', tracking: 1 });
       doc.moveDown(0.4);
@@ -36,7 +35,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
 
       doc.moveDown(0.8);
 
-      // Receipt info Metadata Row
+      // Receipt info
       const metaTop = doc.y;
       doc.fontSize(9).font('Helvetica-Bold').text(`Receipt #: `, 50, metaTop);
       doc.font('Helvetica').text(`${receiptNumber}`, 105, metaTop);
@@ -49,7 +48,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
 
       doc.moveDown(1.5);
 
-      // ===== CUSTOMER INFO =====
+      // CUSTOMER INFO 
       doc.fontSize(10).font('Helvetica-Bold').text('CUSTOMER LEDGER PROFILE', 50, doc.y);
       doc.moveDown(0.3);
       
@@ -67,12 +66,12 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(0.5).stroke();
       doc.moveDown(0.8);
 
-      // ===== ITEMS TABLE HEADER (Perfect Alignment Columns) =====
+      //  ITEMS TABLE HEADER 
       const tableTop = doc.y;
       const col1 = 50;   // Item Title Description
       const col2 = 300;  // Quantity Box
       const col3 = 380;  // Unit Price Tag
-      const col4 = 465;  // Column Matrix Accumulator (Width: 80)
+      const col4 = 465;  // Column Matrix Accumulator 
 
       doc.fontSize(9).font('Helvetica-Bold');
       doc.text('Item Description', col1, tableTop);
@@ -83,7 +82,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.moveDown(0.4);
       doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(1).stroke();
 
-      // ===== ITEMS DATA STREAM =====
+      // ITEMS DATA 
       let yPosition = doc.y + 8;
       doc.fontSize(9).font('Helvetica');
 
@@ -104,7 +103,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.moveTo(50, yPosition).lineTo(545, yPosition).lineWidth(0.5).stroke();
       yPosition += 10;
 
-      // ===== FINANCIAL MATRIX SUMMARY =====
+      // FINANCIAL  SUMMARY
       doc.fontSize(9).font('Helvetica-Bold');
       doc.text('SUBTOTAL:', col3, yPosition, { width: 75, align: 'right' });
       
@@ -119,7 +118,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
         yPosition += 16;
       }
 
-      // Amount paid mapping
+      // Amount paid 
       const netPayable = Math.max(0, sub - (saleData.discount || 0));
       doc.fontSize(10).font('Helvetica-Bold').text('PAID AMOUNT:', col3, yPosition, { width: 75, align: 'right' });
       doc.text(`Rs ${Number(saleData.paidAmount || 0).toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
@@ -134,7 +133,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
         yPosition += 18;
       }
 
-      // ===== GRAND TOTAL BOX RENDER =====
+      // GRAND TOTAL BOX RENDER
       doc.fillColor('#000000'); // Color reset to neutral dark
       doc.moveTo(320, yPosition).lineTo(545, yPosition).lineWidth(1).stroke();
       yPosition += 8;
@@ -143,7 +142,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.text('GRAND TOTAL:', col3, yPosition, { width: 75, align: 'right' });
       doc.text(`Rs ${netPayable.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
 
-      // ===== FOOTER BRAND TERMINAL BLOCK =====
+    
       doc.moveDown(4);
       doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(0.5).stroke();
       doc.moveDown(0.6);
@@ -154,10 +153,9 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.fontSize(9).font('Helvetica-Bold').text('Thank you for choosing VENDRA!', { align: 'center' });
       doc.fontSize(7).font('Helvetica').text('Computer generated secure ledger token. No signature required.', { align: 'center', opacity: 0.6 });
 
-      // PDF finish karo
+      // PDF 
       doc.end();
 
-      // Jab PDF complete ho jae backend dispatch wrapper close karein
       stream.on('finish', () => {
         resolve({
           success: true,

@@ -30,7 +30,6 @@ const CategoryModal = ({ isOpen, onClose, category,reloadCategories }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-  {/* Modal Container with Shining Animation Class */}
   <div className="bg-bg-card w-full max-w-sm p-8 rounded-3xl border border-border shadow-2xl modal-shine-effect">
     <div className="flex justify-between items-center mb-6">
       <h2 className="text-xl font-black text-text uppercase tracking-tight">

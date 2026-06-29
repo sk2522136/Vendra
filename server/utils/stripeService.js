@@ -29,7 +29,7 @@ export const createPaymentIntent = async (amount, currency = 'usd', metadata = {
   }
 };
 
-// Payment status check karne ke liye
+// Payment status check 
 export const getPaymentStatus = async (paymentIntentId) => {
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);

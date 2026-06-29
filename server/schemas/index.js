@@ -33,7 +33,7 @@ export const productSchema = Joi.object({
     .valid('kg', 'Pcs', 'ltr')
     .required(),
   isActive: Joi.boolean().optional(),
-     imageUrl: Joi.string().uri().optional()  // ← add karo
+     imageUrl: Joi.string().uri().optional()  
 
 }).unknown(false);
 
@@ -83,11 +83,13 @@ export const paymentSchema = Joi.object({
     amount: Joi.number().positive().required()
 }).unknown(false);
 
+
 // USER - LOGIN
 export const loginSchema = Joi.object({
   email: Joi.string().required().email(),
   password: Joi.string().required().min(6)
 }).unknown(false);
+
 
 // USER - REGISTER
 export const registerSchema = Joi.object({

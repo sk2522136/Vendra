@@ -9,25 +9,13 @@ import wrapAsync from '../utils/wrapAsync.js';
 
 const router = express.Router();
 
-// Download encrypted backup (all 5 models)
-router.get(
-  '/download',
-  authMiddleware,
-  wrapAsync(downloadBackup)
-);
+// Download encrypted 
+router.get('/download',authMiddleware,wrapAsync(downloadBackup));
 
 // Restore from encrypted backup
-router.post(
-  '/restore',
-  authMiddleware,
-  wrapAsync(restoreBackup)
-);
+router.post('/restore',authMiddleware,wrapAsync(restoreBackup));
 
 // Get backup status
-router.get(
-  '/status',
-  authMiddleware,
-  wrapAsync(getBackupStatus)
-);
+router.get('/status',authMiddleware,wrapAsync(getBackupStatus));
 
 export default router;

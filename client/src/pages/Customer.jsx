@@ -117,7 +117,6 @@ const Customer = () => {
 
         {customers.length === 0 ? (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
-      <div className="text-4xl mb-2">👥</div>
       <p className="text-base font-bold text-text">No data available</p>
     </div>
   ) : (
