@@ -51,7 +51,9 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
       {/* ─── HEADER ─── */}
       <div className="bg-bg-primary text-white px-4 py-3 flex justify-between items-center font-semibold text-sm tracking-wide">
         <div className="flex items-center gap-2">
-          <span>🤖</span> POS Assistant
+           <div className="w-9 h-9 bg-bg-body rounded-xl flex items-center justify-center shadow-lg ">
+          <span className="text-black text-2xl font-black tracking-tighter">V</span>
+        </div> POS Assistant
         </div>
         <button 
           onClick={onClose} 

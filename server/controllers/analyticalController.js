@@ -3,7 +3,7 @@ import SaleItem from '../models/SaleItem.js';
 import Expense from '../models/Expense.js';
 import ExpressError from "../utils/expressError.js";
 
-//  GET SALE CHART - /api/analytical/sale
+//  /api/analytical/sale
 export const getSaleChart = async(req, res) => {
     try {
         const { month, year } = req.query;
@@ -61,7 +61,7 @@ export const getSaleChart = async(req, res) => {
     }
 };
 
-//  TOP SELLING PRODUCTS - /api/analytical/products
+//  /api/analytical/products
 export const getTopSellProd = async(req, res) => {
     try {
         const { month, year, limit = 10 } = req.query;
@@ -80,7 +80,6 @@ export const getTopSellProd = async(req, res) => {
 
         const products = {};
 
-        //  FIXED: SaleItem.find() na SaleItem.findById()
         for (let sale of sales) {
             const items = await SaleItem.find({ saleRef: sale._id }).populate('product');
             
@@ -98,7 +97,6 @@ export const getTopSellProd = async(req, res) => {
             });
         }
 
-        //  FIXED: Object.keys() na Object.key()
         Object.keys(products).forEach(key => {
             products[key].avgPrice = (products[key].revenue / products[key].quantity).toFixed(2);
         });
@@ -119,7 +117,7 @@ export const getTopSellProd = async(req, res) => {
     }
 };
 
-//  PROFIT CHART - /api/analytical/profit
+//  /api/analytical/profit
 export const getProfitChart = async(req, res) => {
     try {
         const { year } = req.query;
@@ -194,7 +192,7 @@ export const getProfitChart = async(req, res) => {
     }
 };
 
-//  PAYMENT METHOD - /api/analytical/payment
+// /api/analytical/payment
 export const getPaymentMethod = async(req, res) => {
     try {
         const { month, year } = req.query;

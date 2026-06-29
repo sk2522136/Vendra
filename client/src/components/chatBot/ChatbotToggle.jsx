@@ -15,7 +15,7 @@ const ChatbotToggle = () => {
         {isOpen ? (
           <span className="text-xl font-bold">✕</span>
         ) : (
-          <span className="text-2xl font-extrabold">🤖</span>
+          <span className="text-2xl font-extrabold">💬</span>
         )}
       </button>
 

@@ -7,13 +7,18 @@ import {toast} from 'react-toastify'
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       const res = await getAllCategories();
       setCategories(res.data.categories);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to fetch categories');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -57,13 +62,14 @@ const Category = () => {
     </button>
   </div>
 
-  <div className='border border-border shadow-sm rounded-3xl overflow-hidden bg-bg-card'>
-    {categories.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
-            <p className="text-base font-bold text-text">No data available</p>
-            <p className="text-xs text-muted mt-1">No product categories have been created yet.</p>
-          </div>
-        ) : (
+ <div className='border border-border shadow-sm rounded-3xl overflow-hidden bg-bg-card'>
+
+ {loading ? (
+    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
+      <p className="text-base font-bold text-text animate-pulse">Loading...</p>
+    </div>
+  ) : categories.length > 0 ? (
+    
     <div className='overflow-x-auto custom-scrollbar'>
       <table className='w-full text-left'>
         <thead>
@@ -104,6 +110,11 @@ const Category = () => {
         </tbody>
       </table>
     </div>
+    ) : (
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
+        <p className="text-base font-bold text-text">No data available</p>
+        <p className="text-xs text-muted mt-1">No product categories have been created yet.</p>
+      </div>
     )}
   </div>
 

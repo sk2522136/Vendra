@@ -164,7 +164,7 @@ export const registerStaff = async (req , res) =>  {
   </div>
 `;
 
-    // 6. Email send karein (Nodemailer se)
+// send mail to user
     try {
         await sendEmail({
             email: newUser.email,

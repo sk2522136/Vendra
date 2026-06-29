@@ -72,7 +72,6 @@ const Customer = () => {
   };
 
   return (
-    // 'overflow-y-auto' kiya taake screen standard height le sake aur desktop par narrow feel na ho
     <div className="min-h-screen flex flex-col p-3 space-y-4 sm:space-y-6 sm:p-4 md:p-6 bg-bg-body overflow-y-auto">
         
       {/* Title and Description */}
@@ -97,7 +96,6 @@ const Customer = () => {
         </div>
       </div>
      
-      {/* Customers Table/Grid Container - Isme 'min-h-[450px]' add kiya hai taake table default me bada dikhe */}
       <div className="w-full bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden shadow-sm flex flex-col min-h-[450px]">
         <div className='flex-shrink-0 p-3 sm:p-6 border-b border-border'>
           <div className="relative flex gap-2">
@@ -115,13 +113,17 @@ const Customer = () => {
           </div>
         </div>
 
-        {customers.length === 0 ? (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
-      <p className="text-base font-bold text-text">No data available</p>
-    </div>
-  ) : (
-    <>
-
+        {loading ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+            <p className="text-base font-bold text-text">Loading...</p>
+          </div>
+        ) : customers.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+            <p className="text-base font-bold text-text">No data available</p>
+          </div>
+        ) : (
+          <>
+          
         {/* MOBILE VIEW - CARD LAYOUT */}
         <div className="block md:hidden p-3 sm:p-4 space-y-3">
           {customers.map((c) => (
@@ -168,7 +170,7 @@ const Customer = () => {
           ))}
         </div>
 
-        {/* DESKTOP VIEW - TABLE LAYOUT (Isme automatic clean spaces di hain) */}
+        {/* DESKTOP VIEW  */}
         <div className="hidden md:block w-full overflow-x-auto">
           <table className="w-full text-left table-auto">
             <thead className="bg-bg-body border-b border-border">
