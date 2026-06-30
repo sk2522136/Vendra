@@ -9,10 +9,12 @@ function SalesTrend({ data }) {
 
   const chartData = Object.entries(data.daily)
     .map(([day, count]) => ({
+      dayNum: parseInt(day), 
       day: `Day ${day}`,
       sales: count
     }))
-    .slice(0, 15); // Last 15 days
+    .sort((a, b) => a.dayNum - b.dayNum) 
+    .slice(-15); 
 
   return (
     <div>

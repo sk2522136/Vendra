@@ -6,10 +6,9 @@ import Supplier from '../models/Supplier.js';
 import ExpressError from '../utils/expressError.js';
 import { encryptData, decryptData } from '../utils/encryption.js';
 
-// ===== DOWNLOAD BACKUP AS ENCRYPTED JSON =====
 export const downloadBackup = async (req, res) => {
   try {
-    // Fetch all 5 critical models
+
     const sales = await Sale.find();
     const payments = await Payment.find();
     const customers = await Customer.find();
@@ -35,7 +34,6 @@ export const downloadBackup = async (req, res) => {
       }
     };
 
-    // Encrypt backup data
     const encrypted = encryptData(backupData);
 
     // Create encrypted file object
@@ -54,7 +52,7 @@ export const downloadBackup = async (req, res) => {
     );
     res.send(JSON.stringify(encryptedBackup, null, 2));
 
-    console.log('✅ Backup downloaded - Size:', JSON.stringify(encryptedBackup).length, 'bytes');
+    console.log(' Backup downloaded - Size:', JSON.stringify(encryptedBackup).length, 'bytes');
 
   } catch (error) {
     res.status(500).json({
@@ -64,7 +62,7 @@ export const downloadBackup = async (req, res) => {
   }
 };
 
-// ===== RESTORE BACKUP FROM ENCRYPTED JSON =====
+
 export const restoreBackup = async (req, res) => {
   try {
     const { encryptedData, iv } = req.body;
@@ -73,10 +71,8 @@ export const restoreBackup = async (req, res) => {
       throw new ExpressError('Encrypted data and IV required', 400);
     }
 
-    // Decrypt backup data
     const decryptedData = decryptData(encryptedData, iv);
 
-    // Validate structure - Check for all 5 models
     if (
       !decryptedData.data.sales ||
       !decryptedData.data.payments ||
@@ -110,7 +106,7 @@ export const restoreBackup = async (req, res) => {
   }
 };
 
-// ===== GET BACKUP STATUS =====
+
 export const getBackupStatus = async (req, res) => {
   try {
     const sales = await Sale.countDocuments();

@@ -12,12 +12,10 @@ export const processChatMessage = async (req, res) => {
       throw new ExpressError('Message required', 400);
     }
 
-    // ===== 1. LOW STOCK PRODUCTS =====
     const lowStockProducts = await Product.find({ quantity: { $lt: 10 } })
       .select('name quantity price');
 
-    // ===== 2. CUSTOMER INFO =====
-  let customerInfo = "";
+  let customerInfo = "" ;
     if (message || phoneNumber) {
   
       let customerQuery = {};
@@ -57,7 +55,6 @@ export const processChatMessage = async (req, res) => {
 
     
 
-    // ===== 3. OLD CREDIT CUSTOMERS =====
     const allCustomers = await Customer.find({ customerType: 'credit' });
     let oldCreditCustomers = "Old Credit Customers (Sorted by oldest):\n";
     
@@ -84,19 +81,19 @@ export const processChatMessage = async (req, res) => {
       `${c.name} (${c.phone}): Rs ${c.pending} pending`
     ).join('\n');
 
-    // ===== 4. PRODUCT DETAILS =====
+    // PRODUCT DETAILS 
     const allProducts = await Product.find().select('name price quantity description');
     const productDetails = allProducts.map(p => 
       `${p.name} - Rs ${p.price}/unit (Stock: ${p.quantity})`
     ).join(', ');
 
-    // ===== 5. TOTAL REVENUE =====
+    // TOTAL REVENUE 
     const allSales = await Sale.find();
     const totalRevenue = allSales.reduce((sum, s) => sum + s.totalAmount, 0);
     const totalPaidOverall = allSales.reduce((sum, s) => sum + s.paidAmount, 0);
     const totalCreditMarket = totalRevenue - totalPaidOverall;
 
-    // ===== CREATE CONTEXT =====
+    // CREATE CONTEXT
     let context = `
 === LOW STOCK PRODUCTS ===
 ${lowStockProducts.map(p => `${p.name}: ${p.quantity} units left (Rs ${p.price})`).join('\n')}

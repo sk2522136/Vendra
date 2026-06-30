@@ -11,13 +11,13 @@ export const getSaleChart = async(req, res) => {
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
 
-        //  FIXED: $expr syntax
+       const startDate = new Date(yearNum, monthNum - 1, 1);
+        const endDate = new Date(yearNum, monthNum, 1);
+
         const sales = await Sale.find({
-            $expr: {
-                $and: [
-                    { $eq: [{ $month: "$createdAt" }, monthNum] },
-                    { $eq: [{ $year: "$createdAt" }, yearNum] }
-                ]
+            createdAt: {
+                $gte: startDate,
+                $lt: endDate
             }
         });
 
@@ -29,15 +29,18 @@ export const getSaleChart = async(req, res) => {
             dailySales[i] = 0;
         }
 
-        sales.forEach(sale => {
-            const day = new Date(sale.createdAt).getDate();
-            dailySales[day]++;
-        });
-
-        // Weekly sales
+        // Weekly sales and daily sales
         const weeklySales = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         sales.forEach(sale => {
-            const week = Math.ceil(new Date(sale.createdAt).getDate() / 7);
+            const saleDate = new Date(sale.createdAt);
+            const day = saleDate.getDate();
+            
+            // Daily sale 
+            dailySales[day]++;
+
+            // Weekly sale
+            let week = Math.ceil(day / 7);
+            if (week > 5) week = 5; 
             weeklySales[week]++;
         });
 
@@ -53,7 +56,7 @@ export const getSaleChart = async(req, res) => {
             weekly: weeklySales,
             monthly: {
                 total: monthlyTotal,
-                average: avgDailySales
+                average: parseFloat(avgDailySales)
             }
         });
     } catch (error) {
@@ -69,16 +72,18 @@ export const getTopSellProd = async(req, res) => {
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
 
-        const sales = await Sale.find({
-            $expr: {
-                $and: [
-                    { $eq: [{ $month: "$createdAt" }, monthNum] },
-                    { $eq: [{ $year: "$createdAt" }, yearNum] }
-                ]
-            }
-        });
+        const startDate = new Date(yearNum, monthNum - 1, 1); 
+        const endDate = new Date(yearNum, monthNum, 1);       
 
-        const products = {};
+            const sales = await Sale.find({
+                createdAt: {
+                    $gte: startDate, 
+                    $lt: endDate    
+                }
+            }).limit(parseInt(limit)); 
+       
+    
+     const products = {};
 
         for (let sale of sales) {
             const items = await SaleItem.find({ saleRef: sale._id }).populate('product');
@@ -118,79 +123,95 @@ export const getTopSellProd = async(req, res) => {
 };
 
 //  /api/analytical/profit
-export const getProfitChart = async(req, res) => {
+export const getProfitChart = async (req, res, next) => {
     try {
         const { year } = req.query;
         const yearNum = parseInt(year) || new Date().getFullYear();
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const monthlyData = {};
 
-        for (let month = 1; month <= 12; month++) {
-            const sales = await Sale.find({
-                $expr: {
-                    $and: [
-                        { $eq: [{ $month: "$createdAt" }, month] },
-                        { $eq: [{ $year: "$createdAt" }, yearNum] }
-                    ]
+        const startDate = new Date(yearNum, 0, 1);
+        const endDate = new Date(yearNum + 1, 0, 1);
+
+        const salesData = await SaleItem.aggregate([
+            {
+                $lookup: {
+                    from: "sales",
+                    localField: "saleRef",
+                    foreignField: "_id",
+                    as: "sale"
                 }
-            });
-
-            let revenue = 0;
-            let cogs = 0;
-
-            sales.forEach(s => {
-                revenue += s.totalAmount;
-            });
-
-            //  COGS calculation
-            for (let sale of sales) {
-                const items = await SaleItem.find({ saleRef: sale._id }).populate('product');
-                items.forEach(item => {
-                    cogs += item.quantity * (item.product.costPrice || 0);
-                });
+            },
+            { $unwind: "$sale" },
+            { $match: { "sale.createdAt": { $gte: startDate, $lt: endDate } } },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "product",
+                    foreignField: "_id",
+                    as: "prod"
+                }
+            },
+            { $unwind: { path: "$prod", preserveNullAndEmptyArrays: true } },
+            {
+                $group: {
+                    _id: { $month: "$sale.createdAt" },
+                    revenue: { $addToSet: { saleId: "$sale._id", amount: "$sale.totalAmount" } },
+                    cogs: { $sum: { $multiply: ["$quantity", { $ifNull: ["$prod.costPrice", 0] }] } }
+                }
             }
+        ]);
 
-            // Expenses
-            const expenses = await Expense.find({
-                $expr: {
-                    $and: [
-                        { $eq: [{ $month: "$date" }, month] },
-                        { $eq: [{ $year: "$date" }, yearNum] }
-                    ]
+        const expensesData = await Expense.aggregate([
+            { $match: { date: { $gte: startDate, $lt: endDate } } },
+            {
+                $group: {
+                    _id: { $month: "$date" },
+                    totalExpenses: { $sum: "$amount" }
                 }
-            });
+            }
+        ]);
 
-            let totalExpenses = 0;
-            expenses.forEach(exp => totalExpenses += exp.amount);
-
-            const grossProfit = revenue - cogs;
-            const netProfit = grossProfit - totalExpenses;
-
-            monthlyData[month] = {
-                month: months[month - 1],
-                revenue: revenue,
-                cogs: cogs,
-                grossProfit: grossProfit,
-                expenses: totalExpenses,
-                netProfit: netProfit,
-                profitMargin: revenue > 0 ? ((netProfit / revenue) * 100).toFixed(2) : 0
-            };
+        const monthlyData = {};
+        for (let i = 1; i <= 12; i++) {
+            monthlyData[i] = { month: months[i - 1], revenue: 0, cogs: 0, grossProfit: 0, expenses: 0, netProfit: 0, profitMargin: 0 };
         }
 
-        const totalProfit = Object.values(monthlyData).reduce((sum, m) => sum + m.netProfit, 0);
-        const avgMonthlyProfit = (totalProfit / 12).toFixed(2);
+        salesData.forEach(item => {
+            const m = item._id;
+            const totalRevenue = item.revenue.reduce((sum, r) => sum + r.amount, 0); 
+            monthlyData[m].revenue = totalRevenue;
+            monthlyData[m].cogs = item.cogs;
+            monthlyData[m].grossProfit = totalRevenue - item.cogs;
+        });
+
+        expensesData.forEach(item => {
+            const m = item._id;
+            if (monthlyData[m]) {
+                monthlyData[m].expenses = item.totalExpenses;
+            }
+        });
+
+        let totalProfit = 0;
+        Object.keys(monthlyData).forEach(m => {
+            const data = monthlyData[m];
+            data.netProfit = data.grossProfit - data.expenses;
+            data.profitMargin = data.revenue > 0 ? parseFloat(((data.netProfit / data.revenue) * 100).toFixed(2)) : 0;
+            totalProfit += data.netProfit;
+        });
 
         return res.json({
             success: true,
             year: yearNum,
             monthlyProfitData: monthlyData,
-            totalProfit: totalProfit,
-            avgMonthlyProfit: avgMonthlyProfit
+            totalProfit,
+            avgMonthlyProfit: parseFloat((totalProfit / 12).toFixed(2))
         });
     } catch (error) {
-        throw new ExpressError(error.message, 500);
+        next(error);
     }
 };
+
+
 
 // /api/analytical/payment
 export const getPaymentMethod = async(req, res) => {
@@ -200,14 +221,12 @@ export const getPaymentMethod = async(req, res) => {
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
 
+        const startDate = new Date(yearNum, monthNum - 1, 1);
+        const endDate = new Date(yearNum, monthNum, 1);
+
         const sales = await Sale.find({
-            $expr: {
-                $and: [
-                    { $eq: [{ $month: "$createdAt" }, monthNum] },
-                    { $eq: [{ $year: "$createdAt" }, yearNum] }
-                ]
-            }
-        }).populate('customer');
+            createdAt: { $gte: startDate, $lt: endDate }
+        }).populate('customer').populate('customer');
 
         const paymentData = {
             cash: { count: 0, revenue: 0, paid: 0, pending: 0 },
@@ -215,7 +234,7 @@ export const getPaymentMethod = async(req, res) => {
         };
 
         sales.forEach(sale => {
-            const type = sale.customer.customerType;
+            const type = sale.customer?.customerType || 'cash';
             paymentData[type].count += 1;
             paymentData[type].revenue += sale.totalAmount;
             paymentData[type].paid += sale.paidAmount;
@@ -223,13 +242,11 @@ export const getPaymentMethod = async(req, res) => {
         });
 
         // Collection rate
-        paymentData.cash.collectionRate = paymentData.cash.revenue > 0
-            ? ((paymentData.cash.paid / paymentData.cash.revenue) * 100).toFixed(2)
-            : 0;
-
-        paymentData.credit.collectionRate = paymentData.credit.revenue > 0
-            ? ((paymentData.credit.paid / paymentData.credit.revenue) * 100).toFixed(2)
-            : 0;
+        ['cash', 'credit'].forEach(type => {
+            paymentData[type].collectionRate = paymentData[type].revenue > 0
+                ? parseFloat(((paymentData[type].paid / paymentData[type].revenue) * 100).toFixed(2))
+                : 0;
+        });
 
         return res.json({
             success: true,

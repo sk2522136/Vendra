@@ -3,14 +3,14 @@ import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-import VoiceRecorder from "../components/voicerecord/VoiceRecorder.jsx"; // Import the VoiceRecorder component
+import VoiceRecorder from "../components/voicerecord/VoiceRecorder.jsx"; 
 import { fetchProduct, createSale, getAllCategories, createStripeIntent, confirmStripePayment } from "../services/api.js";
 import ProductSection from "../components/pos/ProductSection.jsx";
 import CartSection from "../components/pos/CartSection.jsx";
 import CheckoutForm from "../components/pos/CheckoutForm.jsx";
 import { saveSaleToLocalStorage, savePaymentToLocalStorage } from '../utils/localStorageService.js';
 
-const stripePromise = loadStripe("pk_test_your_publishable_key_here");
+const stripePromise = loadStripe("pk_test_51Sx5sTPzorG2nWHVkDEKxfrOM83q8dao510Yur0skylQ2nHVTaPGxG648R88fdC17eXbiDpUl7TIXtsIRPNem2sk00NGTzqLvx");
 
 const PosComponent = () => {
   const stripe = useStripe();
@@ -34,9 +34,7 @@ const PosComponent = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [receiptPdf, setReceiptPdf] = useState(null);
-
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
-
 
   useEffect(() => {
     loadProducts();
@@ -74,7 +72,9 @@ const PosComponent = () => {
 
   const addToCart = (product) => {
     if (!product.quantity || product.quantity <= 0) { toast.error("Product out of stock!"); return; }
-    const sellPrice = product.costPrice;
+    
+    // Default system cost price yahan set hogi, jise admin cart me badal sakega
+    const sellPrice = product.costPrice || 0; 
     const existingItem = cart.find((item) => item.productId === product._id);
 
     if (existingItem) {
@@ -102,7 +102,8 @@ const PosComponent = () => {
 
   const removeFromCart = (productId) => { setCart(cart.filter((item) => item.productId !== productId)); };
 
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+  // 🔥 DYNAMIC MATH MATRIX: Yeh real-time mein badli hui admin price ko calculate karta hai
+  const subtotal = cart.reduce((acc, item) => acc + (Number(item.price) || 0) * item.qty, 0);
   const totalAmount = Math.max(0, subtotal - discount);
 
   const saveCart = () => {
@@ -116,6 +117,7 @@ const PosComponent = () => {
   };
 
   const loadSavedCart = (savedCart) => { setCart(savedCart.items); toast.success("Cart restored!"); };
+  
   const deleteSavedCart = (id) => {
     const updated = savedCarts.filter((c) => c.id !== id);
     setSavedCarts(updated);
@@ -128,10 +130,16 @@ const PosComponent = () => {
 
     try {
       setIsProcessingPayment(true);
+      
+      // 🔥 PAYLOAD SNAPSHOT: Isme item.price direct admin input box se map ho kar backend par ja rhi hai
       const saleData = {
         name: customerName,
         phoneNumber: customerPhone,
-        items: cart.map((item) => ({ product: item.productId, quantity: item.qty, sellPrice: item.price })),
+        items: cart.map((item) => ({ 
+          product: item.productId, 
+          quantity: item.qty, 
+          sellPrice: Number(item.price) || 0  // Admin ki overwrite ki hui current price
+        })),
         customerType: paymentMethod === "card" ? "credit" : paymentMethod,
         paidAmount: paymentMethod === "cash" ? totalAmount : 0,
         discount: Number(discount),
@@ -141,17 +149,18 @@ const PosComponent = () => {
       if (paymentMethod !== "card") {
         const res = await createSale(saleData);
         if (res.data?.sale) {
-        saveSaleToLocalStorage({
-          saleId: res.data.sale._id,
-          totalAmount: res.data.sale.totalAmount,
-          paidAmount: res.data.sale.paidAmount,
-          items: res.data.sale.items.length,
-          customer: res.data.sale.customer,
-          timestamp: new Date().toISOString()
-        });
-      }
+          saveSaleToLocalStorage({
+            saleId: res.data.sale._id,
+            totalAmount: res.data.sale.totalAmount,
+            paidAmount: res.data.sale.paidAmount,
+            items: res.data.sale.items.length,
+            customer: res.data.sale.customer,
+            timestamp: new Date().toISOString()
+          });
+        }
         if (res.data?.pdfData) { 
-          setReceiptPdf(res.data.pdfData); setShowModal(true); }
+          setReceiptPdf(res.data.pdfData); setShowModal(true); 
+        }
         toast.success("Transaction processed successfully!");
         resetForm();
         return;
@@ -177,16 +186,16 @@ const PosComponent = () => {
         const confirmRes = await confirmStripePayment({ paymentIntentId, saleId });
         if (confirmRes.data.success) {
           savePaymentToLocalStorage({
-          paymentId: paymentIntentId,
-          amount: totalAmount,
-          saleId: saleId,
-          method: paymentMethod,
-          timestamp: new Date().toISOString()
-        });
-        
+            paymentId: paymentIntentId,
+            amount: totalAmount,
+            saleId: saleId,
+            method: paymentMethod,
+            timestamp: new Date().toISOString()
+          });
         
           if (saleResponse.data?.pdfData) {
-            setReceiptPdf(saleResponse.data.pdfData); setShowModal(true); }
+            setReceiptPdf(saleResponse.data.pdfData); setShowModal(true); 
+          }
           toast.success("Card Charged Successfully!");
           resetForm();
         }
@@ -200,11 +209,9 @@ const PosComponent = () => {
     setCart([]); setCustomerName(""); setCustomerPhone(""); setDiscount(0); setNotes(""); setPaymentMethod("cash");
   };
 
-
   const handleVoiceCommand = (commandData) => {
     const { action, product, quantity, paymentMethod } = commandData;
 
-    // 1. ADD TO CART 
     if (action === "ADD_TO_CART" && product) {
       const targetProduct = products.find(
         (p) => p.name && p.name.toLowerCase() === product.toLowerCase()
@@ -220,31 +227,19 @@ const PosComponent = () => {
         toast.error(`Product "${product}" not found in inventory.`);
       }
     } 
-    // 2. CHECKOUT & COMPLETE SALE 
     else if (action === "CHECKOUT") {
       if (paymentMethod === "cash" || paymentMethod === "credit") {
         setPaymentMethod(paymentMethod);
         toast.success(`Payment method set to ${paymentMethod.toUpperCase()}. Finalizing sale...`);
-        
-        
-        if (typeof completeOrder === "function") {
-          completeOrder();
-        } else {
-          console.warn("completeOrder function is not defined. Replace with your actual checkout function.");
-        }
-
+        completeSale();
       } else {
         toast.warning("Please specify a valid payment method (cash or credit).");
       }
     } 
-    // 3. UNKNOWN / FAILED
     else {
       toast.info("Voice command recognized but action could not be identified.");
     }
   };
-
-
-  
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-bg-body">
@@ -254,7 +249,6 @@ const PosComponent = () => {
 
   return (
     <div className="flex flex-col xl:flex-row h-screen w-full bg-bg-body text-text font-sans overflow-y-auto xl:overflow-hidden p-2 sm:p-4 gap-4">
-      
       
       {/* 1. PRODUCT STATION COMPONENT */}
       <ProductSection 
@@ -269,16 +263,23 @@ const PosComponent = () => {
 
       {/* RIGHT PANEL WRAPPER */}
       <div className="w-full xl:w-[420px] 2xl:w-[460px] flex flex-col bg-bg-card border border-border rounded-2xl shadow-sm shrink-0 h-auto min-h-[550px] xl:h-full mb-6 xl:mb-0 overflow-y-auto xl:overflow-hidden">
+        
         {/* 2. CART LOGS STATION COMPONENT */}
         <CartSection 
-          cart={cart} savedCarts={savedCarts} saveCart={saveCart} 
-          loadSavedCart={loadSavedCart} deleteSavedCart={deleteSavedCart} 
-          increaseQty={increaseQty} decreaseQty={decreaseQty} removeFromCart={removeFromCart} 
+          cart={cart} 
+          setCart={setCart} // 🔥 Pass setCart down to modify prices dynamically inside cart
+          savedCarts={savedCarts} 
+          saveCart={saveCart} 
+          loadSavedCart={loadSavedCart} 
+          deleteSavedCart={deleteSavedCart} 
+          increaseQty={increaseQty} 
+          decreaseQty={decreaseQty} 
+          removeFromCart={removeFromCart} 
           isVoiceEnabled={isVoiceEnabled}
           setIsVoiceEnabled={setIsVoiceEnabled}
         />
 
-        {/* 3. CHECKOUT and BILLING  */}
+        {/* 3. CHECKOUT and BILLING */}
         <CheckoutForm 
           customerName={customerName} setCustomerName={setCustomerName}
           customerPhone={customerPhone} setCustomerPhone={setCustomerPhone}
@@ -289,12 +290,13 @@ const PosComponent = () => {
           isProcessingPayment={isProcessingPayment} completeSale={completeSale}
         />
       </div>
-        {isVoiceEnabled && (
-          <VoiceRecorder 
-            onCommand={handleVoiceCommand} 
-            onClose={() => setIsVoiceEnabled(false)} 
-          />
-        )}
+
+      {isVoiceEnabled && (
+        <VoiceRecorder 
+          onCommand={handleVoiceCommand} 
+          onClose={() => setIsVoiceEnabled(false)} 
+        />
+      )}
 
       {/* RECEIPT MODAL FRAME */}
       {showModal && (

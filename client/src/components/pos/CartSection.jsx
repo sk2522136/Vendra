@@ -1,7 +1,33 @@
 import React from "react";
 import { FiShoppingCart, FiSave, FiTrash2, FiMinus, FiPlus } from "react-icons/fi";
 
-const CartSection = ({ cart, savedCarts, saveCart, loadSavedCart, deleteSavedCart, increaseQty, decreaseQty, removeFromCart,isVoiceEnabled, setIsVoiceEnabled }) => {
+const CartSection = ({ 
+  cart, 
+  savedCarts, 
+  saveCart, 
+  loadSavedCart, 
+  deleteSavedCart, 
+  increaseQty, 
+  decreaseQty, 
+  removeFromCart, 
+  isVoiceEnabled, 
+  setIsVoiceEnabled,
+  setCart 
+}) => {
+
+  // Dynamic Price Change Handler
+  const handlePriceChange = (productId, newPrice) => {
+    const parsedPrice = parseFloat(newPrice) || 0;
+    // Cart state ko direct update karega bina functions ko chhere
+    if (typeof setCart === "function") {
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.productId === productId ? { ...item, price: parsedPrice } : item
+        )
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-[200px] overflow-hidden">
       {/* Receipt Header */}
@@ -13,8 +39,8 @@ const CartSection = ({ cart, savedCarts, saveCart, loadSavedCart, deleteSavedCar
             <p className="text-[11px] opacity-80 font-medium">{cart.length} items</p>
           </div>
         </div>
-           
-           {/* Beautiful Toggle Switch ON/OFF */}
+            
+        {/* Beautiful Toggle Switch ON/OFF */}
         <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl border border-white/20 text-white text-xs font-bold select-none">
           <label className="relative inline-flex items-center cursor-pointer">
             <input 
@@ -61,11 +87,25 @@ const CartSection = ({ cart, savedCarts, saveCart, loadSavedCart, deleteSavedCar
         ) : (
           cart.map((item) => (
             <div key={item.productId} className="bg-bg-card border border-border rounded-xl p-3 shadow-xs flex items-center justify-between gap-2 transition-all hover:border-gray-300">
-              <div className="min-w-0 flex-1">
+              
+              {/* Product Info & Dynamic Price Input Box */}
+              <div className="min-w-0 flex-1 space-y-1">
                 <h4 className="font-bold text-xs text-text uppercase truncate mb-0.5">{item.name}</h4>
-                <p className="text-xs font-black text-bg-primary">Rs {item.price.toLocaleString()} <span className="text-[10px] text-muted font-normal">/ unit</span></p>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-muted font-bold uppercase">Rs</span>
+                  {/* 🔥 DYNAMIC INPUT BOX FOR PRICE */}
+                  <input
+                    type="text"
+                    value={item.price || ""}
+                    onChange={(e) => handlePriceChange(item.productId, e.target.value)}
+                    placeholder="Price"
+                    className="w-20 bg-hover border border-border text-xs rounded-md px-1.5 py-0.5 outline-none font-black text-bg-primary focus:border-bg-primary focus:bg-white font-mono"
+                  />
+                  <span className="text-[10px] text-muted font-normal">/ unit</span>
+                </div>
               </div>
               
+              {/* Quantity Management Controllers */}
               <div className="flex items-center gap-1.5 bg-hover rounded-lg p-1 shrink-0">
                 <button onClick={() => decreaseQty(item.productId)} className="w-6 h-6 rounded-md bg-bg-card flex items-center justify-center border text-text"><FiMinus size={11} /></button>
                 <span className="font-bold text-xs text-text w-5 text-center select-none">{item.qty}</span>

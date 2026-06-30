@@ -23,7 +23,7 @@ function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFrame, setTimeFrame] = useState('month');
 
-  // Socket logic remains unchanged
+  // Socket listners
   useEffect(() => {
     socket.on('lowStock', (data) => { toast.warning(data.message); });
     socket.on('outOfStock', (data) => { toast.error(data.message); });
@@ -101,7 +101,6 @@ function Dashboard() {
           
 <div className="flex items-center gap-3 w-full md:w-auto justify-end">
     
-    {/* Humara Naya Backup/Database Icon Component */}
     {user?.role === 'admin' && <BackupButtons />}           
             
             <div className="flex border border-gray-100 rounded-xl overflow-hidden bg-bg-card shadow-sm"> 
