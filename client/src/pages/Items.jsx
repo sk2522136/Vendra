@@ -234,8 +234,19 @@ setPage(res.data.page);
       </button>
     </div>
   </div>
+   
 
   <div className='border border-border rounded-3xl shadow-sm overflow-hidden bg-bg-card'>
+    {loading ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+            <p className="text-base font-bold text-text">Loading...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+            <p className="text-base font-bold text-text">No data available</p>
+          </div>
+        ) : (
+          <>
     <div className='overflow-x-auto'>
       <table className='w-full text-left'>
         <thead>
@@ -248,6 +259,9 @@ setPage(res.data.page);
             <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-right">Actions</th>
           </tr>
         </thead>
+        
+       
+         
         <tbody className='divide-y divide-border'>
           {products.map((item) => (
             <tr key={item._id} className='hover:bg-hover transition-colors group'>
@@ -286,8 +300,17 @@ setPage(res.data.page);
             </tr>
           ))}
         </tbody>
+  
+
       </table>
-    </div>
+    
+   
+        
+   
+   </div>
+     </>
+         
+            )}
   </div>
 
   {/* Pagination */}

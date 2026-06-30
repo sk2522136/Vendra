@@ -140,7 +140,7 @@ const PosComponent = () => {
           quantity: item.qty, 
           sellPrice: Number(item.price) || 0  // Admin ki overwrite ki hui current price
         })),
-        customerType: paymentMethod === "card" ? "credit" : paymentMethod,
+        customerType: paymentMethod === "card" ? "cash" : paymentMethod,
         paidAmount: paymentMethod === "cash" ? totalAmount : 0,
         discount: Number(discount),
         notes: notes,
@@ -168,7 +168,7 @@ const PosComponent = () => {
 
       if (!stripe || !elements) { toast.error("Stripe SDK loading error."); return; }
 
-      const saleResponse = await createSale({ ...saleData, customerType: "credit" });
+      const saleResponse = await createSale({ ...saleData, customerType: "cash" });
       const saleId = saleResponse.data?.sale?._id || saleResponse.data?._id;
       if (!saleId) throw new Error("Database mapping failed.");
 

@@ -12,44 +12,55 @@ export const createProduct = async (req, res) => {
   
     const {name, sku, category, costPrice, quantity, description, supplier, unit, imageUrl} = req.body
     
-    let imageurl, filename;
-    
-    // Cloudinary file upload
+    //cloudinary file upload handling
+    let targetUrl = "";
+    let targetFilename = "";
+
     if (req.file) {
-        imageurl = req.file.path;        
-        filename = req.file.filename;    
-    }
-    else if (imageUrl) {
-        imageurl = imageUrl;
-        filename = imageUrl.split('/').pop()
-    }
-        
-    const existingSku = await Product.findOne({sku})
-    if (existingSku) {
-        throw new ExpressError('Product of this sku already exits', 409);
+      targetUrl = req.file.path;        
+      targetFilename = req.file.filename;    
+    } else if (imageUrl && imageUrl.trim() !== "") {
+      targetUrl = imageUrl;
+      const parts = imageUrl.split('/');
+      targetFilename = parts.length > 0 ? parts[parts.length - 1] : "external-link";
+    } else {
+      targetUrl = "https://res.cloudinary.com/demo/image/upload/v1/sample.jpg"; 
+      targetFilename = "placeholder-default";
     }
 
+    //sku duplication check
+    const existingSku = await Product.findOne({ sku: sku.trim() });
+    if (existingSku) {
+      throw new ExpressError('Product with this SKU already exists in the system', 409);
+    }
+
+    //  Ledger Record
     const newProduct = new Product({
-        name,
-        sku,
-        category,
-        costPrice,
-        quantity,
-        description,
-        supplier,
-        unit,
-        image: {url: imageurl, filename: filename}
-    })
+      name,
+      sku: sku.trim(),
+      category,
+      costPrice: Number(costPrice),
+      quantity: Number(quantity),
+      description,
+      supplier,
+      unit: unit || 'pcs',
+      image: { url: targetUrl, filename: targetFilename }
+    });
+
     await newProduct.save();
 
     if (newProduct.quantity > 0) {
-    await inventoryLogChange({
-        product: newProduct._id,
-        quantityChange: newProduct.quantity,
-        type: "Purchase", // initial stock
-        createdBy: req.user?._id
-    });
-}
+      try {
+        await inventoryLogChange({
+          product: newProduct._id,
+          quantityChange: newProduct.quantity,
+          type: "Purchase", 
+          createdBy: req.user?._id || "admin"
+        });
+      } catch (logError) {
+        console.error("Inventory log error:", logError.message);
+      }
+    }
     return res.status(201).json({message: 'Product created successfully', product: newProduct})
 }
 
@@ -58,18 +69,45 @@ export const getAllProducts = async (req , res) => {
         const filter = filterProducts(req);
         const { limit ,skip,page } =  getPaginatedProducts(req);
         const {sortBy , sortorder} =  getSortProducts(req );
-        const products = await Product.find(filter).sort({[sortBy]: sortorder}).skip(skip).limit(limit).populate('category');
-        const total = await Product.countDocuments(filter);
-        const allProducts = await Product.find(filter);
-          const totalPages = Math.ceil(total / limit); // 
+       const [products, total, statsArray] = await Promise.all([
+      
+         Product.find(filter) .sort({ [sortBy]: sortorder }).skip(skip).limit(limit).populate('category'),
 
+      Product.countDocuments(filter),
 
-    const stats = {
-        totalItems: allProducts.length,
-        inStock: allProducts.filter(p => p.quantity > 0).length,
-        outOfStock: allProducts.filter(p => p.quantity === 0).length,
-        lowStock: allProducts.filter(p => p.quantity > 0 && p.quantity <= 10).length,
+      Product.aggregate([
+        { $match: filter }, 
+        {
+          $group: {
+            _id: null,
+            totalItems: { $sum: 1 },
+            inStock: { $sum: { $cond: [{ $gt: ["$quantity", 0] }, 1, 0] } },
+            outOfStock: { $sum: { $cond: [{ $eq: ["$quantity", 0] }, 1, 0] } },
+            lowStock: { $sum: { $cond: [{ $and: [{ $gt: ["$quantity", 0] }, { $lte: ["$quantity", 10] }] }, 1, 0] } }
+          }
+        }
+      ])
+    ]);
+
+    const stats = statsArray[0] || {
+      totalItems: 0,
+      inStock: 0,
+      outOfStock: 0,
+      lowStock: 0
     };
+    
+    delete stats._id;
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      message: 'Products retrieved successfully',
+      products,
+      total,
+      stats, 
+      totalPages,
+      page
+    });
       
         return res.status(200).json({message : 'Products retrieved successfully' , products , total,stats , totalPages,page })
 }
@@ -102,40 +140,59 @@ export const updateProduct = async (req , res ) => {
                 updateProduct[field] = req.body[field]
             }
         });
+       
         //destroyee the existing image from cloudinary
          if (req.file) {
             if (updateProduct.image?.filename) {
-            await cloudinary.uploader.destroy(updateProduct.image.filename, {
-            resource_type: 'image'
-        });
+                try {
+                    await cloudinary.uploader.destroy(updateProduct.image.filename, {
+                    resource_type: 'image'
+                    });
+                } catch (destroyeeError) {
+                    console.error("destroyee image error:", destroyeeError.message);
+                }
+            }
 
-    }
     //upload the new image to cloudinary
-    let result = await cloudinary.uploader.upload(req.file.path,{
-        resource_type:  'image'
-    })
-    updateProduct.image = {url : result.secure_url, filename: result.public_id}
+   const isCloudinaryStorage = req.file.filename && (req.file.path.startsWith('http://') || req.file.path.startsWith('https://'));
+      
+      if (isCloudinaryStorage) {
+        updateProduct.image = { url: req.file.path, filename: req.file.filename };
+      } else {
+        let result = await cloudinary.uploader.upload(req.file.path, {
+          resource_type: 'image'
+        });
+        updateProduct.image = { url: result.secure_url, filename: result.public_id };
+      }
 }
+
 await updateProduct.save();
+
+
+
 //socket notification 
-
-
-  checkStockAlert(updateProduct);
+ if (typeof checkStockAlert === 'function') {
+      checkStockAlert(updateProduct);
+    }
 
 
     const newQuantity = updateProduct.quantity;
         const quantityDiff = newQuantity - oldQuantity;
 
-        //  STEP 4: AUTO LOG
-    if (quantityDiff !== 0) {
+        //  LOG entry
+        try {
+            if (quantityDiff !== 0) {
         await inventoryLogChange({
             product: updateProduct._id,
             quantityChange: quantityDiff,
-            type: quantityDiff > 0 ? "Purchase" : "Sale",
-            createdBy: req.user?._id
+            type: "Adjustment",
+            createdBy: req.user?._id|| "admin"
         });
     }
-
+} catch(logError){
+          console.error("inventory log error:", logError.message);
+        }
+    
 
 return res.status(200).json({message : 'Product updated successfully' , product : updateProduct})
 }

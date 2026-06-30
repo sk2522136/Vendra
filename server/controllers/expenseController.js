@@ -10,7 +10,7 @@ export const createExpense = async (req , res)=> {
 
    const {category , amount , description,paidBy , paymentMethod ,  date} = req.body;
 
-   let paidById = req.user._id;
+   let paidById = req.user?._id;
   if (req.user._id === 'admin') {
     paidById = new mongoose.Types.ObjectId(); // Dummy ID
   }
@@ -37,14 +37,15 @@ export const createExpense = async (req , res)=> {
         const monthNum = parseInt(month) || new Date().getMonth() + 1;
         const yearNum = parseInt(year) || new Date().getFullYear();
         
-        const expenses = await Expense.find({
-        $expr: {
-            $and: [
-            { $eq: [{ $month: "$date" }, monthNum] },
-            { $eq: [{ $year: "$date" }, yearNum] }
-            ]
-        }
-        });
+        const startDate = new Date(yearNum, monthNum - 1, 1);
+    const endDate = new Date(yearNum, monthNum, 1);
+
+    const expenses = await Expense.find({
+      date: {
+        $gte: startDate,
+        $lt: endDate
+      }
+    });
 
         let totalExpenses = 0;
         let categoryWise = {}

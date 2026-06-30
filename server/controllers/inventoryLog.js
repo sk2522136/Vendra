@@ -31,90 +31,80 @@ export const inventoryLogChange = async (data) => {
 };
 
 
- // check status of stock  api/inventory/status?type=....
+ //   api/inventory/status?type=....
 export const getInventoryStatus = async(req ,res)=>{
    let {type} = req.query;
-    
-    const products = await Product.find();
-    let inventory=[];
-    let status;
+   const products = await Product.find().select('name quantity');    
+   
+   
+let inventory = [];
     let totalStock = 0;
-    for (let product of products){
-    
-     if (product.quantity <= 0) {
+    let outOfStockCount = 0;
+    let criticalCount = 0;
+    let lowCount = 0;
+    let okCount = 0;
+
+    const batchAlerts = [];
+
+    products.forEach(product => {
+      let status;
+      const qty = product.quantity || 0;
+
+      if (qty <= 0) {
         status = "Out of Stock";
-      } else if (product.quantity < 20) {
-        status = product.quantity < 15 ? "Critical" : "Low";
+        outOfStockCount++;
+        batchAlerts.push({ type: 'outOfStock', name: product.name, msg: `❌ ${product.name} - Out of Stock!` });
+      } else if (qty < 20) {
+        if (qty < 15) {
+          status = "Critical";
+          criticalCount++;
+          batchAlerts.push({ type: 'critical', name: product.name, msg: `🔴 ${product.name} - Critical! Only ${qty} left!` });
+        } else {
+          status = "Low";
+          lowCount++;
+          batchAlerts.push({ type: 'lowStock', name: product.name, msg: `⚠️ ${product.name} - Low stock! ${qty} left` });
+        }
       } else {
         status = "OK";
+        okCount++;
       }
       
       inventory.push({
-      productId: product._id,
-      productName: product.name,
-      currentStock: product.quantity,  
-      status: status
-    })
-     totalStock += product.quantity;
-
-  }
-
-  let filterproduct;
-
-if(type === 'low'){
-  filterproduct = inventory.filter(p =>
-    p.status === "Low" ||
-    p.status === "Critical" ||
-    p.status === "Out of Stock"
-  );
-}
-else {
-  //  DEFAULT
-  filterproduct = inventory;
-}
-
-  const summary = {
-      outOfStock: inventory.filter(p => p.status === "Out of Stock").length,
-      critical: inventory.filter(p => p.status === "Critical").length,
-      low: inventory.filter(p => p.status === "Low").length,
-      ok: inventory.filter(p => p.status === "OK").length
-    };
-
-          //EMIT STOCK ALERTS
-      inventory.forEach(item => {
-        if (item.status === "Out of Stock") {
-          io.emit('outOfStock', {
-            productId: item.productId,
-            productName: item.productName,
-            message: `❌ ${item.productName} - Out of Stock!`
-          });
-        } else if (item.status === "Critical") {
-          io.emit('lowStock', {
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.currentStock,
-            message: `🔴 ${item.productName} - Critical! Only ${item.currentStock} left!`
-          });
-        } else if (item.status === "Low") {
-          io.emit('lowStock', {
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.currentStock,
-            message: `⚠️ ${item.productName} - Low stock! ${item.currentStock} left`
-          });
-        }
+        productId: product._id,
+        productName: product.name,
+        currentStock: qty,  
+        status: status
       });
 
+      totalStock += qty;
+    });
 
-      return res.status(200).json({
+    let filteredProduct = inventory;
+    if (type === 'low') {
+      filteredProduct = inventory.filter(p => ["Low", "Critical", "Out of Stock"].includes(p.status));
+    }
+
+    const summary = {
+      outOfStock: outOfStockCount,
+      critical: criticalCount,
+      low: lowCount,
+      ok: okCount
+    };
+
+     //socket io
+    if (batchAlerts.length > 0) {
+      io.emit('inventoryAlertBatch', batchAlerts);
+    }
+
+    return res.status(200).json({
       success: true,
       type: type || 'current',
-      inventory: filterproduct,
-      totalProducts: filterproduct.length,
+      inventory: filteredProduct,
+      totalProducts: filteredProduct.length,
       totalStock: type === 'low' 
-        ? filterproduct.reduce((sum, p) => sum + p.quantity, 0)
+        ? filteredProduct.reduce((sum, p) => sum + p.currentStock, 0) 
         : totalStock,
-      summary: summary
+      summary
     });
 }
 

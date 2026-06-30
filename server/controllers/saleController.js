@@ -16,17 +16,25 @@ import fs from "fs";
 export const createSale = async (req, res) =>{
   const {name, phoneNumber, items, customerType, paidAmount, discount = 0, notes = ''} = req.body;
      
+   if (!items || items.length === 0) {
+      throw new ExpressError('No items provided for checkout', 400);
+    }
+
+    const productIds = items.map(item => item.product);
+    const dbProducts = await Product.find({ _id: { $in: productIds } });
+
+    const productMap = {};
+    dbProducts.forEach(p => { productMap[p._id.toString()] = p; });
+
     for (let item of items) {
-    const product = await Product.findById(item.product);
-
-    if (!product) {
-      throw new ExpressError('Product not found', 404);
+      const product = productMap[item.product];
+      if (!product) {
+        throw new ExpressError(`Product not found for ID: ${item.product}`, 404);
+      }
+      if (product.quantity < item.quantity) {
+        throw new ExpressError(`Insufficient stock for ${product.name}`, 400);
+      }
     }
-
-    if (product.quantity < item.quantity) {
-      throw new ExpressError('Insufficient stock', 400);
-    }
-  }
   
   let customer = await Customer.findOne({ phoneNumber})
      if(!customer){
@@ -87,7 +95,10 @@ export const createSale = async (req, res) =>{
             paidAmount: paidAmount || 0,
             discount: discount,
             notes: notes,
-            createdBy: userId
+            createdBy: userId,
+            paymentMethod: customer.customerType === 'cash' ? 'cash' : 'credit',
+            paymentStatus: paidAmount > 0 ? 'success' : 'pending'  
+
         });
 
    
@@ -112,18 +123,43 @@ for (let item of items) {
   }
   
   // Update Customer totals
-  customer.totalPurchased += totalAmount + discount; // Original amount without discount
+  customer.totalPurchased += totalAmount + discount; 
   if (paidAmount > 0) {
-    customer.totalPaid += paidAmount;
-  }
-  
-  emitDashboardRefresh();
+      customer.totalPaid += Number(paidAmount);
+      customer.lastPaymentDate = new Date();
+    }
 
-  // 7. 🔥 DYNAMIC GENERATION OF PDF RECEIPT STREAM 🔥
+    const remainingBalance = totalAmount - (paidAmount || 0);
+    if (customer.customerType === 'credit' && remainingBalance > 0) {
+      customer.currentBalance += remainingBalance;
+    }
+    
+    await customer.save();
+
+
+    if (paidAmount && paidAmount > 0) {
+      await Payment.create({
+        sale: sale._id,
+        customer: customer._id,
+        amount: paidAmount,
+        paymentMethod: customer.customerType === 'cash' ? 'cash' : 'credit',
+        paymentStatus: 'success',
+        recievedBy: userId
+      });
+    }
+
+ if (typeof emitDashboardRefresh === 'function') {
+      emitDashboardRefresh();
+    }
+
+
+// reciept generation
+  
   let pdfBase64Data = null;
   let receiptFileName = "";
   const invoiceNumber = `INV-${sale._id.toString().slice(-6).toUpperCase()}`;
 
+  
   try {
     const receiptPayload = {
       createdAt: sale.createdAt,
@@ -134,7 +170,7 @@ for (let item of items) {
       totalAmount: totalAmount,
       discount: discount,
       paidAmount: paidAmount || 0,
-      paymentMethod: customer.customerType === 'cash' ? 'Cash' : 'Credit Ledger'
+      paymentMethod: customer.customerType === 'cash' ? 'Cash' : 'Credit'
     };
 
     const receiptResult = await generateReceipt(receiptPayload, invoiceNumber);
@@ -148,7 +184,6 @@ for (let item of items) {
     console.error("Receipt Engine failed silently:", receiptError.message);
   }
 
-  // 8. Single Unified JSON Response
   return res.status(201).json({
     success: true,
     message: "Sale created successfully",
@@ -156,29 +191,6 @@ for (let item of items) {
     pdfData: pdfBase64Data, 
     fileName: receiptFileName
   });
-
-  
-  //  Update Customer balance & lastPaymentDate
-  const remainingBalance = totalAmount - (paidAmount || 0);
-  if (customer.customerType === 'credit' && remainingBalance > 0) {
-      customer.currentBalance += remainingBalance;
-  }
-  if (paidAmount > 0) {
-      customer.lastPaymentDate = new Date();
-  }
-  await customer.save();
-
-   // Create Payment record if paidAmount > 0
-  if (paidAmount && paidAmount > 0) {
-      await Payment.create({
-          sale: sale._id,
-          customer: customer._id,
-          amount: paidAmount,
-          paymentMethod: customer.customerType === 'cash' ? 'cash' : 'credit',
-          paymentStatus: 'success',
-          recievedBy: req.user._id
-      });
-  }
 
    res.status(201).json({
       success: true,
