@@ -8,7 +8,7 @@ import ExpressError from "../utils/expressError.js"
 import { updateStock } from '../utils/stockService.js'
 import mongoose from "mongoose"
 import { emitDashboardRefresh } from "../utils/emitDashboardRefresh.js";
-import { generateReceipt } from "../utils/receiptGenerator.js"; // 👈 Raseed generator ko import kiya
+import { generateReceipt } from "../utils/receiptGenerator.js"; 
 import fs from "fs";
 
 
@@ -326,7 +326,8 @@ for (let item of items) {
     }
 
     // SaleItems delete
-    await SaleItem.deleteMany({ _id: { $in: sale.items } });
+    const saleItemIds = sale.items.map(item => item._id);
+    await SaleItem.deleteMany({ _id: { $in: saleItemIds } });
 
     // Payments delete
     await Payment.deleteMany({ sale: sale._id });
@@ -356,196 +357,232 @@ for (let item of items) {
 
 // GET SALES BY CUSTOMER  /api/sale/customer/:customerId 
 export const getSalesByCustomer = async (req, res) => {
-         const { customerId } = req.params;
-         const customer = await Customer.findById(customerId);
+    const { customerId } = req.params;
+    
+    // 1. Find Customer Profile
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+        throw new ExpressError("Customer is not Found", 404);
+    }
 
-         if (!customer) {
-            throw new ExpressError("Customer is not Found" ,404)
-        }
+    // 2. Fetch Sales - Sorted by Newest First
+    const sales = await Sale.find({ customer: customerId })
+        .populate({
+            path: 'items',
+            populate: {
+                path: 'product',
+                select: 'name productCode' // Deep population frontend inventory view k liye
+            }
+        })
+        .populate('createdBy', 'name')
+        .sort({ createdAt: -1 });
 
-        const sales = await Sale.find({ customer: customerId })
-            .populate('items')
-            .populate('createdBy')
-            .sort({ createdAt: -1 });
-
-        // Calculate customer statistics
-        let totalPurchased = 0;
-        let totalPaid = 0;
-        let totalPending = 0;
-        let totalRefunded = 0;
-        let paidSalesCount = 0;
-        let pendingSalesCount = 0;
+    // 3. Initialize statistics based exactly on your frontend grid layout
+    let totalPurchased = 0;
+    let totalPaid = 0;
+    let totalPending = 0;
+    let paidSalesCount = 0;
+    let pendingSalesCount = 0;
 
     sales.forEach(sale => {
+        const gross = sale.totalAmount || 0;
+        const paid = sale.paidAmount || 0;
 
-            totalPurchased += sale.totalAmount;
-            totalPaid += sale.paidAmount;
-            totalRefunded += sale.refundedAmount || 0;
-            const pending = sale.totalAmount - sale.paidAmount;
-            totalPending += pending;
+        totalPurchased += gross;
+        totalPaid += paid;
+        totalPending += (gross - paid);
 
-            if (sale.totalAmount === sale.paidAmount) {
-                paidSalesCount++;
-            } else {
-                pendingSalesCount++;
-            }
-        });
+        // UI matching condition: sale.status === 'Paid'
+        if (gross === paid) {
+            paidSalesCount++;
+        } else {
+            pendingSalesCount++;
+        }
+    });
 
-        // Format sales data
-        const formattedSales = sales.map(sale => ({
+    // 4. Format Sales Array to perfectly feed into salesData state
+    const formattedSales = sales.map(sale => {
+        const isPaid = (sale.totalAmount || 0) === (sale.paidAmount || 0);
+        
+        return {
             saleId: sale._id,
-            receiptNumber: sale.receiptNumber,
-            totalAmount: sale.totalAmount,
-            paidAmount: sale.paidAmount,
-            discount: sale.discount,
-            refundedAmount: sale.refundedAmount || 0,
-            remainingBalance: sale.totalAmount - sale.paidAmount,
-            itemCount: sale.items.length,
-            paymentMethod: sale.paymentMethod,
-            paymentStatus: sale.paymentStatus,
+            receiptNumber: sale.receiptNumber || 'N/A',
+            totalAmount: sale.totalAmount || 0,
+            paidAmount: sale.paidAmount || 0,
+            discount: sale.discount || 0,
+            remainingBalance: (sale.totalAmount || 0) - (sale.paidAmount || 0),
+            itemCount: sale.items?.length || 0,
+            paymentMethod: sale.paymentMethod || 'cash',
+            paymentStatus: sale.paymentStatus || (isPaid ? 'success' : 'partial'),
             createdDate: sale.createdAt,
             updatedDate: sale.updatedAt,
             createdBy: sale.createdBy?.name || 'Unknown',
-            status: sale.totalAmount === sale.paidAmount ? 'Paid' : 'Pending',
-            items: sale.items.map(item => ({
+            // 🔥 CRITICAL: Yeh field aapka UI table map check kar rha hai row.status pr
+            status: isPaid ? 'Paid' : 'Pending', 
+            items: (sale.items || []).map(item => ({
                 itemId: item._id,
-                product: item.product,
-                quantity: item.quantity,
-                sellPrice: item.sellPrice,
-                itemTotal: item.totalPrice
+                productId: item.product?._id || item.product,
+                productName: item.product?.name || 'Unknown Product',
+                quantity: item.quantity || 0,
+                sellPrice: item.sellPrice || 0,
+                itemTotal: item.totalPrice || ((item.quantity || 0) * (item.sellPrice || 0))
             }))
-        }));
+        };
+    });
 
-        return res.status(200).json({
-            success: true,
-            message: "Customer sales retrieved successfully",
-            customerDetails: {
-                customerId: customer._id,
-                customerName: customer.name,
-                phoneNumber: customer.phoneNumber,
-                email: customer.email,
-                customerType: customer.customerType,
-                currentBalance: customer.currentBalance,
-                lastPaymentDate: customer.lastPaymentDate,
-                isActive: customer.isActive,
-                createdDate: customer.createdAt
-            },
-            salesStatistics: {
-                totalSales: sales.length,
-                paidSales: paidSalesCount,
-                pendingSales: pendingSalesCount,
-                totalPurchased: totalPurchased,
-                totalPaid: totalPaid,
-                totalPending: totalPending,
-                totalRefunded: totalRefunded,
-                remainingBalance: totalPurchased - totalPaid,
-                averageSaleAmount: sales.length > 0 ? Math.round(totalPurchased / sales.length) : 0
-            },
-            data: formattedSales
-        });
+    // 5. Structure JSON matching your exact React state destructuring
+    return res.status(200).json({
+        success: true,
+        message: "Customer sales retrieved successfully",
+        // Direct map: setCustomerData(res.data.customerDetails)
+        customerDetails: {
+            customerId: customer._id,
+            customerName: customer.name,
+            phoneNumber: customer.phoneNumber || "N/A",
+            customerType: customer.customerType || "Walk-in",
+            currentBalance: customer.currentBalance || 0,
+            lastPaymentDate: customer.lastPaymentDate || null
+        },
+        // Direct map: setStatistics(res.data.salesStatistics)
+        salesStatistics: {
+            totalSales: sales.length, // UI: statistics?.totalSales
+            paidSales: paidSalesCount,
+            pendingSales: pendingSalesCount,
+            totalPurchased: totalPurchased, // UI: statistics?.totalPurchased
+            totalPaid: totalPaid, // UI: statistics?.totalPaid
+            totalPending: Math.max(0, totalPending), // UI: statistics?.totalPending
+            averageSaleAmount: sales.length > 0 ? Math.round(totalPurchased / sales.length) : 0
+        },
+        // Direct map: setSalesData(res.data.data)
+        data: formattedSales
+    });
 };
- 
 export const processReturn = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const { saleId, productId, quantity } = req.body;
+    const { saleId, productId, quantity } = req.body;
 
-  //  Find Sale
-  const sale = await Sale.findById(saleId)
-    .populate("customer")
-    .populate("items");
+    // 1. Find Sale
+    const sale = await Sale.findById(saleId)
+      .populate("customer")
+      .populate("items")
+      .session(session);
 
-  if (!sale) {
-    throw new ExpressError("Sale not found", 404);
-  }
-
-  //  Find Sale Item
-  const saleItem = await SaleItem.findOne({
-    saleRef: saleId,
-    product: productId
-  }).populate("product");
-
-  if (!saleItem) {
-    throw new ExpressError("Sale item not found", 404);
-  }
-
-  if (saleItem.quantity < quantity) {
-    throw new ExpressError("Cannot return more than purchased quantity", 400);
-  }
-
-  //  Calculate refund
-  const price = saleItem.sellPrice;
-  const returnAmount = price * quantity;
-
-  //  STOCK RESTORE + LOG
-  await updateStock({
-    productId,
-    change: +quantity,
-    type: "Return",
-    sale: saleId,
-    user: req.user._id
-  });
-
-  // Update Sale Item
-  saleItem.quantity -= quantity;
-
-  if (saleItem.quantity === 0) {
-    await SaleItem.findByIdAndDelete(saleItem._id);
-
-    await Sale.updateOne(
-      { _id: saleId },
-      { $pull: { items: saleItem._id } }
-    );
-  } else {
-    await saleItem.save();
-  }
-
-  //  Update Sale Total
-  sale.totalAmount -= returnAmount;
-  sale.refundedAmount = (sale.refundedAmount || 0) + returnAmount;
-
-  // safe paid adjustment
-  if (sale.paidAmount > sale.totalAmount) {
-    sale.paidAmount = sale.totalAmount;
-  }
-
-  await sale.save();
-
-  // Update Customer Balance
-  const customer = sale.customer;
-
-  if (customer.customerType === "credit") {
-    customer.currentBalance -= returnAmount;
-  }
-
-  // Update customer totalPaid agar refund ho raha hai
-  customer.totalPaid -= returnAmount;
-  customer.lastPaymentDate = new Date();
-  await customer.save();
-
-  // Create Refund Payment
-  await Payment.create({
-    sale: saleId,
-    customer: customer._id,
-    amount: -returnAmount,
-    paymentMethod: "refund",
-    paymentStatus: "success",
-    recievedBy: req.user._id
-  });
- 
-  //Socket dashboard refresh
-  emitDashboardRefresh();
-
-  // Response
-  return res.status(200).json({
-    success: true,
-    message: "Return processed successfully",
-    data: {
-      returnedQuantity: quantity,
-      refundAmount: returnAmount,
-      newSaleTotal: sale.totalAmount,
-      newSalePaid: sale.paidAmount,
-      newCustomerBalance: customer.currentBalance,
-      newRefundedAmount: sale.refundedAmount
+    if (!sale) {
+      throw new ExpressError("Sale not found", 404);
     }
-  });
-};
+
+    // 2. Find Sale Item
+    const saleItem = await SaleItem.findOne({
+      saleRef: saleId,
+      product: productId
+    }).populate("product").session(session);
+
+    if (!saleItem) {
+      throw new ExpressError("Sale item not found", 404);
+    }
+
+    if (saleItem.quantity < quantity) {
+      throw new ExpressError("Cannot return more than purchased quantity", 400);
+    }
+
+    // 3. Calculate financial values
+    const price = saleItem.sellPrice;
+    const returnAmount = price * quantity;
+
+    // 4. STOCK RESTORE + LOG
+    await updateStock({
+      productId,
+      change: +quantity,
+      type: "Return",
+      sale: saleId,
+      user: req.user._id,
+      session
+    });
+
+    // 5. Update/Delete Sale Item
+    saleItem.quantity -= quantity;
+
+    if (saleItem.quantity === 0) {
+      await SaleItem.findByIdAndDelete(saleItem._id).session(session);
+
+      await Sale.updateOne(
+        { _id: saleId },
+        { $pull: { items: saleItem._id } }
+      ).session(session);
+    } else {
+      await saleItem.save({ session });
+    }
+
+    const oldTotalAmount = sale.totalAmount;
+    sale.totalAmount -= returnAmount;
+    sale.refundedAmount = (sale.refundedAmount || 0) + returnAmount;
+
+    let creditAdjustment = 0;
+    let cashRefundGiven = 0;
+
+    // 🔥 Variable casing fixed to lowercase "customer" to ensure global reference matching
+    const customer = sale.customer;
+
+    if (customer.customerType === "credit") {
+      const remainingBalanceOnSale = oldTotalAmount - sale.paidAmount;
+      
+      if (remainingBalanceOnSale >= returnAmount) {
+        creditAdjustment = returnAmount;
+      } else {
+        creditAdjustment = remainingBalanceOnSale;
+        cashRefundGiven = returnAmount - remainingBalanceOnSale;
+      }
+      
+      customer.currentBalance -= creditAdjustment;
+    } else {
+      cashRefundGiven = returnAmount;
+    }
+
+    if (sale.paidAmount > sale.totalAmount) {
+      sale.paidAmount = sale.totalAmount;
+    }
+
+    await sale.save({ session });
+
+    // 6. Safe Customer update tracking
+    if (cashRefundGiven > 0) {
+      customer.totalPaid = Math.max(0, (customer.totalPaid || 0) - cashRefundGiven);
+    }
+    customer.lastPaymentDate = new Date();
+    await customer.save({ session });
+
+    // 7. Create Refund Payment Reference Entry
+    await Payment.create([{
+      sale: saleId,
+      customer: customer._id,
+      amount: -returnAmount,
+      paymentMethod: "refund",
+      paymentStatus: "success",
+      recievedBy: req.user._id
+    }], { session });
+
+    // Commit changes safely to DB
+    await session.commitTransaction();
+    session.endSession();
+
+    // Socket refresh
+    emitDashboardRefresh();
+
+    return res.status(200).json({
+      success: true,
+      message: "Return processed successfully",
+      data: {
+        returnedQuantity: quantity,
+        refundAmount: returnAmount,
+        cashRefundGiven,
+        creditAdjustment,
+        newSaleTotal: sale.totalAmount,
+        newSalePaid: sale.paidAmount,
+        newCustomerBalance: customer.currentBalance,
+        newRefundedAmount: sale.refundedAmount
+      }
+    })
+
+  }

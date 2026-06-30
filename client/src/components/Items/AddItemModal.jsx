@@ -124,7 +124,6 @@ useEffect(() => {
                 <div>
                   <label className="block text-xs font-bold text-black uppercase mb-1.5 ml-1">Cost Price</label>
                   <div className="relative">
-                    <FiDollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-black" />
                     <input value={formData.costPrice} onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })} type="number" placeholder="0.00" className="w-full pl-9 pr-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm" />
                   </div>
                  </div>

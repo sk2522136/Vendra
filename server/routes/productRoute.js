@@ -12,7 +12,7 @@ import { getProductByCategory } from '../controllers/categoryController.js';
 const router = express.Router();
 
 router.route('/')
-.get(   wrapAsync(getAllProducts))
+.get(  authMiddleware , wrapAsync(getAllProducts))
 
 router.route('/create')
 .post( authMiddleware , allowRoles(['admin']),multerConfig.upload.single('image'),validateSchema(productSchema),  wrapAsync(createProduct))
