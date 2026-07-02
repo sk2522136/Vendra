@@ -7,14 +7,14 @@ function SalesTrend({ data }) {
     return <div className="text-center text-muted py-8">Loading sales data...</div>;
   }
 
+  // Yahan se humne .slice(-15) ko hata diya hai taake full month (1 to 31) ka data mile
   const chartData = Object.entries(data.daily)
     .map(([day, count]) => ({
       dayNum: parseInt(day), 
       day: `Day ${day}`,
       sales: count
     }))
-    .sort((a, b) => a.dayNum - b.dayNum) 
-    .slice(-15); 
+    .sort((a, b) => a.dayNum - b.dayNum); // <--- Ab poora data return hoga bina kate
 
   return (
     <div>

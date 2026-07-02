@@ -57,7 +57,7 @@ const statsData = [
     setProducts(res.data.products);
     setStats(res.data.stats)
     setTotalPages(res.data.totalPages); 
-setPage(res.data.page);
+     setPage(res.data.page);
 
   } catch (error) {
  const errorMessage = 

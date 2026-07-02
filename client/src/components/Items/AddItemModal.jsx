@@ -8,7 +8,7 @@ const AddItemModal = ({ isOpen, onClose, initialData,onAddProduct,onUpdateProduc
 
   const [formData, setFormData] = useState({
     name: '', sku: '', category: '', costPrice: '',supplier: '',
-    quantity: '', unit: 'kg', description: '',
+    quantity: '', unit: '', description: '',
     image: null
   })
 
@@ -48,7 +48,7 @@ useEffect(() => {
     } else {
       setFormData({
         name: '', sku: '', category: 'Grocery', costPrice: '',supplier: '',
-        quantity: '', unit: 'kg', description: '',
+        quantity: '', unit: '', description: '',
         image: null
       })
       setPreview(null);
@@ -137,9 +137,10 @@ useEffect(() => {
                 <div>
                 <label className=" text-xs font-bold text-black uppercase mb-1.5 ml-1">Unit</label>
                 <select value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className='w-full px-4 py-3 bg-white rounded-2xl text-black border focus:bg-white border-border outline-none focus:border-bg-primary/50 transition-all text-sm shadow-sm'>
-                  <option>kg</option>
-                  <option>g</option>
-                  <option>L</option>
+                  <option value="">Select Unit</option>
+                    <option value="kg">kg</option>
+                    <option value="Pcs">Pcs</option>
+                    <option value="ltr">ltr</option>
                 </select>
 
               </div>
@@ -190,7 +191,7 @@ useEffect(() => {
             <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl border border-border text-sm font-bold text-text hover:bg-gray-50 transition-all">
               Discard
             </button>
-            <button type="submit" className="px-10 py-2.5 rounded-xl bg-bg-primary text-white text-sm font-bold hover:bg-bg-secondary shadow-lg shadow-black/20 transition-all">
+            <button type="submit" className="px-10 py-2.5 rounded-xl bg-bg-primary text-white text-sm font-bold hover:bg-bg-secondary shadow-lg shadow-black/20 transition-all cursor-pointer">
               {isEditMode ? "Save Changes" : "Confirm & Add Item"}
             </button>
           </div>

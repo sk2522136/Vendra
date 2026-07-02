@@ -36,11 +36,21 @@ const PosComponent = () => {
   const [receiptPdf, setReceiptPdf] = useState(null);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
 
+const [page, setPage] = useState(1);
+const [limit] = useState(15);
+const [sortBy, setSortBy] = useState("createdAt");
+const [order, setOrder] = useState("desc");
+const [totalPages, setTotalPages] = useState(1);
+
+
+ 
+  
   useEffect(() => {
-    loadProducts();
+   loadProducts();
     loadSavedCarts();
     loadCategories();
-  }, []);
+  }, [page, sortBy, order]);
+
 
   const loadCategories = async () => {
     try {
@@ -52,8 +62,13 @@ const PosComponent = () => {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetchProduct();
+      const response = await fetchProduct({ page, limit, sortBy, order });
       setProducts(response.data.products || response.products || []);
+      setTotalPages(response.data.totalPages);
+      if (response.data?.page) {
+      setPage(response.data.page);
+    }
+
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch products");
     } finally { setLoading(false); }
@@ -66,14 +81,16 @@ const PosComponent = () => {
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const prodCategoryId = p.category?._id || p.category; 
+  const matchesCategory = selectedCategory === "All" || prodCategoryId === selectedCategory;
+  
+  return matchesSearch && matchesCategory;
   });
 
   const addToCart = (product) => {
     if (!product.quantity || product.quantity <= 0) { toast.error("Product out of stock!"); return; }
     
-    // Default system cost price yahan set hogi, jise admin cart me badal sakega
+    // Default system cost price yahan set hogi, jise admin cart me badal saskega
     const sellPrice = product.costPrice || 0; 
     const existingItem = cart.find((item) => item.productId === product._id);
 
@@ -131,6 +148,16 @@ const PosComponent = () => {
     try {
       setIsProcessingPayment(true);
       
+      // 🔥 BUG FIX #1: Calculate correct paidAmount based on payment method
+      let actualPaidAmount = 0;
+      if (paymentMethod === "cash") {
+        actualPaidAmount = totalAmount; // Cash: full amount paid immediately
+      } else if (paymentMethod === "credit") {
+        actualPaidAmount = 0; // Credit: no amount paid now, customer will pay later
+      } else if (paymentMethod === "card") {
+        actualPaidAmount = 0; // Card: no amount paid until stripe processes it
+      }
+
       // 🔥 PAYLOAD SNAPSHOT: Isme item.price direct admin input box se map ho kar backend par ja rhi hai
       const saleData = {
         name: customerName,
@@ -140,8 +167,8 @@ const PosComponent = () => {
           quantity: item.qty, 
           sellPrice: Number(item.price) || 0  // Admin ki overwrite ki hui current price
         })),
-        customerType: paymentMethod === "card" ? "cash" : paymentMethod,
-        paidAmount: paymentMethod === "cash" ? totalAmount : 0,
+        customerType: paymentMethod, // ✅ FIX: Send actual payment method 'cash', 'credit', or 'card'
+        paidAmount: actualPaidAmount, // ✅ FIX: Correct paid amount based on payment method
         discount: Number(discount),
         notes: notes,
       };
@@ -163,12 +190,14 @@ const PosComponent = () => {
         }
         toast.success("Transaction processed successfully!");
         resetForm();
+        loadProducts();
         return;
       }
 
       if (!stripe || !elements) { toast.error("Stripe SDK loading error."); return; }
 
-      const saleResponse = await createSale({ ...saleData, customerType: "cash" });
+      // For card payment: create sale with customerType: 'card' and paidAmount: 0
+      const saleResponse = await createSale(saleData); // ✅ saleData already has correct values
       const saleId = saleResponse.data?.sale?._id || saleResponse.data?._id;
       if (!saleId) throw new Error("Database mapping failed.");
 
@@ -193,11 +222,13 @@ const PosComponent = () => {
             timestamp: new Date().toISOString()
           });
         
-          if (saleResponse.data?.pdfData) {
-            setReceiptPdf(saleResponse.data.pdfData); setShowModal(true); 
-          }
+           if (confirmRes.data?.pdfData) {
+      setReceiptPdf(confirmRes.data.pdfData);
+      setShowModal(true);
+    }
           toast.success("Card Charged Successfully!");
           resetForm();
+          loadProducts();
         }
       }
     } catch (error) {
@@ -259,6 +290,9 @@ const PosComponent = () => {
         selectedCategory={selectedCategory} 
         setSelectedCategory={setSelectedCategory} 
         addToCart={addToCart} 
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
       />
 
       {/* RIGHT PANEL WRAPPER */}
@@ -267,7 +301,7 @@ const PosComponent = () => {
         {/* 2. CART LOGS STATION COMPONENT */}
         <CartSection 
           cart={cart} 
-          setCart={setCart} // 🔥 Pass setCart down to modify prices dynamically inside cart
+          setCart={setCart}
           savedCarts={savedCarts} 
           saveCart={saveCart} 
           loadSavedCart={loadSavedCart} 

@@ -3,14 +3,14 @@ import { FiSearch, FiFilter, FiShoppingCart } from "react-icons/fi";
 
 const ProductSection = ({ 
   products, searchTerm, setSearchTerm, 
-  categories, selectedCategory, setSelectedCategory, addToCart 
+  categories, selectedCategory, setSelectedCategory, addToCart, page, setPage, totalPages
 }) => {
   return (
     <div className="flex-1 flex flex-col bg-bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-sm min-h-[500px] xl:min-h-0">
       {/* Upper Dashboard Banner */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 pb-4 border-b border-border shrink-0">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-black uppercase tracking-tight flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-black text-text uppercase tracking-tight flex items-center gap-2">
             <FiShoppingCart className="text-bg-primary" /> POS 
           </h1>
           <p className="text-xs text-muted font-medium mt-0.5">Vendra POS System</p>
@@ -71,6 +71,37 @@ const ProductSection = ({
             ))}
           </div>
         )}
+      </div>
+     
+      <div className="flex items-center justify-center gap-2 mt-6 shrink-0">
+        <button 
+          disabled={page === 1} 
+          onClick={() => setPage(page - 1)} 
+          className="w-10 h-10 flex items-center justify-center border border-border bg-bg-primary text-white rounded-xl hover:bg-bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        >
+          ‹
+        </button>
+        {[...Array(Math.min(totalPages, 5))].map((_, index) => {
+          const startPage = Math.max(1, page - 2);
+          const pageNumber = startPage + index;
+          if (pageNumber > totalPages) return null;
+          return (
+            <button 
+              key={pageNumber} 
+              onClick={() => setPage(pageNumber)} 
+              className={`w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-bold transition-all ${page === pageNumber ? "bg-bg-primary text-white border-bg-primary" : "border-border text-text hover:bg-hover"}`}
+            >
+              {pageNumber}
+            </button>
+          );
+        })}
+        <button 
+          disabled={page === totalPages} 
+          onClick={() => setPage(page + 1)} 
+          className="w-10 h-10 flex items-center justify-center border border-border bg-bg-primary text-white rounded-xl hover:bg-bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        >
+          ›
+        </button>
       </div>
     </div>
   );
