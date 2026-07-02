@@ -11,7 +11,14 @@ import { checkStockAlert } from '../utils/checkStockAlert.js';
 export const createProduct = async (req, res) => {
   
     const {name, sku, category, costPrice, quantity, description, supplier, unit, imageUrl} = req.body
+     const trimmedUnit = unit ? unit.trim() : 'ltr'; // Agar missing ho to default 'ltr'
     
+    // Allowed units jo aapke model/schema ke enum me hain
+    const allowedUnits = ['kg', 'Pcs', 'ltr']; 
+    
+    if (!allowedUnits.includes(trimmedUnit)) {
+      throw new ExpressError(`Invalid unit type. Allowed values are: ${allowedUnits.join(', ')}`, 400);
+    }    
     //cloudinary file upload handling
     let targetUrl = "";
     let targetFilename = "";
@@ -43,7 +50,7 @@ export const createProduct = async (req, res) => {
       quantity: Number(quantity),
       description,
       supplier,
-      unit: unit || 'pcs',
+      unit: trimmedUnit,
       image: { url: targetUrl, filename: targetFilename }
     });
 

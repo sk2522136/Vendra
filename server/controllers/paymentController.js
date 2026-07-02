@@ -7,6 +7,9 @@ import ExpressError from '../utils/expressError.js';
 import { createPaymentIntent, getPaymentStatus } from '../utils/stripeService.js';
 import generateReceipt from '../utils/receiptGenerator.js';
 import { emitDashboardRefresh } from '../utils/emitDashboardRefresh.js';
+import { generateAndGetReceiptPDF, prepareReceiptPayload } from '../utils/receiptService.js';
+import fs from "fs";
+
 
 // POST /api/payment/create-intent
 export const createStripePaymentIntent = async (req, res) => {
@@ -51,6 +54,7 @@ export const createStripePaymentIntent = async (req, res) => {
 };
 
 // POST /api/payment/confirm-stripe-payment
+// POST /api/payment/confirm-stripe-payment
 export const confirmStripePayment = async (req, res) => {
   try {
     const { paymentIntentId, saleId } = req.body;
@@ -59,7 +63,7 @@ export const confirmStripePayment = async (req, res) => {
       throw new ExpressError('Payment intent ID and Sale ID required', 400);
     }
 
-    // Stripe  payment status check 
+    // Stripe payment status check 
     const result = await getPaymentStatus(paymentIntentId);
 
     if (!result.success) {
@@ -74,15 +78,18 @@ export const confirmStripePayment = async (req, res) => {
       throw new ExpressError('Sale not found', 404);
     }
 
-    //  payment succeed 
+    // payment succeed 
     if (paymentStatus === 'succeeded') {
       const customer = sale.customer;
+
+      // Calculate actual paid amount correctly
+      const amountPaidThisTurn = sale.totalAmount - sale.paidAmount;
 
       // Payment record create
       const payment = await Payment.create({
         sale: saleId,
         customer: customer._id,
-        amount: sale.totalAmount - sale.paidAmount,
+        amount: amountPaidThisTurn,
         paymentMethod: 'card',
         paymentStatus: 'success',
         transactionId: paymentIntentId,
@@ -90,35 +97,32 @@ export const confirmStripePayment = async (req, res) => {
       });
 
       // Sale update 
+      let receiptNumber = `RCP-${Date.now()}`;
       sale.paidAmount = sale.totalAmount;
       sale.paymentStatus = 'success';
       sale.paymentId = payment._id;
       sale.paymentMethod = 'card';
-      await sale.save();
-
-      // Customer lastPaymentDate update 
-      customer.lastPaymentDate = new Date();
-      if (customer.customerType === 'credit') {
-        customer.currentBalance = 0;
-      }
-      await customer.save();
-
-      // Receipt generate 
-      let receiptNumber = `RCP-${Date.now()}`;
       sale.receiptNumber = receiptNumber;
       await sale.save();
 
-      // Populate  receipt generation 
-      const populatedSale = await Sale.findById(saleId)
-        .populate('items')
-        .populate('customer');
+      // Update customer correctly
+      customer.totalPaid += Number(amountPaidThisTurn);
+      customer.lastPaymentDate = new Date();
+      
+      if (customer.customerType === 'credit') {
+        customer.currentBalance = Math.max(0, customer.currentBalance - amountPaidThisTurn);
+      }
+      await customer.save();
 
-      // Items with product details
+      // Populate items with products safely
+      const populatedSale = await Sale.findById(saleId).populate('items');
+
+      // 🔥 BUG FIX #1: Added safety check (?.) so that code never crashes if product is missing
       const itemsWithProducts = await Promise.all(
         populatedSale.items.map(async (item) => {
           const product = await Product.findById(item.product);
           return {
-            productName: product.name,
+            productName: product ? product.name : 'Unknown Product',
             quantity: item.quantity,
             sellPrice: item.sellPrice,
             totalPrice: item.totalPrice
@@ -126,36 +130,40 @@ export const confirmStripePayment = async (req, res) => {
         })
       );
 
-      const receiptData = {
-        receiptNumber: receiptNumber,
-        customerName: customer.name,
-        phoneNumber: customer.phoneNumber,
-        customerType: customer.customerType,
-        totalAmount: sale.totalAmount,
-        paidAmount: sale.paidAmount,
-        paymentMethod: 'card',
-        items: itemsWithProducts,
-        createdAt: sale.createdAt
-      };
+      // ✅ Reusable payload helper use karein jo aapki service mein hai
+      const receiptPayload = prepareReceiptPayload(
+        populatedSale,
+        customer,
+        itemsWithProducts,
+        receiptNumber,
+        'card'
+      );
 
+      // 🔥 BUG FIX #2: Generate PDF and get Base64 string to send to frontend
+      let pdfBase64Data = null;
+      let receiptFileName = "";
+      
       try {
-        await generateReceipt(receiptData, receiptNumber);
+        const receiptResult = await generateAndGetReceiptPDF(receiptPayload, receiptNumber);
+        if (receiptResult.success) {
+          pdfBase64Data = receiptResult.pdfBase64;
+          receiptFileName = receiptResult.fileName;
+        }
       } catch (pdfError) {
         console.error('Receipt generation error:', pdfError);
       }
 
-     
+      if (typeof emitDashboardRefresh === 'function') {
+        emitDashboardRefresh();
+      }
 
-      emitDashboardRefresh();
-
+      // ✅ EXACT MATCH WITH CASH/CREDIT RESPONSE STRUCTURE
       return res.status(200).json({
         success: true,
         message: 'Payment confirmed successfully',
-        data: {
-          paymentStatus: 'success',
-          receiptNumber: receiptNumber,
-          totalAmount: sale.totalAmount
-        }
+        sale,
+        pdfData: pdfBase64Data,   // ← Ab frontend ko direct yeh base64 milega screen par render karne ke liye
+        fileName: receiptFileName
       });
     }
 
@@ -178,4 +186,3 @@ export const confirmStripePayment = async (req, res) => {
     });
   }
 };
-

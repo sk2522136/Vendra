@@ -123,6 +123,7 @@ export const getTopSellProd = async(req, res) => {
 };
 
 //  /api/analytical/profit
+//  /api/analytical/profit
 export const getProfitChart = async (req, res, next) => {
     try {
         const { year } = req.query;
@@ -132,7 +133,19 @@ export const getProfitChart = async (req, res, next) => {
         const startDate = new Date(yearNum, 0, 1);
         const endDate = new Date(yearNum + 1, 0, 1);
 
-        const salesData = await SaleItem.aggregate([
+        // 1. Calculate Monthly Revenue directly from Sales Model (Highly Accurate)
+        const salesRevenueData = await Sale.aggregate([
+            { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    totalRevenue: { $sum: "$totalAmount" }
+                }
+            }
+        ]);
+
+        // 2. Calculate Monthly COGS from SaleItems
+        const cogsData = await SaleItem.aggregate([
             {
                 $lookup: {
                     from: "sales",
@@ -155,12 +168,12 @@ export const getProfitChart = async (req, res, next) => {
             {
                 $group: {
                     _id: { $month: "$sale.createdAt" },
-                    revenue: { $addToSet: { saleId: "$sale._id", amount: "$sale.totalAmount" } },
-                    cogs: { $sum: { $multiply: ["$quantity", { $ifNull: ["$prod.costPrice", 0] }] } }
+                    totalCogs: { $sum: { $multiply: ["$quantity", { $ifNull: ["$prod.costPrice", 0] }] } }
                 }
             }
         ]);
 
+        // 3. Calculate Expenses
         const expensesData = await Expense.aggregate([
             { $match: { date: { $gte: startDate, $lt: endDate } } },
             {
@@ -171,26 +184,35 @@ export const getProfitChart = async (req, res, next) => {
             }
         ]);
 
+        // Initialize 12 Months Object Structure
         const monthlyData = {};
         for (let i = 1; i <= 12; i++) {
             monthlyData[i] = { month: months[i - 1], revenue: 0, cogs: 0, grossProfit: 0, expenses: 0, netProfit: 0, profitMargin: 0 };
         }
 
-        salesData.forEach(item => {
-            const m = item._id;
-            const totalRevenue = item.revenue.reduce((sum, r) => sum + r.amount, 0); 
-            monthlyData[m].revenue = totalRevenue;
-            monthlyData[m].cogs = item.cogs;
-            monthlyData[m].grossProfit = totalRevenue - item.cogs;
-        });
-
-        expensesData.forEach(item => {
-            const m = item._id;
-            if (monthlyData[m]) {
-                monthlyData[m].expenses = item.totalExpenses;
+        // Map Revenue
+        salesRevenueData.forEach(item => {
+            if (monthlyData[item._id]) {
+                monthlyData[item._id].revenue = item.totalRevenue;
             }
         });
 
+        // Map COGS
+        cogsData.forEach(item => {
+            if (monthlyData[item._id]) {
+                monthlyData[item._id].cogs = item.totalCogs;
+                monthlyData[item._id].grossProfit = monthlyData[item._id].revenue - item.totalCogs;
+            }
+        });
+
+        // Map Expenses
+        expensesData.forEach(item => {
+            if (monthlyData[item._id]) {
+                monthlyData[item._id].expenses = item.totalExpenses;
+            }
+        });
+
+        // Final Net Profit calculations loop
         let totalProfit = 0;
         Object.keys(monthlyData).forEach(m => {
             const data = monthlyData[m];
@@ -212,7 +234,6 @@ export const getProfitChart = async (req, res, next) => {
 };
 
 
-
 // /api/analytical/payment
 export const getPaymentMethod = async(req, res) => {
     try {
@@ -226,7 +247,7 @@ export const getPaymentMethod = async(req, res) => {
 
         const sales = await Sale.find({
             createdAt: { $gte: startDate, $lt: endDate }
-        }).populate('customer').populate('customer');
+        }).populate('customer'); // 🟢 Ek baar populate kaafi hai, duplicate hata diya
 
         const paymentData = {
             cash: { count: 0, revenue: 0, paid: 0, pending: 0 },
@@ -234,11 +255,17 @@ export const getPaymentMethod = async(req, res) => {
         };
 
         sales.forEach(sale => {
-            const type = sale.customer?.customerType || 'cash';
+            let type = sale.customer?.customerType || 'cash';
+            
+            // 🟢 SAFEGUARD: Agar type 'cash' ya 'credit' nahi hai, toh default 'cash' par set karein taake crash na ho
+            if (type !== 'cash' && type !== 'credit') {
+                type = 'cash'; 
+            }
+
             paymentData[type].count += 1;
-            paymentData[type].revenue += sale.totalAmount;
-            paymentData[type].paid += sale.paidAmount;
-            paymentData[type].pending += (sale.totalAmount - sale.paidAmount);
+            paymentData[type].revenue += sale.totalAmount || 0;
+            paymentData[type].paid += sale.paidAmount || 0;
+            paymentData[type].pending += ((sale.totalAmount || 0) - (sale.paidAmount || 0));
         });
 
         // Collection rate

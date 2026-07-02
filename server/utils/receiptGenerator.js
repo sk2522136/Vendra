@@ -121,8 +121,9 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       // Amount paid 
       const netPayable = Math.max(0, sub - (saleData.discount || 0));
       doc.fontSize(10).font('Helvetica-Bold').text('PAID AMOUNT:', col3, yPosition, { width: 75, align: 'right' });
-      doc.text(`Rs ${Number(saleData.paidAmount || 0).toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
-
+      // ✅ FIX: Use paidAmount directly (not receivedAmount)
+      const finalPaid = saleData.paidAmount ? Number(saleData.paidAmount) : 0;
+      doc.text(`Rs ${finalPaid.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
       yPosition += 16;
 
       // Remaining balance checking computation block

@@ -117,7 +117,7 @@ export const getInventoryHistory = async (req, res)=>{
   if(!product){
   throw new ExpressError('Product Not found', 404);
   }
- const logs = await InventoryLog.find({ product: productId }).sort({date:1})
+ const logs = await InventoryLog.find({ product: productId }).populate('createdBy', 'name').sort({date:1})
     let currentStock = 0;
     const history = [];
  
@@ -129,7 +129,7 @@ export const getInventoryHistory = async (req, res)=>{
     type:log.type,
     change: log.quantityChange,  
         runningStock: currentStock,  
-        createdBy: log.createdBy
+createdBy: log.createdBy ? log.createdBy.name : 'System / Unknown'
       }) }
 
       return res.status(200).json({

@@ -9,23 +9,24 @@ import { updateStock } from '../utils/stockService.js'
 import mongoose from "mongoose"
 import { emitDashboardRefresh } from "../utils/emitDashboardRefresh.js";
 import { generateReceipt } from "../utils/receiptGenerator.js"; 
+import { generateAndGetReceiptPDF, prepareReceiptPayload } from '../utils/receiptService.js';
 import fs from "fs";
 
 
-// api/sale/create
+
 export const createSale = async (req, res) =>{
   const {name, phoneNumber, items, customerType, paidAmount, discount = 0, notes = ''} = req.body;
      
    if (!items || items.length === 0) {
       throw new ExpressError('No items provided for checkout', 400);
     }
-
+ 
     const productIds = items.map(item => item.product);
     const dbProducts = await Product.find({ _id: { $in: productIds } });
-
+ 
     const productMap = {};
     dbProducts.forEach(p => { productMap[p._id.toString()] = p; });
-
+ 
     for (let item of items) {
       const product = productMap[item.product];
       if (!product) {
@@ -49,8 +50,13 @@ export const createSale = async (req, res) =>{
      });
     
      await customer.save();
+    } else {
+      // ✅ UPDATE existing customer's type if this is a different payment method
+      if (customerType && customerType !== customer.customerType) {
+        customer.customerType = customerType;
+      }
     }
-
+ 
     let totalAmount = 0;
     let saleItemIds = [];
     let itemsForReceipt = [];
@@ -69,7 +75,7 @@ export const createSale = async (req, res) =>{
         totalPrice: itemTotal,
     });
     saleItemIds.push(saleItem._id);
-
+ 
     // PDF structural data push
     itemsForReceipt.push({
       productName: product.name,
@@ -78,15 +84,25 @@ export const createSale = async (req, res) =>{
       totalPrice: itemTotal
     });
  }
-
  // Discount apply karo
  totalAmount = totalAmount - discount;
-
+ 
  let userId = req.user._id;
   if (req.user._id === 'admin') {
     userId = new mongoose.Types.ObjectId();
   }
-
+ 
+  // 🔥 BUG FIX #1: Map customerType correctly to paymentMethod
+  // customerType can be: 'cash', 'credit', or 'card'
+  let paymentMethodForSale = 'cash';
+  if (customerType === 'credit') {
+    paymentMethodForSale = 'credit';
+  } else if (customerType === 'card') {
+    paymentMethodForSale = 'card';
+  } else {
+    paymentMethodForSale = 'cash';
+  }
+ 
   //  Create Sale
  const sale = await Sale.create({
             items: saleItemIds,
@@ -96,22 +112,22 @@ export const createSale = async (req, res) =>{
             discount: discount,
             notes: notes,
             createdBy: userId,
-            paymentMethod: customer.customerType === 'cash' ? 'cash' : 'credit',
+            paymentMethod: paymentMethodForSale,
             paymentStatus: paidAmount > 0 ? 'success' : 'pending'  
-
+ 
         });
-
+ 
    
-
+ 
  //  Update SaleItems with saleRef
     await SaleItem.updateMany(
     { _id: { $in: saleItemIds } },
     { $set: { saleRef: sale._id } }
 );
-
-
+ 
+ 
 for (let item of items) {
-
+ 
     await updateStock({
       productId: item.product,
       change: -item.quantity,
@@ -119,83 +135,77 @@ for (let item of items) {
       sale: sale._id,
       user: req.user._id
     });
-
+ 
   }
   
-  // Update Customer totals
+  // 🔥 BUG FIX #2: Update Customer totals correctly based on payment method
   customer.totalPurchased += totalAmount + discount; 
+  
+  // Only add to totalPaid if amount is actually paid
   if (paidAmount > 0) {
-      customer.totalPaid += Number(paidAmount);
-      customer.lastPaymentDate = new Date();
-    }
-
-    const remainingBalance = totalAmount - (paidAmount || 0);
-    if (customer.customerType === 'credit' && remainingBalance > 0) {
-      customer.currentBalance += remainingBalance;
-    }
-    
-    await customer.save();
-
-
-    if (paidAmount && paidAmount > 0) {
-      await Payment.create({
-        sale: sale._id,
-        customer: customer._id,
-        amount: paidAmount,
-        paymentMethod: customer.customerType === 'cash' ? 'cash' : 'credit',
-        paymentStatus: 'success',
-        recievedBy: userId
-      });
-    }
-
+    customer.totalPaid += Number(paidAmount);
+    customer.lastPaymentDate = new Date();
+  }
+ 
+  // 🔥 BUG FIX #3: Handle credit balance only for credit customers
+  const remainingBalance = totalAmount - (paidAmount || 0);
+  if (customerType === 'credit' && remainingBalance > 0) {
+    customer.currentBalance += remainingBalance;
+  }
+  
+  await customer.save();
+ 
+ 
+  // 🔥 BUG FIX #4: Create payment record only if paidAmount > 0
+  if (paidAmount && paidAmount > 0) {
+    await Payment.create({
+      sale: sale._id,
+      customer: customer._id,
+      amount: paidAmount,
+      paymentMethod: paymentMethodForSale,
+      paymentStatus: 'success',
+      recievedBy: userId
+    });
+  }
+ 
  if (typeof emitDashboardRefresh === 'function') {
       emitDashboardRefresh();
     }
-
-
-// reciept generation
+ 
+ 
+// ✅ RECEIPT GENERATION - ONLY FOR CASH & CREDIT
+// Card payments get receipt in paymentController after Stripe confirmation
   
   let pdfBase64Data = null;
   let receiptFileName = "";
-  const invoiceNumber = `INV-${sale._id.toString().slice(-6).toUpperCase()}`;
-
   
-  try {
-    const receiptPayload = {
-      createdAt: sale.createdAt,
-      customerName: customer.name,
-      phoneNumber: customer.phoneNumber,
-      customerType: customer.customerType,
-      items: itemsForReceipt,
-      totalAmount: totalAmount,
-      discount: discount,
-      paidAmount: paidAmount || 0,
-      paymentMethod: customer.customerType === 'cash' ? 'Cash' : 'Credit'
-    };
+ if (customerType !== 'card') {
+  const receiptNumber = `INV-${sale._id.toString().slice(-6).toUpperCase()}`;
+  sale.receiptNumber = receiptNumber;
+  await sale.save();
 
-    const receiptResult = await generateReceipt(receiptPayload, invoiceNumber);
+  // ✅ USE REUSABLE SERVICE
+  const receiptPayload = prepareReceiptPayload(
+    sale,
+    customer,
+    itemsForReceipt,
+    receiptNumber,
+    paymentMethodForSale
+  );
 
-    if (receiptResult.success) {
-      const fileBuffer = fs.readFileSync(receiptResult.filePath);
-      pdfBase64Data = `data:application/pdf;base64,${fileBuffer.toString('base64')}`;
-      receiptFileName = receiptResult.fileName;
-    }
-  } catch (receiptError) {
-    console.error("Receipt Engine failed silently:", receiptError.message);
+  const receiptResult = await generateAndGetReceiptPDF(receiptPayload, receiptNumber);
+
+  if (receiptResult.success) {
+    pdfBase64Data = receiptResult.pdfBase64;
+    receiptFileName = receiptResult.fileName;
   }
-
+}
   return res.status(201).json({
     success: true,
     message: "Sale created successfully",
     sale,
     pdfData: pdfBase64Data, 
     fileName: receiptFileName
-  });
-
-   res.status(201).json({
-      success: true,
-      message: "Sale created successfully",
-      sale
   });
      
 }

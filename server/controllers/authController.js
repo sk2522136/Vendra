@@ -125,41 +125,41 @@ export const registerStaff = async (req , res) =>  {
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
-    const emailHtml = `
-  <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 40px; border: 1px solid #e5e7eb; border-radius: 24px; background-color: #ffffff; color: #171717;">
+   const emailHtml = `
+  <div style="font-family: 'Mona Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 40px; border: 1px solid #dbeafe; border-radius: 24px; background-color: #f8fafc; color: #111827;">
     
     <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #171717;">
-        <span style="background-color: #000000; color: #ffffff; padding: 4px 10px; border-radius: 8px;">V</span>endra
+      <h1 style="margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #111827;">
+        <span style="background-color: #1a3a99; color: #ffffff; padding: 4px 10px; border-radius: 8px;">V</span>endra
       </h1>
     </div>
 
-    <h2 style="color: #171717; text-align: center; font-size: 24px; margin-bottom: 20px;">Welcome to Inventos!</h2>
+    <h2 style="color: #111827; text-align: center; font-size: 24px; margin-bottom: 20px;">Welcome to Vendra!</h2>
     
-    <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">Hi <strong>${name}</strong>,</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #111827;">Hi <strong>${name}</strong>,</p>
     
-    <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">
-      Admin ne aapko Inventos POS System par register kar diya hai. Apna account active karne aur access hasil karne ke liye niche diye gaye button par click karein:
+    <p style="font-size: 16px; line-height: 1.6; color: #111827;">
+      The administrator has registered you on the Vendra System. To activate your account and gain access, please click the button below.
     </p>
 
     <div style="text-align: center; margin: 40px 0;">
       <a href="${verificationUrl}" 
-         style="background-color: #171717; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: bold; border-radius: 12px; display: inline-block; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+         style="background: linear-gradient(to right, #1a3a99, #0f2463); color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: bold; border-radius: 12px; display: inline-block; font-size: 16px; box-shadow: 0 4px 6px rgba(26, 58, 153, 0.2);">
          Verify Email Account
       </a>
     </div>
 
-    <div style="border-top: 1px solid #f3f4f6; padding-top: 20px; margin-top: 30px;">
-      <p style="color: #9ca3af; font-size: 12px; line-height: 1.5;">
-        Yeh link 24 ghante ke liye valid hai. Agar button kaam nahi kar raha, toh is link ko copy karke browser mein paste karein:
+    <div style="border-top: 1px solid #dbeafe; padding-top: 20px; margin-top: 30px;">
+      <p style="color: #94a3b8; font-size: 12px; line-height: 1.5;">
+        This link is valid for 24 hours. If the button doesn't work, please copy and paste this link into your browser:
       </p>
-      <p style="color: #6b7280; font-size: 11px; word-break: break-all; background: #f9fafb; padding: 10px; border-radius: 8px;">
+      <p style="color: #94a3b8; font-size: 11px; word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 8px;">
         ${verificationUrl}
       </p>
     </div>
     
-    <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 30px;">
-      &copy; 2026 Inventos POS. All rights reserved.
+    <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 30px;">
+      &copy; 2026 Vendra. All rights reserved.
     </p>
   </div>
 `;
@@ -168,11 +168,10 @@ export const registerStaff = async (req , res) =>  {
     try {
         await sendEmail({
             email: newUser.email,
-            subject: 'Activate Your Inventos Account - Email Verification',
+            subject: 'Activate Your Vendra Account - Email Verification',
             html: emailHtml
         });
     } catch (emailError) {
-        // Agar kisi wajah se email na jaye, toh admin ko bata dein par user DB mein ban chuka hoga
         console.error("Verification email sending failed:", emailError.message);
     }
 
