@@ -37,4 +37,4 @@ jobs:
           docker build -t frontend:latest ./client
 
       - name: Display success message
-        run: echo " Build successful! Ready for deployment"
+        run: echo "✅ Build successful! Ready for deployment"
