@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Backend Tests
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
@@ -37,4 +37,4 @@ jobs:
           docker build -t frontend:latest ./client
 
       - name: Display success message
-        run: echo "✅ Build successful! Ready for deployment"
+        run: echo " Build successful! Ready for deployment"
