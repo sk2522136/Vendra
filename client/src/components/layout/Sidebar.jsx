@@ -29,7 +29,6 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
   return (
     <div className={`fixed lg:relative h-screen w-64 flex flex-col bg-[#171717] z-40 transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
       
-      {/* Vendra Logo Section */}
       <div className="h-20 flex items-center justify-center border-b border-gray-800">
         <div className="w-9 h-9 bg-bg-primary rounded-xl flex items-center justify-center shadow-lg ">
           <span className="text-white text-2xl font-black tracking-tighter">V</span>
@@ -57,7 +56,6 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
         ))}
       </nav>
 
-      {/* User & Logout Section */}
       <div className="border-t border-gray-800 p-4 relative">
         <div 
           className="flex items-center gap-3 text-white cursor-pointer hover:bg-gray-800 p-2 rounded-xl transition-all"

@@ -12,7 +12,7 @@ import { useAuth } from "../context/AuthContext";
 
 function Dashboard() {
 
-    const { user } = useAuth(); // Get current user
+    const { user } = useAuth(); 
 
   const [loading, setLoading] = useState(true);
   const [saleData, setSaleData] = useState(null);
@@ -91,7 +91,6 @@ function Dashboard() {
     <div className='bg-bg-body min-h-screen transition-all'>
       <div className='p-4 md:p-6 w-full'>
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-black tracking-tighter">DASHBOARD</h1>
@@ -118,14 +117,12 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8'>
           {stats.map((stat, idx) => (
             <StateCard key={idx} {...stat} />
           ))}
         </div>
         
-        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-bg-card rounded-2xl p-4 shadow-sm border border-gray-100">
             <SalesTrend data={saleData} />

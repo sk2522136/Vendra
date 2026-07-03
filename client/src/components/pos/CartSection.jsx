@@ -15,10 +15,8 @@ const CartSection = ({
   setCart 
 }) => {
 
-  // Dynamic Price Change Handler
   const handlePriceChange = (productId, newPrice) => {
     const parsedPrice = parseFloat(newPrice) || 0;
-    // Cart state ko direct update karega bina functions ko chhere
     if (typeof setCart === "function") {
       setCart((prevCart) =>
         prevCart.map((item) =>
@@ -30,7 +28,6 @@ const CartSection = ({
 
   return (
     <div className="flex flex-col flex-1 min-h-[200px] overflow-hidden">
-      {/* Receipt Header */}
       <div className="p-4 border-b border-border bg-gradient-to-r from-bg-primary to-bg-secondary flex justify-between items-center shrink-0 rounded-t-2xl">
         <div className="flex items-center gap-2.5 text-white">
           <FiShoppingCart size={18} />
@@ -40,7 +37,7 @@ const CartSection = ({
           </div>
         </div>
             
-        {/* Beautiful Toggle Switch ON/OFF */}
+        {/* voice over */}
         <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl border border-white/20 text-white text-xs font-bold select-none">
           <label className="relative inline-flex items-center cursor-pointer">
             <input 
@@ -64,7 +61,7 @@ const CartSection = ({
         </button>
       </div>
 
-      {/* Hold Carts Slider */}
+      {/* save cart */}
       {savedCarts.length > 0 && (
         <div className="px-3 py-2 border-b border-border bg-hover flex gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           {savedCarts.map((sc) => (
@@ -77,7 +74,6 @@ const CartSection = ({
         </div>
       )}
 
-      {/* Items Logger Container */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4 space-y-2.5 bg-gray-50/50">
         {cart.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full opacity-40 py-12">
@@ -88,7 +84,6 @@ const CartSection = ({
           cart.map((item) => (
             <div key={item.productId} className="bg-bg-card border border-border rounded-xl p-3 shadow-xs flex items-center justify-between gap-2 transition-all hover:border-gray-300">
               
-              {/* Product Info & Dynamic Price Input Box */}
               <div className="min-w-0 flex-1 space-y-1">
                 <h4 className="font-bold text-xs text-text uppercase truncate mb-0.5">{item.name}</h4>
                 <div className="flex items-center gap-1">
@@ -105,7 +100,6 @@ const CartSection = ({
                 </div>
               </div>
               
-              {/* Quantity Management Controllers */}
               <div className="flex items-center gap-1.5 bg-hover rounded-lg p-1 shrink-0">
                 <button onClick={() => decreaseQty(item.productId)} className="w-6 h-6 rounded-md bg-bg-card flex items-center justify-center border text-text"><FiMinus size={11} /></button>
                 <span className="font-bold text-xs text-text w-5 text-center select-none">{item.qty}</span>

@@ -121,14 +121,12 @@ const VoiceRecorder = ({ onCommand, onClose }) => {
     setIsListening(false);
   };
 
-  // Component unmount hone par speech cancel kardein
   useEffect(() => {
     return () => window.speechSynthesis.cancel();
   }, []);
 
   return (
     <div className="fixed bottom-4 right-4 z-[99999] bg-white border-2 border-bg-primary rounded-2xl shadow-2xl p-4 w-80 flex flex-col">
-      {/* Header */}
       <div className="flex justify-between items-center mb-4 pb-2 border-b border-border">
         <h3 className="font-bold text-bg-primary text-sm">🎤 Voice Assistant (English Only)</h3>
         <button onClick={onClose} className="text-muted hover:text-text transition-all cursor-pointer">

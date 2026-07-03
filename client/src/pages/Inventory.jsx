@@ -7,14 +7,10 @@ const Inventory = () => {
 
   return (
     <div className="p-4 md:p-6 rounded-3xl bg-bg-body overflow-y-auto custom-scrollbar">
-      
-      {/* Page Title & Description with Gradient Theme */}
-      <div className="mb-8 p-6 rounded-3xl bg-gradient-to-br from-bg-primary to-bg-secondary shadow-lg">
+            <div className="mb-8 p-6 rounded-3xl bg-gradient-to-br from-bg-primary to-bg-secondary shadow-lg">
         <h1 className="text-3xl font-black text-white uppercase tracking-tight">Inventory Management</h1>
         <p className="text-blue-100 text-sm font-medium mt-1">Monitor real-time stock status and review your transaction logs.</p>
       </div>
-
-      {/* Navigation Buttons */}
       <div className="flex gap-2 mb-8 bg-bg-card p-1.5 rounded-2xl border border-border w-fit shadow-sm">
         <button 
           onClick={() => setActiveTab('stock')}
@@ -29,8 +25,6 @@ const Inventory = () => {
           Inventory Log
         </button>
       </div>
-
-      {/* Content */}
       <div className="h-full">
         {activeTab === 'stock' ? <StockPage /> : <ProductCards />}
       </div>

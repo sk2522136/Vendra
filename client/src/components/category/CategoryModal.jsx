@@ -8,10 +8,8 @@ const CategoryModal = ({ isOpen, onClose, category,reloadCategories }) => {
   const handleSave = async () => {
     try {
       if (category) {
-        // UPDATE
         await updateCategory(category._id, { name });
       } else {
-        // CREATE
         await createCategory({ name });
       }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaUserPlus, FaSearch, FaPhoneAlt, FaHistory, FaUserTag, FaChevronRight } from 'react-icons/fa';
 import ViewModel from '../components/customer/ViewModel';
-import { getAllCustomers } from '../services/api';
+import { getAllCustomers} from '../services/api';
 import { toast } from 'react-toastify';
 
 const Customer = () => {
@@ -21,13 +21,14 @@ const Customer = () => {
   const [stats, setStats] = useState({
     totalCreditAmount: 0,
     creditCustomersCount: 0,
-    totalOutstandingBalance: 0
+    totalCashBalance: 0,
   });
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
       const res = await getAllCustomers({ search, page, limit, sortBy, order });
+       
 
       setCustomers(res.data.customers);
       setTotalPages(res.data.totalPages); 
@@ -36,19 +37,22 @@ const Customer = () => {
       let creditTotal = 0;
       let creditCount = 0;
       let outstandingTotal = 0;
+      let cashBalance = 0;
+
 
       res.data.customers.forEach(c => {
         if (c.customerType === 'credit') {
           creditCount++;
-          outstandingTotal += c.currentBalance;
           creditTotal += c.currentBalance;
         }
+
       });
 
+      cashBalance = res.data.totalCash || 0;
       setStats({
         totalCreditAmount: creditTotal,
         creditCustomersCount: creditCount,
-        totalOutstandingBalance: outstandingTotal
+        totalCashBalance: cashBalance
       });
 
     } catch (error) {
@@ -74,13 +78,11 @@ const Customer = () => {
   return (
     <div className="min-h-screen flex flex-col p-3 space-y-4 sm:space-y-6 sm:p-4 md:p-6 bg-bg-body overflow-y-auto">
         
-      {/* Title and Description */}
       <div className="flex-shrink-0">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase">Customer Management</h1>
         <p className="text-xs sm:text-sm text-muted mt-1">Efficiently manage your customers, track their payment status, and review account balances.</p>
       </div>
       
-      {/* Stats Summary Card */}
       <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-border shadow-sm">
           <p className="text-[9px] sm:text-[11px] font-extrabold text-muted uppercase tracking-wider">Total credit Customer</p>
@@ -91,8 +93,8 @@ const Customer = () => {
           <h3 className="text-lg sm:text-2xl font-black text-text mt-1">{stats.creditCustomersCount}</h3>
         </div>
         <div className="bg-bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-border shadow-sm col-span-1 sm:col-span-2 lg:col-span-1">
-          <p className="text-[9px] sm:text-[11px] font-extrabold text-muted uppercase tracking-wider">Total Outstanding Balance</p>
-          <h3 className="text-lg sm:text-2xl font-black text-text mt-1 break-words">Rs {stats.totalOutstandingBalance.toLocaleString()}</h3>
+          <p className="text-[9px] sm:text-[11px] font-extrabold text-muted uppercase tracking-wider">Total Cash Balance</p>
+          <h3 className="text-lg sm:text-2xl font-black text-text mt-1 break-words">Rs {stats.totalCashBalance.toLocaleString()}</h3>
         </div>
       </div>
      
@@ -124,7 +126,7 @@ const Customer = () => {
         ) : (
           <>
           
-        {/* MOBILE VIEW - CARD LAYOUT */}
+        {/* MOBILE VIEW  */}
         <div className="block md:hidden p-3 sm:p-4 space-y-3">
           {customers.map((c) => (
             <div key={c._id} className="bg-bg-body border border-border rounded-lg p-3 sm:p-4 space-y-2">

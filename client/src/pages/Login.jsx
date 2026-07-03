@@ -27,12 +27,10 @@ const Login = () => {
           navigate("/dashboard");
         }, 500);
       } else {
-        console.error("Login failed:", response.message);
         toast.error(response.message || "Invalid email or password");
-        setPassword(""); // Clear password field
+        setPassword(""); 
       }
     } catch (error) {
-      console.error("Login error:", error.message);
       toast.error(error.message || "Login failed");
     } finally {
       setLoading(false); 
@@ -44,19 +42,15 @@ const Login = () => {
   return (
  <div className="w-screen h-screen bg-bg-body overflow-hidden relative flex items-center justify-center p-4 font-mona">
       
-      {/* Background Subtle Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-bg-secondary opacity-[0.08] rounded-full blur-3xl"></div>
         <div className="absolute -bottom-20 -left-20 w-[600px] h-[600px] bg-bg-primary opacity-[0.05] rounded-full blur-3xl"></div>
       </div>
 
-      {/* Main Card Container */}
       <div className="relative z-10 w-full max-w-5xl h-[600px] bg-bg-card rounded-[2rem] shadow-2xl overflow-hidden flex border border-border">
 
-        {/* LEFT SIDE: Brand Branding */}
         <div className="hidden lg:flex flex-col justify-between bg-bg-secondary p-12 w-[40%]">
           <div>
-            {/* Logo Section */}
             <div className="flex flex-col mb-8"> 
               
               <div className="flex items-center  mb-4"> 
@@ -66,7 +60,6 @@ const Login = () => {
                 <span className="text-4xl font-black text-white tracking-tighter">endra</span>
               </div>
 
-              {/* Line ab neeche aa jayegi */}
               <div className="w-16 h-1.5 bg-bg-primary rounded-full"></div>
             </div>
           </div>
@@ -80,7 +73,6 @@ const Login = () => {
           <p className="text-[10px] text-blue-400 uppercase font-black tracking-widest">© 2026 Vendra Systems</p>
         </div>
 
-        {/* RIGHT SIDE: Form */}
         <div className="flex flex-col justify-center w-full lg:w-[60%] px-10 lg:px-20 py-12">
           <div className="mb-10">
             <h2 className="text-3xl font-black text-text mb-2">Welcome Back</h2>
@@ -88,7 +80,6 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Input */}
             <div>
               <label className="block text-[10px] font-black text-muted mb-2 uppercase tracking-widest">Email Address</label>
               <div className="relative">
@@ -104,7 +95,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Password Input */}
             <div>
               <label className="block text-[10px] font-black text-muted mb-2 uppercase tracking-widest">Password</label>
               <div className="relative">
@@ -121,7 +111,6 @@ const Login = () => {
               
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
               disabled={Loading}

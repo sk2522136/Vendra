@@ -5,10 +5,9 @@ import { FaSpinner } from "react-icons/fa";
 import { useEffect } from "react";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading } = useAuth(); // ✅ checkAuth import karo
+  const { user, loading } = useAuth(); 
   const location = useLocation();
 
-  // ✅ Loading state
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-white gap-3">
@@ -20,12 +19,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  // ✅ No user - redirect to login
+  // No user - redirect to login
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // ✅ Role check
+  //  Role check
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     let targetPath = user.role === "admin" ? "/dashboard" : "/pos";
     return <Navigate to={targetPath} replace />;

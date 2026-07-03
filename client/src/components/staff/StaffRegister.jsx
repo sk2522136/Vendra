@@ -20,21 +20,18 @@ const StaffRegister = ({ onClose, onStaffAdded }) => {
     hasSpecial: /[@$!%*?&]/.test(data.password),
   };
 
-  // Check kya saare rules match ho gaye hain?
   const isPasswordStrong = Object.values(passwordCriteria).every(Boolean);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!data.name || !data.email || !data.password) {
       toast.error("Fill all fields");
       return;
     }
 
-    // 🛑 2. Frontend Security Block: Agar password criteria match nahi hai toh request mat bhejo
     if (!isPasswordStrong) {
-      toast.error("Please enter a strong password that meets all requirements.");
+      toast.error("Please enter a valid password that meets all requirements.");
       return;
     }
 
@@ -67,10 +64,8 @@ const StaffRegister = ({ onClose, onStaffAdded }) => {
   return (
    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       
-  {/* Modal Card */}
   <div className="bg-bg-card w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-border animate-in zoom-in-95 duration-200">
     
-    {/* Header */}
     <div className="p-6 border-b border-border bg-bg-body flex justify-between items-center">
       <h2 className="text-lg font-black text-text">Register Staff</h2>
       <button 
@@ -81,7 +76,6 @@ const StaffRegister = ({ onClose, onStaffAdded }) => {
       </button>
     </div>
     
-    {/* Form Fields */}
     <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
       <div>
         <label className="text-[10px] font-black uppercase text-muted ml-1 mb-1 block">Full Name</label>
@@ -119,7 +113,7 @@ const StaffRegister = ({ onClose, onStaffAdded }) => {
         />
       </div>
 
-      {/* 🌟 3. LIVE PREMIUM PASSWORD VALIDATOR HINTS */}
+{/* validator */}
       {data.password.length > 0 && (
         <div className="p-3 bg-bg-body rounded-2xl border border-border text-[11px] font-bold space-y-1.5 animate-in fade-in duration-200">
           <p className="text-[10px] uppercase text-muted tracking-wider mb-1">Password Requirements:</p>
@@ -151,7 +145,6 @@ const StaffRegister = ({ onClose, onStaffAdded }) => {
           onChange={(e) => setData({...data, role: e.target.value})}
         >
           <option value="staff">Staff</option>
-          <option value="admin">Admin</option>
         </select>
       </div>
       

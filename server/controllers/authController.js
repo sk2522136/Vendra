@@ -16,6 +16,7 @@ export const userLogin = async (req , res ) => {
                if(!user){
             throw new ExpressError("Invalid Email or password", 401);
             }
+  
 
      const now = new Date();
     if (user.lockedUntil && new Date(user.lockedUntil) > now) {
@@ -103,7 +104,7 @@ export const registerStaff = async (req , res) =>  {
 
     const passwordCheck = validatePassword(password);
     if (!passwordCheck.isValid) {
-         throw new ExpressError(passwordCheck.message, 400); // 400 Bad Request
+         throw new ExpressError(passwordCheck.message, 400);
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -271,7 +272,7 @@ export const verifyEmail = async (req, res) => {
 
     await user.save();
 
-    // Success response send karein
+   
     return res.status(200).json({
         success: true,
         message: "Your email has been verified successfully! You can now login to your account."
@@ -282,13 +283,11 @@ export const verifyEmail = async (req, res) => {
 export const deleteStaff = async (req, res) => {
     const { id } = req.params;
 
-    // Check if user exists
     const user = await User.findById(id);
     if (!user) {
         throw new ExpressError("Staff member not found", 404);
     }
 
-    // Optional: Prevent deleting the super admin (agar admin ka role 'admin' hai)
     if (user.role === 'admin') {
         throw new ExpressError("Cannot delete admin account", 403);
     }

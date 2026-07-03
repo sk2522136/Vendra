@@ -4,29 +4,23 @@ import { processReturn } from '../../services/api';
 import { toast } from 'react-toastify';
 
 const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
-  // ⚡ LAW OF HOOKS FIX: Saare hooks hamesha top par rahenge
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Debugging log
   useEffect(() => {
     if (isOpen && sale) {
-      console.log("🔥 Sale Data Passed to Modal:", sale);
-      console.log("📦 Items Array:", sale.items);
+      
     }
   }, [isOpen, sale]);
 
-  // Reset counter jab bhi naya sale object aaye
   useEffect(() => {
     setQuantity(1);
   }, [sale]);
 
-  // ⚡ CONDITIONAL RETURNS HAMSHA HOOKS KE BAAD AAYENGE
   if (!isOpen || !sale) return null;
 
   const firstItem = sale.items?.[0];
   
-  // Safe field parsing logic
   const targetProductId = 
     firstItem?.product?._id || 
     (typeof firstItem?.product === 'string' ? firstItem?.product : null) || 
@@ -44,8 +38,8 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
 
   const handleReturn = async () => {
     if (!firstItem || !targetProductId) {
-      console.error("❌ Validation Failed. firstItem:", firstItem, "targetProductId:", targetProductId);
-      toast.error("Product Reference Missing! Console check karein.");
+      console.error(" Validation Failed. firstItem:", firstItem, "targetProductId:", targetProductId);
+      toast.error("Product Reference Missing");
       return;
     }
 
@@ -77,7 +71,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to process return";
       toast.error(errorMessage);
-      console.error("Return API Error:", error);
     } finally {
       setLoading(false);
     }
@@ -87,7 +80,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm">
       <div className="relative w-full max-w-sm bg-bg-card rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col border border-border">
         
-        {/* Header */}
         <div className="p-4 sm:p-6 flex justify-between items-center bg-bg-body border-b border-border rounded-t-2xl sm:rounded-t-3xl gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-primary text-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
@@ -103,7 +95,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
           </button>
         </div>
 
-        {/* Content Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {firstItem ? (
             <div className="mb-6 p-3 sm:p-4 bg-bg-body rounded-lg sm:rounded-2xl border border-border">

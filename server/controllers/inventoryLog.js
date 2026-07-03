@@ -18,6 +18,8 @@ export const inventoryLogChange = async (data) => {
     throw new ExpressError("Quantity change required", 400);
   }
 
+
+  // entry in enventroy log
   const logEntry = await InventoryLog.create({
     product,
     quantityChange,
@@ -32,85 +34,83 @@ export const inventoryLogChange = async (data) => {
 
 
  //   api/inventory/status?type=....
-export const getInventoryStatus = async(req ,res)=>{
-   let {type} = req.query;
-   const products = await Product.find().select('name quantity');    
-   
-   
-let inventory = [];
-    let totalStock = 0;
-    let outOfStockCount = 0;
-    let criticalCount = 0;
-    let lowCount = 0;
-    let okCount = 0;
+export const getInventoryStatus = async (req, res) => {
+  const products = await Product.find().select("name quantity");
 
-    const batchAlerts = [];
+  let inventory = [];
+  let totalStock = 0;
 
-    products.forEach(product => {
-      let status;
-      const qty = product.quantity || 0;
+  let summary = {
+    outOfStock: 0,
+    critical: 0,
+    low: 0,
+    ok: 0,
+  };
 
-      if (qty <= 0) {
-        status = "Out of Stock";
-        outOfStockCount++;
-        batchAlerts.push({ type: 'outOfStock', name: product.name, msg: `❌ ${product.name} - Out of Stock!` });
-      } else if (qty < 20) {
-        if (qty < 15) {
-          status = "Critical";
-          criticalCount++;
-          batchAlerts.push({ type: 'critical', name: product.name, msg: `🔴 ${product.name} - Critical! Only ${qty} left!` });
-        } else {
-          status = "Low";
-          lowCount++;
-          batchAlerts.push({ type: 'lowStock', name: product.name, msg: `⚠️ ${product.name} - Low stock! ${qty} left` });
-        }
-      } else {
-        status = "OK";
-        okCount++;
-      }
-      
-      inventory.push({
-        productId: product._id,
-        productName: product.name,
-        currentStock: qty,  
-        status: status
+  const batchAlerts = [];
+
+  products.forEach((product) => {
+    const qty = product.quantity || 0;
+    let status;
+
+    if (qty <= 0) {
+      status = "Out of Stock";
+      summary.outOfStock++;
+
+      batchAlerts.push({
+        type: "outOfStock",
+        name: product.name,
+        msg: `❌ ${product.name} - Out of Stock!`,
       });
 
-      totalStock += qty;
-    });
+    } else if (qty < 15) {
+      status = "Critical";
+      summary.critical++;
 
-    let filteredProduct = inventory;
-    if (type === 'low') {
-      filteredProduct = inventory.filter(p => ["Low", "Critical", "Out of Stock"].includes(p.status));
+      batchAlerts.push({
+        type: "critical",
+        name: product.name,
+        msg: `🔴 ${product.name} - Critical! Only ${qty} left!`,
+      });
+
+    } else if (qty < 20) {
+      status = "Low";
+      summary.low++;
+
+      batchAlerts.push({
+        type: "lowStock",
+        name: product.name,
+        msg: `⚠️ ${product.name} - Low stock! ${qty} left`,
+      });
+
+    } else {
+      status = "OK";
+      summary.ok++;
     }
 
-    const summary = {
-      outOfStock: outOfStockCount,
-      critical: criticalCount,
-      low: lowCount,
-      ok: okCount
-    };
-
-     //socket io
-    if (batchAlerts.length > 0) {
-      io.emit('inventoryAlertBatch', batchAlerts);
-    }
-
-    return res.status(200).json({
-      success: true,
-      type: type || 'current',
-      inventory: filteredProduct,
-      totalProducts: filteredProduct.length,
-      totalStock: type === 'low' 
-        ? filteredProduct.reduce((sum, p) => sum + p.currentStock, 0) 
-        : totalStock,
-      summary
+    inventory.push({
+      productId: product._id,
+      productName: product.name,
+      currentStock: qty,
+      status,
     });
-}
+
+    totalStock += qty;
+  });
+
+  if (batchAlerts.length > 0) {
+    io.emit("inventoryAlertBatch", batchAlerts);
+  }
+
+  return res.status(200).json({
+    success: true,
+    inventory,
+    summary,
+  });
+};
 
 
-
-// invetory history product wise api/inventory/history
+// api/inventory/history
 export const getInventoryHistory = async (req, res)=>{
   const {productId} = req.params;
   const product = await  Product.findById(productId);

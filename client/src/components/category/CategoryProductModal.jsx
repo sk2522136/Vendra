@@ -12,7 +12,6 @@ const [products, setProducts] = useState([]);
 
 
  useEffect(() => {
-  console.log("called");
     const fetchProducts = async () => {
       
       

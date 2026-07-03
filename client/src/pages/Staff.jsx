@@ -50,7 +50,6 @@ const Staff = () => {
   return (
    <div className="p-6  overflow-y-auto custom-scrollbar space-y-8 bg-bg-body rounded-3xl">
       
-  {/* Title and Description */}
   <div className="flex justify-between items-end">
     <div>
       <h1 className="text-2xl font-black text-text uppercase">Staff Management</h1>
@@ -64,7 +63,6 @@ const Staff = () => {
     </button>
   </div>
 
-  {/* Table Section */}
   <div className="bg-bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
     <div className="overflow-x-auto">
       <table className="w-full text-left min-w-[600px]">
@@ -96,7 +94,6 @@ const Staff = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
-                   {/* Toggle Status */}
                    <button 
                       onClick={() => toggleStatus(s._id)} 
                       className="text-xl hover:scale-110 transition-transform"
@@ -105,7 +102,6 @@ const Staff = () => {
                     </button>
                 </td>
                 <td className="px-6 py-4 text-center">
-                    {/* Delete Action */}
                     <button 
                       onClick={() => handleDelete(s._id)} 
                       className="text-muted hover:text-red-500 transition-colors text-xl"

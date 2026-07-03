@@ -123,7 +123,6 @@ export const getTopSellProd = async(req, res) => {
 };
 
 //  /api/analytical/profit
-//  /api/analytical/profit
 export const getProfitChart = async (req, res, next) => {
     try {
         const { year } = req.query;
@@ -133,7 +132,7 @@ export const getProfitChart = async (req, res, next) => {
         const startDate = new Date(yearNum, 0, 1);
         const endDate = new Date(yearNum + 1, 0, 1);
 
-        // 1. Calculate Monthly Revenue directly from Sales Model (Highly Accurate)
+             // Monthly Revenue
         const salesRevenueData = await Sale.aggregate([
             { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
             {
@@ -144,7 +143,7 @@ export const getProfitChart = async (req, res, next) => {
             }
         ]);
 
-        // 2. Calculate Monthly COGS from SaleItems
+        //  Monthly COGS 
         const cogsData = await SaleItem.aggregate([
             {
                 $lookup: {
@@ -173,7 +172,7 @@ export const getProfitChart = async (req, res, next) => {
             }
         ]);
 
-        // 3. Calculate Expenses
+        //  Calculate Expenses
         const expensesData = await Expense.aggregate([
             { $match: { date: { $gte: startDate, $lt: endDate } } },
             {
@@ -184,7 +183,7 @@ export const getProfitChart = async (req, res, next) => {
             }
         ]);
 
-        // Initialize 12 Months Object Structure
+        //  12 Months Object Structure
         const monthlyData = {};
         for (let i = 1; i <= 12; i++) {
             monthlyData[i] = { month: months[i - 1], revenue: 0, cogs: 0, grossProfit: 0, expenses: 0, netProfit: 0, profitMargin: 0 };
@@ -212,7 +211,7 @@ export const getProfitChart = async (req, res, next) => {
             }
         });
 
-        // Final Net Profit calculations loop
+        //  Net Profit 
         let totalProfit = 0;
         Object.keys(monthlyData).forEach(m => {
             const data = monthlyData[m];
@@ -247,7 +246,7 @@ export const getPaymentMethod = async(req, res) => {
 
         const sales = await Sale.find({
             createdAt: { $gte: startDate, $lt: endDate }
-        }).populate('customer'); // 🟢 Ek baar populate kaafi hai, duplicate hata diya
+        }).populate('customer');
 
         const paymentData = {
             cash: { count: 0, revenue: 0, paid: 0, pending: 0 },
@@ -257,7 +256,6 @@ export const getPaymentMethod = async(req, res) => {
         sales.forEach(sale => {
             let type = sale.customer?.customerType || 'cash';
             
-            // 🟢 SAFEGUARD: Agar type 'cash' ya 'credit' nahi hai, toh default 'cash' par set karein taake crash na ho
             if (type !== 'cash' && type !== 'credit') {
                 type = 'cash'; 
             }

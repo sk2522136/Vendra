@@ -47,7 +47,6 @@ const loadInventory = async () => {
   
   return (
    <div className="space-y-6">
-  {/* Stats Summary */}
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
     {[ 
       { label: "Total", val: stats.total },
@@ -61,8 +60,7 @@ const loadInventory = async () => {
       </div>
     ))}
   </div>
-
-  {/* Table */}
+  
   <div className="bg-bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
     <div className="overflow-x-auto custom-scrollbar">
       <table className="w-full text-left">

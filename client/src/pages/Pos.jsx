@@ -16,7 +16,6 @@ const PosComponent = () => {
   const stripe = useStripe();
   const elements = useElements();
 
-  // Component State Engine
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -90,7 +89,6 @@ const [totalPages, setTotalPages] = useState(1);
   const addToCart = (product) => {
     if (!product.quantity || product.quantity <= 0) { toast.error("Product out of stock!"); return; }
     
-    // Default system cost price yahan set hogi, jise admin cart me badal saskega
     const sellPrice = product.costPrice || 0; 
     const existingItem = cart.find((item) => item.productId === product._id);
 
@@ -119,7 +117,6 @@ const [totalPages, setTotalPages] = useState(1);
 
   const removeFromCart = (productId) => { setCart(cart.filter((item) => item.productId !== productId)); };
 
-  // 🔥 DYNAMIC MATH MATRIX: Yeh real-time mein badli hui admin price ko calculate karta hai
   const subtotal = cart.reduce((acc, item) => acc + (Number(item.price) || 0) * item.qty, 0);
   const totalAmount = Math.max(0, subtotal - discount);
 
@@ -148,27 +145,25 @@ const [totalPages, setTotalPages] = useState(1);
     try {
       setIsProcessingPayment(true);
       
-      // 🔥 BUG FIX #1: Calculate correct paidAmount based on payment method
       let actualPaidAmount = 0;
       if (paymentMethod === "cash") {
-        actualPaidAmount = totalAmount; // Cash: full amount paid immediately
+        actualPaidAmount = totalAmount; 
       } else if (paymentMethod === "credit") {
-        actualPaidAmount = 0; // Credit: no amount paid now, customer will pay later
+        actualPaidAmount = 0; 
       } else if (paymentMethod === "card") {
-        actualPaidAmount = 0; // Card: no amount paid until stripe processes it
+        actualPaidAmount = 0; 
       }
 
-      // 🔥 PAYLOAD SNAPSHOT: Isme item.price direct admin input box se map ho kar backend par ja rhi hai
       const saleData = {
         name: customerName,
         phoneNumber: customerPhone,
         items: cart.map((item) => ({ 
           product: item.productId, 
           quantity: item.qty, 
-          sellPrice: Number(item.price) || 0  // Admin ki overwrite ki hui current price
+          sellPrice: Number(item.price) || 0  
         })),
-        customerType: paymentMethod, // ✅ FIX: Send actual payment method 'cash', 'credit', or 'card'
-        paidAmount: actualPaidAmount, // ✅ FIX: Correct paid amount based on payment method
+        customerType: paymentMethod, 
+        paidAmount: actualPaidAmount, 
         discount: Number(discount),
         notes: notes,
       };
@@ -196,8 +191,7 @@ const [totalPages, setTotalPages] = useState(1);
 
       if (!stripe || !elements) { toast.error("Stripe SDK loading error."); return; }
 
-      // For card payment: create sale with customerType: 'card' and paidAmount: 0
-      const saleResponse = await createSale(saleData); // ✅ saleData already has correct values
+      const saleResponse = await createSale(saleData); 
       const saleId = saleResponse.data?.sale?._id || saleResponse.data?._id;
       if (!saleId) throw new Error("Database mapping failed.");
 
@@ -281,7 +275,7 @@ const [totalPages, setTotalPages] = useState(1);
   return (
     <div className="flex flex-col xl:flex-row h-screen w-full bg-bg-body text-text font-sans overflow-y-auto xl:overflow-hidden p-2 sm:p-4 gap-4">
       
-      {/* 1. PRODUCT STATION COMPONENT */}
+      {/*  PRODUCT */}
       <ProductSection 
         products={filteredProducts} 
         searchTerm={searchTerm} 
@@ -295,10 +289,9 @@ const [totalPages, setTotalPages] = useState(1);
         totalPages={totalPages}
       />
 
-      {/* RIGHT PANEL WRAPPER */}
       <div className="w-full xl:w-[420px] 2xl:w-[460px] flex flex-col bg-bg-card border border-border rounded-2xl shadow-sm shrink-0 h-auto min-h-[550px] xl:h-full mb-6 xl:mb-0 overflow-y-auto xl:overflow-hidden">
         
-        {/* 2. CART LOGS STATION COMPONENT */}
+        {/*  CART  */}
         <CartSection 
           cart={cart} 
           setCart={setCart}
@@ -313,7 +306,7 @@ const [totalPages, setTotalPages] = useState(1);
           setIsVoiceEnabled={setIsVoiceEnabled}
         />
 
-        {/* 3. CHECKOUT and BILLING */}
+        {/*  CHECKOUT  */}
         <CheckoutForm 
           customerName={customerName} setCustomerName={setCustomerName}
           customerPhone={customerPhone} setCustomerPhone={setCustomerPhone}
@@ -332,7 +325,7 @@ const [totalPages, setTotalPages] = useState(1);
         />
       )}
 
-      {/* RECEIPT MODAL FRAME */}
+      {/* RECEIPT */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-4">
           <div className="bg-white w-full max-w-2xl h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-border">

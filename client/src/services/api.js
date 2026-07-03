@@ -5,9 +5,8 @@ const API = axios.create({
   withCredentials: true, 
 });
 
-let isRefreshing = false; // ✅ Global flag
-let failedQueue = []; // ✅ Queue pending requests
-
+let isRefreshing = false; 
+let failedQueue = []; 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -26,21 +25,18 @@ API.interceptors.response.use(
   async (err) => {
     const originalRequest = err.config;
 
-    // ❌ SKIP THESE ENDPOINTS - ye refresh nahi karega
+//  not refresh
     if (
       originalRequest.url.includes('/auth/login') ||
       originalRequest.url.includes('/auth/register') ||
       originalRequest.url.includes('/auth/refresh') ||
-      originalRequest.url.includes('/auth/is-auth') // ✅ YE BHI ADD KAR
+      originalRequest.url.includes('/auth/is-auth') // 
     ) {
       return Promise.reject(err);
     }
 
-    // ✅ 401 error aaya
     if (err.response?.status === 401 && !originalRequest._retry) {
-      // ✅ Agar already refresh chal raha hai
       if (isRefreshing) {
-        // Wait karo refresh complete hone tak
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -50,14 +46,13 @@ API.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      // ✅ Refresh start karo
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
         const response = await API.post('/auth/refresh');
         processQueue(null, response.data);
-        return API(originalRequest); // ✅ Retry karo
+        return API(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         window.location.href = '/login';

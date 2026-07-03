@@ -12,7 +12,7 @@ export const processChatMessage = async (req, res) => {
       throw new ExpressError('Message required', 400);
     }
 
-    // 1. Parallel Independent DB Queries (Fast Processing)
+     //db query
     const [lowStockProducts, allProducts, allSalesAggregation] = await Promise.all([
       Product.find({ quantity: { $lt: 10 } }).select('name quantity price'),
       Product.find().select('name price quantity description'),
@@ -27,12 +27,12 @@ export const processChatMessage = async (req, res) => {
       ])
     ]);
 
-    // 2. Extract Overall Revenue Totals
+   //total revenue, total paid, total credit 
     const totalRevenue = allSalesAggregation[0]?.totalRevenue || 0;
     const totalPaidOverall = allSalesAggregation[0]?.totalPaidOverall || 0;
     const totalCreditMarket = totalRevenue - totalPaidOverall;
 
-    // 3. Dynamic Customer Search Context Logic
+  //specific customer context
     let customerInfo = "";
     if (message || phoneNumber) {
       let customerQuery = {};
@@ -56,19 +56,19 @@ export const processChatMessage = async (req, res) => {
         const pending = cPurchased - cPaid;
 
         customerInfo = `
-=== SEARCHED CUSTOMER CONTEXT ===
-Customer Name: ${customer.name}
-Phone: ${customer.phoneNumber}
-Current Credit Balance: Rs ${pending}
-Total Purchased: Rs ${cPurchased}
-Total Paid: Rs ${cPaid}
-Last Payment: ${customer.lastPaymentDate ? new Date(customer.lastPaymentDate).toLocaleDateString() : 'Never'}
-Customer Type: ${customer.customerType}
-`;
+      === SEARCHED CUSTOMER CONTEXT ===
+      Customer Name: ${customer.name}
+      Phone: ${customer.phoneNumber}
+      Current Credit Balance: Rs ${pending}
+      Total Purchased: Rs ${cPurchased}
+      Total Paid: Rs ${cPaid}
+      Last Payment: ${customer.lastPaymentDate ? new Date(customer.lastPaymentDate).toLocaleDateString() : 'Never'}
+      Customer Type: ${customer.customerType}
+      `;
       }
     }
 
-    // 4. 🔥 MONGO AGGREGATION: Saare Credit Customers ka Data Single Query mein Fetch (No loops!)
+  // old customers with pending credit balances
     const creditCustomersSummary = await Sale.aggregate([
       {
         $group: {
@@ -88,7 +88,7 @@ Customer Type: ${customer.customerType}
       },
       {
         $lookup: {
-          from: "customers", // Make sure this matches your MongoDB collection name for Customers
+          from: "customers", 
           localField: "customer",
           foreignField: "_id",
           as: "details"
@@ -96,11 +96,11 @@ Customer Type: ${customer.customerType}
       },
       { $unwind: "$details" },
       { $match: { "details.customerType": "credit" } },
-      { $sort: { "details.createdAt": 1 } }, // Oldest customers first
-      { $limit: 5 } // Only pass Top 5 oldest credit data to AI context
+      { $sort: { "details.createdAt": 1 } },
+      { $limit: 5 }
     ]);
 
-    // Format Old Credit Customers
+    // Format 
     let oldCreditCustomers = "Old Credit Customers (Sorted by oldest):\n";
     if (creditCustomersSummary.length > 0) {
       oldCreditCustomers += creditCustomersSummary.map(c => 
@@ -110,30 +110,27 @@ Customer Type: ${customer.customerType}
       oldCreditCustomers += "No active pending credit balances detected.";
     }
 
-    // Format Product Details Matrix
     const productDetails = allProducts.map(p => 
       `${p.name} - Rs ${p.price}/unit (Stock: ${p.quantity})`
     ).join(', ');
 
-    // 5. ASSEMBLE CLEAN AI KNOWLEDGE CONTEXT
     let context = `
-=== LOW STOCK PRODUCTS ===
-${lowStockProducts.map(p => `${p.name}: ${p.quantity} units left (Rs ${p.price})`).join('\n')}
+      === LOW STOCK PRODUCTS ===
+      ${lowStockProducts.map(p => `${p.name}: ${p.quantity} units left (Rs ${p.price})`).join('\n')}
 
-=== PRODUCT DETAILS ===
-${productDetails}
+      === PRODUCT DETAILS ===
+      ${productDetails}
 
-=== TOTAL REVENUE ===
-Total Sales: Rs ${totalRevenue}
-Total Paid: Rs ${totalPaidOverall}
-Total Credit in Market: Rs ${totalCreditMarket}
+      === TOTAL REVENUE ===
+      Total Sales: Rs ${totalRevenue}
+      Total Paid: Rs ${totalPaidOverall}
+      Total Credit in Market: Rs ${totalCreditMarket}
 
-=== OLD CREDIT CUSTOMERS ===
-${oldCreditCustomers}
-${customerInfo}
-`;
+      === OLD CREDIT CUSTOMERS ===
+      ${oldCreditCustomers}
+      ${customerInfo}
+      `;
 
-    // 6. Get Dynamic Gemini Framework Response
     const aiResponse = await getGeminiResponse(message, context);
 
     if (!aiResponse.success) {

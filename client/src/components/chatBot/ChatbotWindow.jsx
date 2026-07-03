@@ -47,9 +47,7 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed bottom-24 right-6 w-[340px] h-[480px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-[9999] overflow-hidden transition-all duration-300 transform scale-100">
-      
-      {/* ─── HEADER ─── */}
-      <div className="bg-bg-primary text-white px-4 py-3 flex justify-between items-center font-semibold text-sm tracking-wide">
+            <div className="bg-bg-primary text-white px-4 py-3 flex justify-between items-center font-semibold text-sm tracking-wide">
         <div className="flex items-center gap-2">
            <div className="w-9 h-9 bg-bg-body rounded-xl flex items-center justify-center shadow-lg ">
           <span className="text-black text-2xl font-black tracking-tighter">V</span>
@@ -63,7 +61,6 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
         </button>
       </div>
 
-      {/* ─── CHAT BODY ─── */}
       <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3">
         {messages.map((msg) => (
           <div
@@ -72,7 +69,6 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
               msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
             }`}
           >
-            {/* Message Bubble */}
             <div
               className={`px-3 py-2 rounded-2xl text-xs whitespace-pre-line shadow-sm leading-relaxed ${
                 msg.sender === 'user'
@@ -82,14 +78,12 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
             >
               {msg.text}
             </div>
-            {/* Status / Seen Tag */}
             <span className="text-[10px] text-gray-400 mt-1 px-1">
               {msg.sender === 'user' ? '✓ Sent' : '✓ Seen'}
             </span>
           </div>
         ))}
 
-        {/* Loading Indicator */}
         {loading && (
           <div className="self-start max-w-[80%] flex flex-col items-start">
             <div className="bg-gray-100 text-gray-500 px-3 py-2 rounded-2xl rounded-tl-none text-xs italic animate-pulse">
@@ -100,7 +94,6 @@ const ChatbotWindow = ({ isOpen, onClose }) => {
         <div ref={chatEndRef} />
       </div>
 
-      {/* ─── INPUT FORM ─── */}
       <form onSubmit={handleSend} className="p-2 border-t border-gray-100 bg-white flex gap-2 items-center">
         <input
           type="text"

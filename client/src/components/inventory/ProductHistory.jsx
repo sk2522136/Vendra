@@ -14,11 +14,8 @@ const ProductHistory = () => {
     try {
       setLoading(true);
       const res = await getInventoryHistory(id);
-      console.log(res.data);
-
       setData(res.data);
     } catch (err) {
-      console.log(err);
       toast.error("Failed to load history");
     } finally {
       setLoading(false);
@@ -29,7 +26,6 @@ const ProductHistory = () => {
     loadHistory();
   }, [id]);
 
-  // ================= LOADING =================
   if (loading) {
     return (
       <div className="flex justify-center items-center h-60">
@@ -38,7 +34,6 @@ const ProductHistory = () => {
     );
   }
 
-  // ================= EMPTY =================
   if (!data) {
     return (
       <div className="text-center py-10 text-border font-bold text-sm sm:text-base">
@@ -49,12 +44,10 @@ const ProductHistory = () => {
 
   return (
    <div className="p-2 sm:p-3 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 bg-bg-body min-h-screen sm:h-auto lg:h-[98vh] rounded-2xl sm:rounded-3xl overflow-y-auto custom-scrollbar">
-  {/* TITLE */}
   <div className="text-text px-1 sm:px-0">
     <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">Inventory history</h1>
   </div>
 
-  {/* ================= PRODUCT INFO ================= */}
   <div className="bg-bg-card p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl border border-border shadow-sm">
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
       <div className="min-w-0">
@@ -73,9 +66,7 @@ const ProductHistory = () => {
     </div>
   </div>
 
-  {/* ================= STATS ================= */}
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-    {/* IN */}
     <div className="bg-bg-card p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <FiTrendingUp size={16} className="text-green-600 sm:w-5 sm:h-5" />
@@ -86,7 +77,6 @@ const ProductHistory = () => {
       </p>
     </div>
 
-    {/* OUT */}
     <div className="bg-bg-card p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <FiTrendingDown size={16} className="text-red-500 sm:w-5 sm:h-5" />
@@ -99,7 +89,7 @@ const ProductHistory = () => {
       </p>
     </div>
 
-    {/* TRANSACTIONS */}
+   
     <div className="bg-bg-card p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <FiRotateCw size={16} className="text-text sm:w-5 sm:h-5" />
@@ -111,7 +101,6 @@ const ProductHistory = () => {
     </div>
   </div>
 
-  {/* ================= TABLE/LIST ================= */}
   <div className="bg-bg-card rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden">
     {/* DESKTOP TABLE */}
     <div className="hidden sm:block overflow-x-auto custom-scrollbar">
@@ -160,7 +149,8 @@ const ProductHistory = () => {
       </table>
     </div>
 
-    {/* MOBILE CARD VIEW */}
+    {/* // mobile view */}
+
     <div className="sm:hidden space-y-2">
       {data.history.length > 0 ? (
         data.history.map((log, i) => (
@@ -197,7 +187,7 @@ const ProductHistory = () => {
     </div>
   </div>
 
-  {/* ================= REFRESH ================= */}
+{/* // refresh */}
   <div className="flex justify-end pb-2 sm:pb-0">
     <button
       onClick={loadHistory}

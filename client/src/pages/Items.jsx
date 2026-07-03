@@ -30,7 +30,6 @@ const [sortBy, setSortBy] = useState("createdAt");
 const [order, setOrder] = useState("desc");
 const [totalPages, setTotalPages] = useState(1);
 
-//  card data for stats
 const statsData = [
   {
     title: "Total Items",
@@ -76,7 +75,6 @@ const statsData = [
     loadProducts();
   },[search, category, stock, page, sortBy, order])
 
-  // add product
   const handleAddProduct = async (data) => {
   try {
     setLoading(true);
@@ -104,7 +102,6 @@ const statsData = [
     await loadProducts();
   } catch (error) {
 
-    console.log(error.response?.data);
 
     toast.error(
       error.response?.data?.message ||

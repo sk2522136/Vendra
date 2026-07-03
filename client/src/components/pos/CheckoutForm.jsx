@@ -9,15 +9,14 @@ const CheckoutForm = ({
 }) => {
   
   return (
-    // Max-height lock ki gayi hai taake component monitor screen se bada na ho
     <div className="p-3 sm:p-4 border-t border-border bg-bg-card flex flex-col max-h-[450px] sm:max-h-[500px] w-full rounded-b-2xl overflow-hidden">
       
-      {/* SCROLLABLE INPUTS AREA: Card credentials aur details yahan andar scroll ho jayengi */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar pb-2">
+       
         {/* Customer Form Inputs */}
         <div className="bg-hover rounded-xl p-2.5 sm:p-3 space-y-2.5 border border-border/60">
           <div className="flex items-center gap-1.5 text-[10px] font-black text-muted uppercase tracking-wider pb-1.5 border-b border-border/40">
-            <FiUser size={12} /> Customer Verification Ledger
+            <FiUser size={12} /> Customer Information
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="space-y-1">
@@ -70,7 +69,7 @@ const CheckoutForm = ({
           </div>
         </div>
 
-        {/* Methods Matrix */}
+        {/* payment methods */}
         <div className="grid grid-cols-3 gap-1.5">
           {['cash', 'credit', 'card'].map((type) => (
             <button
@@ -87,7 +86,6 @@ const CheckoutForm = ({
           ))}
         </div>
 
-        {/* Stripe Card Credentials Box (Auto-scrolls inside if open) */}
         {paymentMethod === "card" && (
           <div className="bg-white border border-border rounded-xl p-3 shadow-xs space-y-1.5 dynamic-fade-in">
             <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">Secure Card Details *</label>
@@ -103,9 +101,7 @@ const CheckoutForm = ({
         )}
       </div>
 
-      {/* FIXED BOTTOM AREA: Yeh hissa hamesha samne lock rahega, neeche push nahi hoga */}
       <div className="shrink-0 pt-2 border-t border-border/40 bg-bg-card space-y-3">
-        {/* Financial Matrix Summary Totals */}
         <div className="bg-hover border border-border rounded-xl p-3 space-y-1.5 text-xs font-medium">
           <div className="flex justify-between items-center text-muted">
             <span>Subtotal Amount:</span>
@@ -121,7 +117,6 @@ const CheckoutForm = ({
           </div>
         </div>
 
-        {/* Action Trigger Button */}
         <button
           onClick={completeSale}
           disabled={isProcessingPayment}

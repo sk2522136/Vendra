@@ -36,7 +36,6 @@ const UpdateModel = ({ isOpen, onClose, sale, onPaymentSuccess }) => {
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to process payment";
       toast.error(errorMessage);
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -46,7 +45,6 @@ const UpdateModel = ({ isOpen, onClose, sale, onPaymentSuccess }) => {
   <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm">
   <div className="w-full max-w-sm bg-bg-card rounded-2xl sm:rounded-3xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
     
-    {/* Header */}
     <div className="p-4 sm:p-6 border-b border-border bg-bg-body flex justify-between items-center rounded-t-2xl sm:rounded-t-3xl gap-3">
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-primary text-white rounded-lg sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">

@@ -7,7 +7,7 @@ const ProductSection = ({
 }) => {
   return (
     <div className="flex-1 flex flex-col bg-bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-sm min-h-[500px] xl:min-h-0">
-      {/* Upper Dashboard Banner */}
+      {/* header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 pb-4 border-b border-border shrink-0">
         <div>
           <h1 className="text-xl md:text-2xl font-black text-text uppercase tracking-tight flex items-center gap-2">
@@ -16,7 +16,7 @@ const ProductSection = ({
           <p className="text-xs text-muted font-medium mt-0.5">Vendra POS System</p>
         </div>
 
-        {/* Search & Filters */}
+ {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <div className="relative w-full sm:w-64">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
@@ -41,13 +41,12 @@ const ProductSection = ({
           </div>
         </div>
       </div>
-
-      {/* Products Catalog Grid */}
+  {/* Products section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1">
         {products.length === 0 ? (
           <div className="flex items-center justify-center h-48 text-muted font-medium text-sm">No items found.</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3">
             {products.map((p) => (
               <div 
                 key={p._id} 

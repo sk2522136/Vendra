@@ -41,7 +41,6 @@ function InventoryStatus({ data }) {
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Stats Sidebar */}
         <div className="mt-6 lg:mt-0 lg:ml-6 space-y-4 w-full lg:w-72">
           <div className="p-4 bg-bg-body rounded-xl border border-gray-100">
             <p className="text-xs text-muted uppercase font-bold">Cash Sales</p>

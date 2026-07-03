@@ -90,7 +90,6 @@ const ViewModel = ({ isOpen, onClose, customerId }) => {
         </button>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar">
         
         {loading ? (
@@ -99,7 +98,6 @@ const ViewModel = ({ isOpen, onClose, customerId }) => {
           </div>
         ) : (
           <>
-            {/* Statistics Grid - Responsive */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
               {[
                 { label: 'Orders', val: statistics?.totalSales || 0 },
@@ -114,7 +112,6 @@ const ViewModel = ({ isOpen, onClose, customerId }) => {
               ))}
             </div>
 
-            {/* Sales Table */}
             <div className="rounded-lg sm:rounded-[1.5rem] border border-border overflow-hidden bg-bg-body">
               <div className="overflow-x-auto">
                 <table className="w-full text-left min-w-full sm:min-w-[650px]">

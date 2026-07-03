@@ -5,14 +5,11 @@ import mongoose from 'mongoose';
 // create expense api/expense/create
 export const createExpense = async (req , res)=> {
 
-
-
-
    const {category , amount , description,paidBy , paymentMethod ,  date} = req.body;
 
    let paidById = req.user?._id;
   if (req.user._id === 'admin') {
-    paidById = new mongoose.Types.ObjectId(); // Dummy ID
+    paidById = new mongoose.Types.ObjectId(); 
   }
 
     const expense = await Expense.create({

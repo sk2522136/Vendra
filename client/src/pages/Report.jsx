@@ -24,13 +24,11 @@ const AnalyticsDashboard = () => {
     year: new Date().getFullYear()
   });
 
-  //  All data from API
   const [salesData, setSalesData] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [profitData, setProfitData] = useState({});
   const [paymentData, setPaymentData] = useState(null);
 
-  //  Fetch all data 
   useEffect(() => {
     fetchAllData();
   }, [period]);
@@ -40,7 +38,7 @@ const AnalyticsDashboard = () => {
     setError(null);
     
     try {
-      //  API calls
+
       const [saleRes, productsRes, profitRes, paymentRes] = await Promise.all([
         getSaleChart(period.month, period.year),
         getTopSellProducts(period.month, period.year, 5),
@@ -48,7 +46,6 @@ const AnalyticsDashboard = () => {
         getPaymentMethod(period.month, period.year)
       ]);
 
-      //  Process Sales Data
       if (saleRes.data.success) {
         const dailyArray = Object.entries(saleRes.data.daily).map(([day, sales]) => ({
           day: parseInt(day),
@@ -72,7 +69,7 @@ const AnalyticsDashboard = () => {
         setTopProducts(productsRes.data.topProducts);
       }
 
-      //  Profit Data
+      //  Profit 
       if (profitRes.data.success) {
         const monthlyObj = {};
         Object.entries(profitRes.data.monthlyProfitData).forEach(([month, data]) => {
@@ -85,7 +82,7 @@ const AnalyticsDashboard = () => {
         setProfitData(monthlyObj);
       }
 
-      //  Payment Data
+      //  Payment 
       if (paymentRes.data.success) {
         setPaymentData({
           cash: paymentRes.data.cash,
@@ -100,7 +97,6 @@ const AnalyticsDashboard = () => {
     }
   };
 
-  // Calculations
   const totalRevenue = paymentData 
     ? paymentData.cash.revenue + paymentData.credit.revenue 
     : 0;
@@ -123,14 +119,11 @@ const AnalyticsDashboard = () => {
   `Rs ${(value || 0).toLocaleString('en-US')}`;
 
   const formatPercent = (value) => {
-  // If it's already a string, return as-is
   if (typeof value === 'string') {
     return `${value}%`;
   }
-  // If it's a number, format it
   return `${(value || 0).toFixed(2)}%`;
 };
-  //  Loading state
   if (loading && !salesData) {
     return (
       <div className="p-6 md:p-8 h-[98vh] flex items-center justify-center bg-bg-mainCard rounded-2xl">
@@ -142,7 +135,7 @@ const AnalyticsDashboard = () => {
     );
   }
 
-  //  Error state
+  //  Error 
   if (error && !salesData) {
     return (
       <div className="p-6 md:p-8 h-[98vh] flex items-center justify-center bg-bg-mainCard rounded-2xl">
@@ -163,17 +156,15 @@ const AnalyticsDashboard = () => {
     <div className="p-6 md:p-8 h-[98vh] overflow-y-auto custom-scrollbar rounded-2xl bg-bg-body">
   <div className="max-w-7xl mx-auto">
 
-    {/* Header */}
+   
     <div className="mb-8">
       <h1 className="text-3xl font-black text-text mb-2">
         Analytics Dashboard
       </h1>
-      <p className="text-muted font-medium">
-        Real-time business performance metrics
-      </p>
+      
     </div>
 
-    {/* KPI Cards */}
+    
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {[
         { title: "Total Revenue", val: formatCurrency(totalRevenue), icon: DollarSign, color: "text-text" },
@@ -195,7 +186,6 @@ const AnalyticsDashboard = () => {
       ))}
     </div>
 
-    {/* Filter Section */}
     <div className="flex items-center m-2 mb-4 gap-2 bg-bg-card text-text p-2 rounded-2xl border border-border w-fit">
       <select
         className="bg-transparent px-4 py-2 text-sm font-bold outline-none"
@@ -217,10 +207,8 @@ const AnalyticsDashboard = () => {
       </button>
     </div>
 
-    {/* Charts Section */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
-      {/* Daily Sales */}
       <div className="bg-bg-card p-6 rounded-3xl border border-border">
         <h3 className="text-sm font-black text-text mb-6 uppercase">Daily Sales</h3>
         {salesData?.daily && salesData.daily.length > 0 ? (
@@ -276,7 +264,7 @@ const AnalyticsDashboard = () => {
         )}
       </div>
 
-      {/* Payment Pie */}
+      {/* Payment  */}
       <div className="bg-bg-card p-6 rounded-3xl border border-border">
         <h3 className="text-sm font-black text-text mb-6 uppercase">Payment Methods</h3>
         {paymentData ? (
@@ -321,7 +309,7 @@ const AnalyticsDashboard = () => {
       </div>
     </div>
 
-    {/* Top Products Table */}
+    {/* Top Products */}
     <div className="bg-bg-card border border-border rounded-3xl overflow-hidden">
       <div className="p-6 border-b border-border bg-bg-body">
         <h3 className="text-sm font-black text-text uppercase">Top Selling Products</h3>

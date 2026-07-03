@@ -10,7 +10,7 @@ const AddExpenseModal = ({ isOpen, onClose ,onExpenseAdded}) => {
     amount: '',
     description: '',
     category: '',
-    date: new Date().toISOString().split('T')[0], // Today's date
+    date: new Date().toISOString().split('T')[0], 
     paymentMethod: 'Cash'
   });
 
@@ -48,7 +48,6 @@ const AddExpenseModal = ({ isOpen, onClose ,onExpenseAdded}) => {
     try {
       setLoading(true);
 
-      // API call
       const res = await createExpense({
         amount: parseFloat(formData.amount),
         description: formData.description,
@@ -69,7 +68,7 @@ const AddExpenseModal = ({ isOpen, onClose ,onExpenseAdded}) => {
       });
 
       onClose();
-      onExpenseAdded(); // Reload expenses in parent
+      onExpenseAdded(); 
 
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to add expense";

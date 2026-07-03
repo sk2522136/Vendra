@@ -3,7 +3,6 @@ import { FaTimes } from 'react-icons/fa';
 
 const ActionModal = ({ isOpen, onClose, title, children }) => {
   
-  // 1. LIFECYCLE: Global layout lock to prevent body background scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -18,21 +17,17 @@ const ActionModal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    // FIX: Outer background wrapper now handles close triggers safely on backdrop target clicks
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300"
       onClick={onClose}
     >
       
-      {/* MODAL BODY CARD SHELL CONTAINER 
-        FIX: Added explicit flex column distribution matrices to retain structural positioning ratios
-      */}
+     
       <div 
         className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] sm:max-h-[90vh] transform transition-all animate-in zoom-in-95 duration-200 overflow-hidden"
-        onClick={(e) => e.stopPropagation()} // Safe shield block wrapper rule preventing event bubble leakage
+        onClick={(e) => e.stopPropagation()} 
       >
         
-        {/* HEADER SECTION PANEL STRIP */}
         <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center gap-4 flex-shrink-0">
           <div className="min-w-0 flex-1">
             <h2 className="text-sm sm:text-base font-black text-black uppercase tracking-tight truncate">
@@ -49,9 +44,7 @@ const ActionModal = ({ isOpen, onClose, title, children }) => {
           </button>
         </div>
         
-        {/* SLOTTED DATA LAYOUT COMPONENT TERMINAL BODY 
-          FIX: Appended explicit flex-1 execution properties to force layout container isolation
-        */}
+      
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar leading-relaxed text-sm text-gray-600">
           {children}
         </div>

@@ -82,8 +82,7 @@ useEffect(() => {
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4'>
       <div className='bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl'>
         
-        {/* Header - Fixed text color and styles */}
-        <div className='flex justify-between items-center px-8 py-6 border-b border-border  bg-bg-body sticky top-0 z-10'>
+=        <div className='flex justify-between items-center px-8 py-6 border-b border-border  bg-bg-body sticky top-0 z-10'>
           <div>
             <h3 className='text-xl font-bold text-bg-secondary'>
               {isEditMode ? "Edit Product Details" : "Create New Product"}
@@ -180,7 +179,6 @@ useEffect(() => {
                 <input type="file" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
               </div>
               <div>
-                {/* Description added back */}
                 <label className="block text-xs font-bold text-black uppercase mb-1.5 ml-1">Description (Optional)</label>
                 <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="3" placeholder="Add some notes about the product..." className="w-full px-4 py-3 bg-white rounded-2xl text-black border border-border outline-none focus:border-bg-primary/50 focus:bg-white transition-all text-sm resize-none"></textarea>
               </div>

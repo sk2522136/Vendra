@@ -49,7 +49,6 @@ const ExpenseTracker = () => {
     loadExpenses(selectedMonth, selectedYear);
   };
 
-  // Handle month/year change
   const handleDateChange = (e) => {
     const date = new Date(e.target.value);
     setSelectedMonth(date.getMonth() + 1);
@@ -60,7 +59,6 @@ const ExpenseTracker = () => {
   return (
 <div className="p-3 sm:p-4 md:p-6 min-h-screen overflow-y-auto custom-scrollbar space-y-6 sm:space-y-8 bg-bg-body rounded-2xl">
       
-  {/* 1. Header & Description */}
   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
     <div>
       <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase tracking-tight">Expense Tracker</h1>
@@ -68,7 +66,6 @@ const ExpenseTracker = () => {
     </div>
   </div>
 
-  {/* 2. Stats Section */}
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
     <div className="bg-bg-card p-4 sm:p-6 rounded-3xl border border-border flex items-center gap-3 sm:gap-4">
       <div className="p-3 sm:p-4 bg-bg-body text-text rounded-2xl flex-shrink-0"><FaMoneyBillWave size={18} /></div>
@@ -86,7 +83,6 @@ const ExpenseTracker = () => {
     </div>
   </div>
 
-  {/* 3. Filter Section */}
   <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
     <div className="flex flex-col sm:flex-row gap-2 bg-bg-card p-2 rounded-2xl border border-border w-full sm:w-auto">
       <input 
@@ -109,7 +105,6 @@ const ExpenseTracker = () => {
     </button>
   </div>
 
-  {/* 4. Table Section */}
   <div className="bg-bg-card border border-border rounded-3xl overflow-hidden">
     <div className="overflow-x-auto custom-scrollbar">
       <table className="w-full text-left min-w-[600px]">

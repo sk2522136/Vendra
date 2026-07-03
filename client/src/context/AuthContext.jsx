@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Sirf ek baar chalega jab App load hogi
   useEffect(() => {
     checkAuth();
   }, []);

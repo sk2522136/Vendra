@@ -36,13 +36,10 @@ function StaffNavbar() {
   };
 
   return (
-    // 'shrink-0' add kiya hai taaki mobile par layout na dabbe
     <div className="bg-bg-card m-4 rounded-4xl border-b border-border shadow-sm shrink-0">
       
-      {/* Top Bar */}
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         
-        {/* Logo */}
         <div className="flex items-center ">
           <div className="w-8 h-8 bg-bg-primary rounded-xl flex items-center justify-center">
             <span className="text-white text-lg font-black">V</span>
@@ -50,7 +47,6 @@ function StaffNavbar() {
           <h1 className="text-black text-xl font-black tracking-tighter">endra</h1>
         </div>
 
-        {/* Desktop Navigation + User (md ki jagah lg use kiya) */}
         <div className="hidden lg:flex items-center gap-8">
           
           {/* Nav Items */}
@@ -73,7 +69,6 @@ function StaffNavbar() {
             ))}
           </nav>
 
-          {/* User Profile */}
           <div className="relative">
             <div 
               className="flex items-center gap-3 text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded-xl transition-all"
@@ -109,7 +104,7 @@ function StaffNavbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Button (md ki jagah lg use kiya) */}
+        {/* mobile view*/}
         <button
           onClick={() => setShowNav(!showNav)}
           className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
@@ -118,7 +113,6 @@ function StaffNavbar() {
         </button>
       </div>
 
-      {/* Mobile Navigation (md ki jagah lg use kiya) */}
       {showNav && (
         <div className="lg:hidden bg-bg-body border-t border-border px-4 py-3 space-y-2 ">
           {navItems.map((item) => (
@@ -139,7 +133,6 @@ function StaffNavbar() {
             </NavLink>
           ))}
 
-          {/* Mobile User Section */}
           <div className="border-t border-border pt-3 mt-3">
             <div className="flex items-center gap-2 text-gray-700 px-4 py-2">
               <FaUserCircle size={24} className="text-bg-primary" />
