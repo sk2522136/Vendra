@@ -52,7 +52,6 @@ const Category = () => {
   <div className="flex justify-between items-start">
     <div>
       <h1 className='text-3xl font-black text-text uppercase tracking-tight'>Product Categories</h1>
-      <p className='text-muted text-sm font-medium mt-1'>Organize your inventory by grouping items into logical categories.</p>
     </div>
     <button 
       onClick={() => { setSelectedCat(null); setIsModalOpen(true); }} 

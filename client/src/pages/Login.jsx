@@ -22,7 +22,7 @@ const Login = () => {
       const response = await login({ email, password });
 
       if (response.success) {
-        toast.success("Login successful! 🎉");
+        toast.success("Login successful! ");
         setTimeout(() => {
           navigate("/dashboard");
         }, 500);
@@ -64,11 +64,11 @@ const Login = () => {
             </div>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white mb-3">Enterprise POS System</h2>
-            <p className="text-blue-200 text-sm leading-relaxed">
-              Manage your operations with precision. Designed for efficiency and scale.
-            </p>
-          </div>
+  <h2 className="text-2xl font-bold text-white mb-3">VENDRA</h2>
+  <p className="text-blue-200 text-sm leading-relaxed">
+    Smart retail POS system with inventory management, multi-payment support & real-time analytics.
+  </p>
+</div>
 
           <p className="text-[10px] text-blue-400 uppercase font-black tracking-widest">© 2026 Vendra Systems</p>
         </div>

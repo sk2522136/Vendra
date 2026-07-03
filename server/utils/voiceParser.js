@@ -67,7 +67,6 @@ Important Rules:
 const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    // JSON extract karo response se
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return { action: "UNKNOWN", confidence: 0 };

@@ -192,7 +192,6 @@ const statsData = [
   
   <div className="mb-2">
     <h1 className='text-3xl font-black text-text uppercase tracking-tight'>Items Catalog</h1>
-    <p className='text-muted text-sm font-medium mt-1'>Manage your product inventory, track stock levels, and update pricing details.</p>
   </div>
 
   <div className='grid md:grid-cols-3 grid-cols-1 gap-6'>

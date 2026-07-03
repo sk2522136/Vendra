@@ -27,12 +27,12 @@ export const startScheduleBackup = () => {
       // Encrypt data
       const encrypted = encryptData(backupData);
 
-      console.log('✅ Scheduled backup completed at 12 AM');
-      console.log('📦 Backup Size:', encrypted.encryptedData.length, 'bytes');
-      console.log('🔐 Backup Type: Encrypted (AES-256)');
+      console.log(' Scheduled backup completed at 12 AM');
+      console.log(' Backup Size:', encrypted.encryptedData.length, 'bytes');
+      console.log(' Backup Type: Encrypted (AES-256)');
 
     } catch (error) {
-      console.error('❌ Scheduled backup failed:', error.message);
+      console.error(' Scheduled backup failed:', error.message);
     }
   });
 };

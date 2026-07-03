@@ -51,7 +51,6 @@ export const createSale = async (req, res) =>{
     
      await customer.save();
     } else {
-      // ✅ UPDATE existing customer's type if this is a different payment method
       if (customerType && customerType !== customer.customerType) {
         customer.customerType = customerType;
       }
@@ -84,7 +83,7 @@ export const createSale = async (req, res) =>{
       totalPrice: itemTotal
     });
  }
- // Discount apply karo
+
  totalAmount = totalAmount - discount;
  
  let userId = req.user._id;
@@ -92,8 +91,7 @@ export const createSale = async (req, res) =>{
     userId = new mongoose.Types.ObjectId();
   }
  
-  // 🔥 BUG FIX #1: Map customerType correctly to paymentMethod
-  // customerType can be: 'cash', 'credit', or 'card'
+  
   let paymentMethodForSale = 'cash';
   if (customerType === 'credit') {
     paymentMethodForSale = 'credit';
@@ -138,16 +136,13 @@ for (let item of items) {
  
   }
   
-  // 🔥 BUG FIX #2: Update Customer totals correctly based on payment method
   customer.totalPurchased += totalAmount + discount; 
   
-  // Only add to totalPaid if amount is actually paid
   if (paidAmount > 0) {
     customer.totalPaid += Number(paidAmount);
     customer.lastPaymentDate = new Date();
   }
  
-  // 🔥 BUG FIX #3: Handle credit balance only for credit customers
   const remainingBalance = totalAmount - (paidAmount || 0);
   if (customerType === 'credit' && remainingBalance > 0) {
     customer.currentBalance += remainingBalance;
@@ -156,7 +151,6 @@ for (let item of items) {
   await customer.save();
  
  
-  // 🔥 BUG FIX #4: Create payment record only if paidAmount > 0
   if (paidAmount && paidAmount > 0) {
     await Payment.create({
       sale: sale._id,
@@ -173,8 +167,7 @@ for (let item of items) {
     }
  
  
-// ✅ RECEIPT GENERATION - ONLY FOR CASH & CREDIT
-// Card payments get receipt in paymentController after Stripe confirmation
+//  RECEIPT GENERATION 
   
   let pdfBase64Data = null;
   let receiptFileName = "";
@@ -184,7 +177,6 @@ for (let item of items) {
   sale.receiptNumber = receiptNumber;
   await sale.save();
 
-  // ✅ USE REUSABLE SERVICE
   const receiptPayload = prepareReceiptPayload(
     sale,
     customer,
@@ -225,7 +217,6 @@ for (let item of items) {
   const oldPaidAmount = sale.paidAmount;
   const remainingAmount = totalAmount - oldPaidAmount;
 
-  // Check: Payment exceeds remaining
   if (amountToPay > remainingAmount) {
     throw new ExpressError(
       `Cannot pay Rs ${amountToPay}. Remaining amount is Rs ${remainingAmount}`,
@@ -233,42 +224,35 @@ for (let item of items) {
     );
   }
 
-  // Calculate new total paid
+  //  total paid
   const newPaidAmount = oldPaidAmount + amountToPay;  
 
-  // Find customer
   const customer = await Customer.findById(sale.customer);
 
   if (!customer) {
     throw new ExpressError("Customer not found", 404);
   }
 
-  // Update customer balance (for credit customers)
   if (customer.customerType === 'credit') {
     customer.currentBalance -= amountToPay;  
   }
 
-  // Update customer totalPaid
   customer.totalPaid += amountToPay;
 
-  // Update lastPaymentDate
   if (amountToPay > 0) {
     customer.lastPaymentDate = new Date();
   }
 
   await customer.save();
 
-  // Update sale paidAmount
   sale.paidAmount = newPaidAmount;
   
-  // Agar fully paid ho gaya toh status change karo
   if (sale.paidAmount === sale.totalAmount) {
     sale.paymentStatus = 'success';
   }
   
   await sale.save();
 
-  // Create payment record
   if (amountToPay > 0) {
     await Payment.create({
       sale: sale._id,
@@ -280,7 +264,6 @@ for (let item of items) {
     });
   }
 
-  // Fetch updated sale
   const updatedSale = await Sale.findById(id)
     .populate('customer')
     .populate('items')
@@ -311,7 +294,6 @@ for (let item of items) {
 
     const customer = sale.customer;
 
-    // Credit customer check — remaining balance hai toh delete nahi hogi
     if (customer.customerType === 'credit') {
         const remainingBalance = sale.totalAmount - sale.paidAmount;
         
@@ -365,29 +347,26 @@ for (let item of items) {
     });
 };
 
-// GET SALES BY CUSTOMER  /api/sale/customer/:customerId 
+//   /api/sale/customer/:customerId 
 export const getSalesByCustomer = async (req, res) => {
     const { customerId } = req.params;
     
-    // 1. Find Customer Profile
     const customer = await Customer.findById(customerId);
     if (!customer) {
         throw new ExpressError("Customer is not Found", 404);
     }
 
-    // 2. Fetch Sales - Sorted by Newest First
     const sales = await Sale.find({ customer: customerId })
         .populate({
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'name productCode' // Deep population frontend inventory view k liye
+                select: 'name productCode' 
             }
         })
         .populate('createdBy', 'name')
         .sort({ createdAt: -1 });
 
-    // 3. Initialize statistics based exactly on your frontend grid layout
     let totalPurchased = 0;
     let totalPaid = 0;
     let totalPending = 0;
@@ -402,7 +381,6 @@ export const getSalesByCustomer = async (req, res) => {
         totalPaid += paid;
         totalPending += (gross - paid);
 
-        // UI matching condition: sale.status === 'Paid'
         if (gross === paid) {
             paidSalesCount++;
         } else {
@@ -410,7 +388,6 @@ export const getSalesByCustomer = async (req, res) => {
         }
     });
 
-    // 4. Format Sales Array to perfectly feed into salesData state
     const formattedSales = sales.map(sale => {
         const isPaid = (sale.totalAmount || 0) === (sale.paidAmount || 0);
         
@@ -427,7 +404,6 @@ export const getSalesByCustomer = async (req, res) => {
             createdDate: sale.createdAt,
             updatedDate: sale.updatedAt,
             createdBy: sale.createdBy?.name || 'Unknown',
-            // 🔥 CRITICAL: Yeh field aapka UI table map check kar rha hai row.status pr
             status: isPaid ? 'Paid' : 'Pending', 
             items: (sale.items || []).map(item => ({
                 itemId: item._id,
@@ -440,11 +416,9 @@ export const getSalesByCustomer = async (req, res) => {
         };
     });
 
-    // 5. Structure JSON matching your exact React state destructuring
     return res.status(200).json({
         success: true,
         message: "Customer sales retrieved successfully",
-        // Direct map: setCustomerData(res.data.customerDetails)
         customerDetails: {
             customerId: customer._id,
             customerName: customer.name,
@@ -453,17 +427,15 @@ export const getSalesByCustomer = async (req, res) => {
             currentBalance: customer.currentBalance || 0,
             lastPaymentDate: customer.lastPaymentDate || null
         },
-        // Direct map: setStatistics(res.data.salesStatistics)
         salesStatistics: {
-            totalSales: sales.length, // UI: statistics?.totalSales
+            totalSales: sales.length, 
             paidSales: paidSalesCount,
             pendingSales: pendingSalesCount,
-            totalPurchased: totalPurchased, // UI: statistics?.totalPurchased
-            totalPaid: totalPaid, // UI: statistics?.totalPaid
-            totalPending: Math.max(0, totalPending), // UI: statistics?.totalPending
+            totalPurchased: totalPurchased, 
+            totalPaid: totalPaid, 
+            totalPending: Math.max(0, totalPending), 
             averageSaleAmount: sales.length > 0 ? Math.round(totalPurchased / sales.length) : 0
         },
-        // Direct map: setSalesData(res.data.data)
         data: formattedSales
     });
 };
@@ -483,7 +455,7 @@ export const processReturn = async (req, res) => {
       throw new ExpressError("Sale not found", 404);
     }
 
-    // 2. Find Sale Item
+  
     const saleItem = await SaleItem.findOne({
       saleRef: saleId,
       product: productId
@@ -497,11 +469,10 @@ export const processReturn = async (req, res) => {
       throw new ExpressError("Cannot return more than purchased quantity", 400);
     }
 
-    // 3. Calculate financial values
     const price = saleItem.sellPrice;
     const returnAmount = price * quantity;
 
-    // 4. STOCK RESTORE + LOG
+    //STOCK RESTORE 
     await updateStock({
       productId,
       change: +quantity,
@@ -511,7 +482,7 @@ export const processReturn = async (req, res) => {
       session
     });
 
-    // 5. Update/Delete Sale Item
+    //  Update Sale Item
     saleItem.quantity -= quantity;
 
     if (saleItem.quantity === 0) {
@@ -532,7 +503,6 @@ export const processReturn = async (req, res) => {
     let creditAdjustment = 0;
     let cashRefundGiven = 0;
 
-    // 🔥 Variable casing fixed to lowercase "customer" to ensure global reference matching
     const customer = sale.customer;
 
     if (customer.customerType === "credit") {
@@ -556,14 +526,12 @@ export const processReturn = async (req, res) => {
 
     await sale.save({ session });
 
-    // 6. Safe Customer update tracking
     if (cashRefundGiven > 0) {
       customer.totalPaid = Math.max(0, (customer.totalPaid || 0) - cashRefundGiven);
     }
     customer.lastPaymentDate = new Date();
     await customer.save({ session });
 
-    // 7. Create Refund Payment Reference Entry
     await Payment.create([{
       sale: saleId,
       customer: customer._id,

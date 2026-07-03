@@ -2,7 +2,7 @@ import Expense from '../models/Expense.js'
 import mongoose from 'mongoose';
 
 
-// create expense api/expense/create
+//  api/expense/create
 export const createExpense = async (req , res)=> {
 
    const {category , amount , description,paidBy , paymentMethod ,  date} = req.body;
@@ -28,7 +28,7 @@ export const createExpense = async (req , res)=> {
     })
     }
 
-//   get expense api/expense/list
+//  api/expense/list
     export const getExpenses = async(req , res) =>{
        const { month , year} = req.query;
         const monthNum = parseInt(month) || new Date().getMonth() + 1;

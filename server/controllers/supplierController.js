@@ -55,7 +55,6 @@ export const updateSupplier = async (req, res) => {
     return res.status(200).json({ success: true, message: 'Supplier updated successfully', updatedSupplier });
 };
 
-// addPurchase: totalPurchase badao, unpaidAmount bhi badao
 export const addPurchase = async (req, res) => {
     const { id } = req.params;
     const { amount } = req.body;
@@ -70,13 +69,12 @@ export const addPurchase = async (req, res) => {
     }
 
     supplier.totalPurchase += amount;
-    supplier.unpaidAmount += amount;   // naya amount unpaid mein add ho gaya
+    supplier.unpaidAmount += amount;   
     await supplier.save();
 
     return res.status(200).json({ success: true, message: 'Purchase recorded', supplier });
 };
 
-// addPayment: paidAmount badao, unpaidAmount ghutao
 export const addPayment = async (req, res) => {
     const { id } = req.params;
     const { amount } = req.body;
@@ -95,7 +93,7 @@ export const addPayment = async (req, res) => {
     }
 
     supplier.paidAmount += amount;
-    supplier.unpaidAmount -= amount;   // utna kam ho gaya jo pay kiya
+    supplier.unpaidAmount -= amount;   
     await supplier.save();
 
     return res.status(200).json({ success: true, message: 'Payment recorded', supplier });

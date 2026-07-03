@@ -11,7 +11,7 @@ import Category from "./pages/Category.jsx";
 import Staff from "./pages/Staff.jsx";
 import Report from "./pages/Report.jsx";
 import Login from "./pages/Login.jsx";
-import VerifyEmail from "./pages/VerifyEmail.jsx"; // 🔥 1. Yahan import kiya naya page
+import VerifyEmail from "./pages/VerifyEmail.jsx"; 
 import ErrorPage from "./pages/ErrorPage.jsx";
 import ProductHistory from "./components/inventory/ProductHistory.jsx";
 
@@ -25,13 +25,11 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* PUBLIC ROUTES */}
         <Route path="/login" element={<Login />} />
         
-        {/* 🔥 2. Naya Public Route jo bina login ke token accept karega */}
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
-        {/* PROTECTED LAYOUT */}
+        {/* PROTECTED ROUTE */}
         <Route
           path="/"
           element={
@@ -41,7 +39,6 @@ function App() {
           }
         >
 
-          {/* DEFAULT REDIRECT */}
          <Route
           index
           element={
@@ -50,7 +47,7 @@ function App() {
           }
         />
 
-          {/* ADMIN ROUTES */}
+          {/* ADMIN ROUTE */}
           <Route
             path="dashboard"
             element={
@@ -132,7 +129,6 @@ function App() {
             }
           />
 
-          {/* ADMIN + STAFF ROUTES */}
           <Route
             path="pos"
             element={
@@ -153,7 +149,6 @@ function App() {
 
         </Route>
 
-        {/* ERROR ROUTE */}
         <Route path="*" element={<ErrorPage />} />
 
       </Routes>

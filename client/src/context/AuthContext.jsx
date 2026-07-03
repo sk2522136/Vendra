@@ -36,10 +36,10 @@ export const AuthProvider = ({ children }) => {
   try {
     const { data } = await loginApi(credentials);
     setUser(data.user);
-    return { success: true, data }; // Success case
+    return { success: true, data };
   } catch (error) {
     const message = error.response?.data?.message || "Invalid email or password";
-    return { success: false, message: message }; // Error case
+    return { success: false, message: message }; 
   } finally {
     setLoading(false);
   }

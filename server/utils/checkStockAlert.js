@@ -9,7 +9,7 @@ export const checkStockAlert = (product) => {
     io.emit("outOfStock", {
       productId: product._id,
       productName: product.name,
-      message: `❌ ${product.name} - Out of Stock!`
+      message: ` ${product.name} - Out of Stock!`
     });
 
   }
@@ -20,7 +20,7 @@ export const checkStockAlert = (product) => {
       productId: product._id,
       productName: product.name,
       quantity: product.quantity,
-      message: `⚠️ ${product.name} - Only ${product.quantity} left!`
+      message: `${product.name} - Only ${product.quantity} left!`
     });
 
   }

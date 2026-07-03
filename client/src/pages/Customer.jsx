@@ -80,7 +80,6 @@ const Customer = () => {
         
       <div className="flex-shrink-0">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase">Customer Management</h1>
-        <p className="text-xs sm:text-sm text-muted mt-1">Efficiently manage your customers, track their payment status, and review account balances.</p>
       </div>
       
       <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

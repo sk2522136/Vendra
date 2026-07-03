@@ -62,7 +62,6 @@ const ExpenseTracker = () => {
   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
     <div>
       <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase tracking-tight">Expense Tracker</h1>
-      <p className="text-xs sm:text-sm text-muted mt-1">Monitor your daily expenses and transaction history.</p>
     </div>
   </div>
 

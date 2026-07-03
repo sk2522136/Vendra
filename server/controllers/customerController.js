@@ -12,7 +12,7 @@ export const getAllCustomers = async (req, res) => {
         const totalPages = Math.ceil(totalCustomers / limit); 
 
         const cashSales = await Sale.aggregate([
-  { $match: { paymentMethod: "cash" } },
+  { $match: { paymentMethod: { $in: ["cash", "card"] } } },
   {
     $group: {
       _id: null,

@@ -4,7 +4,7 @@ import axios from 'axios';
 
 function VerifyEmail() {
   const { token } = useParams();
-  const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
+  const [status, setStatus] = useState('loading'); 
   const [message, setMessage] = useState('');
 
   
@@ -18,7 +18,6 @@ function VerifyEmail() {
       isApiCalled = true;
 
       try {
-        // Backend hit (Apna sahi URL check kar lein agar port alag ho)
         const response = await axios.get(`http://localhost:4000/api/auth/verify-email/${token}`);
         if (response.data.success) {
           setStatus('success');
@@ -38,20 +37,18 @@ function VerifyEmail() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-bg-body font-mona antialiased px-4">
       
-      {/* Brand Header */}
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-black tracking-tight text-text uppercase">
           Vendra<span className="text-bg-primary">.</span>
         </h1>
         <p className="text-[10px] text-muted font-semibold tracking-widest uppercase mt-0.5">
-          Inventory & POS System
+          Smart retail POS system with inventory management, multi-payment support & real-time analytics.
         </p>
       </div>
 
-      {/* Main Card with Premium Borders and Smooth Curves */}
       <div className="max-w-md w-full bg-bg-card p-10 rounded-3xl border border-border shadow-sm text-center transition-all duration-300">
         
-        {/* 1. LOADING STATE */}
+        {/* LOADING STATE */}
         {status === 'loading' && (
           <div className="flex flex-col items-center py-6">
             <div className="relative w-16 h-16 mb-6">
@@ -65,7 +62,6 @@ function VerifyEmail() {
           </div>
         )}
 
-        {/* 2. SUCCESS STATE */}
         {status === 'success' && (
           <div className="animate-fadeIn">
             {/* Modern Icon Box */}
@@ -90,7 +86,7 @@ function VerifyEmail() {
           </div>
         )}
 
-        {/* 3. ERROR STATE */}
+        {/* ERROR STATE */}
         {status === 'error' && (
           <div className="animate-fadeIn">
             <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-red-100">

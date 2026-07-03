@@ -181,11 +181,9 @@ const handleFormSubmit = (e) => {
   return (
    <div className="h-full flex flex-col overflow-hidden p-3 space-y-4 sm:space-y-6 sm:p-4 md:p-6 bg-bg-body">
       
-      {/* Header - Title & Description */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div className="flex-1">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-text uppercase tracking-tight">Supplier Management</h1>
-          <p className="text-muted text-xs sm:text-sm font-medium mt-1">Track supplier purchases, payments, and outstanding balances.</p>
         </div>
         <button 
           onClick={() => openModal('add')}
@@ -197,7 +195,6 @@ const handleFormSubmit = (e) => {
 
       {loading && <p className="text-center text-muted text-sm">Loading...</p>}
       
-      {/* Table - Responsive */}
       <div className="bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto overflow-y-auto">
           <table className="w-full text-left min-w-full sm:min-w-[800px]">
@@ -264,12 +261,10 @@ const handleFormSubmit = (e) => {
       </div>
         
 
-      {/* Empty State */}
       {!loading && suppliers.length === 0 && (
         <p className="text-center text-muted py-8 text-sm">No suppliers found</p>
       )}
 
-      {/* Modal Logic */}
       <ActionModal 
         isOpen={!!modalType} 
         onClose={() => setModalType(null)} 

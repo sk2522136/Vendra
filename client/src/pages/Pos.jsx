@@ -10,7 +10,9 @@ import CartSection from "../components/pos/CartSection.jsx";
 import CheckoutForm from "../components/pos/CheckoutForm.jsx";
 import { saveSaleToLocalStorage, savePaymentToLocalStorage } from '../utils/localStorageService.js';
 
-const stripePromise = loadStripe("pk_test_51Sx5sTPzorG2nWHVkDEKxfrOM83q8dao510Yur0skylQ2nHVTaPGxG648R88fdC17eXbiDpUl7TIXtsIRPNem2sk00NGTzqLvx");
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
 
 const PosComponent = () => {
   const stripe = useStripe();
@@ -42,9 +44,7 @@ const [order, setOrder] = useState("desc");
 const [totalPages, setTotalPages] = useState(1);
 
 
- 
-  
-  useEffect(() => {
+useEffect(() => {
    loadProducts();
     loadSavedCarts();
     loadCategories();
@@ -57,6 +57,8 @@ const [totalPages, setTotalPages] = useState(1);
       setCategories(res.data.categories || []);
     } catch { toast.error("Failed to load categories"); }
   };
+
+
 
   const loadProducts = async () => {
     try {
@@ -73,15 +75,20 @@ const [totalPages, setTotalPages] = useState(1);
     } finally { setLoading(false); }
   };
 
+
+
   const loadSavedCarts = () => {
     const saved = localStorage.getItem("savedCarts");
     if (saved) setSavedCarts(JSON.parse(saved));
   };
 
-  const filteredProducts = products.filter((p) => {
+
+
+
+ const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     const prodCategoryId = p.category?._id || p.category; 
-  const matchesCategory = selectedCategory === "All" || prodCategoryId === selectedCategory;
+    const matchesCategory = selectedCategory === "All" || prodCategoryId === selectedCategory;
   
   return matchesSearch && matchesCategory;
   });
@@ -255,7 +262,7 @@ const [totalPages, setTotalPages] = useState(1);
     else if (action === "CHECKOUT") {
       if (paymentMethod === "cash" || paymentMethod === "credit") {
         setPaymentMethod(paymentMethod);
-        toast.success(`Payment method set to ${paymentMethod.toUpperCase()}. Finalizing sale...`);
+        toast.success(`Payment method set to ${paymentMethod.toUpperCase()}. `);
         completeSale();
       } else {
         toast.warning("Please specify a valid payment method (cash or credit).");

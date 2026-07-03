@@ -54,7 +54,6 @@ export const createStripePaymentIntent = async (req, res) => {
 };
 
 // POST /api/payment/confirm-stripe-payment
-// POST /api/payment/confirm-stripe-payment
 export const confirmStripePayment = async (req, res) => {
   try {
     const { paymentIntentId, saleId } = req.body;
@@ -82,10 +81,8 @@ export const confirmStripePayment = async (req, res) => {
     if (paymentStatus === 'succeeded') {
       const customer = sale.customer;
 
-      // Calculate actual paid amount correctly
       const amountPaidThisTurn = sale.totalAmount - sale.paidAmount;
 
-      // Payment record create
       const payment = await Payment.create({
         sale: saleId,
         customer: customer._id,
@@ -96,7 +93,6 @@ export const confirmStripePayment = async (req, res) => {
         recievedBy: req.user._id
       });
 
-      // Sale update 
       let receiptNumber = `RCP-${Date.now()}`;
       sale.paidAmount = sale.totalAmount;
       sale.paymentStatus = 'success';
@@ -105,7 +101,6 @@ export const confirmStripePayment = async (req, res) => {
       sale.receiptNumber = receiptNumber;
       await sale.save();
 
-      // Update customer correctly
       customer.totalPaid += Number(amountPaidThisTurn);
       customer.lastPaymentDate = new Date();
       
@@ -114,10 +109,8 @@ export const confirmStripePayment = async (req, res) => {
       }
       await customer.save();
 
-      // Populate items with products safely
       const populatedSale = await Sale.findById(saleId).populate('items');
 
-      // 🔥 BUG FIX #1: Added safety check (?.) so that code never crashes if product is missing
       const itemsWithProducts = await Promise.all(
         populatedSale.items.map(async (item) => {
           const product = await Product.findById(item.product);
@@ -130,7 +123,6 @@ export const confirmStripePayment = async (req, res) => {
         })
       );
 
-      // ✅ Reusable payload helper use karein jo aapki service mein hai
       const receiptPayload = prepareReceiptPayload(
         populatedSale,
         customer,
@@ -139,7 +131,6 @@ export const confirmStripePayment = async (req, res) => {
         'card'
       );
 
-      // 🔥 BUG FIX #2: Generate PDF and get Base64 string to send to frontend
       let pdfBase64Data = null;
       let receiptFileName = "";
       
@@ -157,17 +148,15 @@ export const confirmStripePayment = async (req, res) => {
         emitDashboardRefresh();
       }
 
-      // ✅ EXACT MATCH WITH CASH/CREDIT RESPONSE STRUCTURE
       return res.status(200).json({
         success: true,
         message: 'Payment confirmed successfully',
         sale,
-        pdfData: pdfBase64Data,   // ← Ab frontend ko direct yeh base64 milega screen par render karne ke liye
+        pdfData: pdfBase64Data,   
         fileName: receiptFileName
       });
     }
 
-    // Agar payment processing mein hai
     if (paymentStatus === 'processing') {
       return res.status(200).json({
         success: true,
@@ -176,7 +165,6 @@ export const confirmStripePayment = async (req, res) => {
       });
     }
 
-    // Agar payment failed
     throw new ExpressError('Payment failed. Please try again.', 400);
 
   } catch (error) {

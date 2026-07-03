@@ -53,7 +53,6 @@ const Staff = () => {
   <div className="flex justify-between items-end">
     <div>
       <h1 className="text-2xl font-black text-text uppercase">Staff Management</h1>
-      <p className="text-sm text-muted mt-1">Manage team members, roles, and account access permissions.</p>
     </div>
     <button 
       onClick={() => setIsModalOpen(true)}

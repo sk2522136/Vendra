@@ -60,7 +60,7 @@ export const getInventoryStatus = async (req, res) => {
       batchAlerts.push({
         type: "outOfStock",
         name: product.name,
-        msg: `❌ ${product.name} - Out of Stock!`,
+        msg: `${product.name} - Out of Stock!`,
       });
 
     } else if (qty < 15) {
@@ -70,7 +70,7 @@ export const getInventoryStatus = async (req, res) => {
       batchAlerts.push({
         type: "critical",
         name: product.name,
-        msg: `🔴 ${product.name} - Critical! Only ${qty} left!`,
+        msg: `${product.name} - Critical! Only ${qty} left!`,
       });
 
     } else if (qty < 20) {

@@ -7,19 +7,18 @@ import { io } from '../server.js';
 import { checkStockAlert } from '../utils/checkStockAlert.js';
 
 
-// Create Product : /api/product/create
+// /api/product/create
 export const createProduct = async (req, res) => {
   
     const {name, sku, category, costPrice, quantity, description, supplier, unit, imageUrl} = req.body
-     const trimmedUnit = unit ? unit.trim() : 'ltr'; // Agar missing ho to default 'ltr'
+     const trimmedUnit = unit ? unit.trim() : 'ltr'; 
     
-    // Allowed units jo aapke model/schema ke enum me hain
     const allowedUnits = ['kg', 'Pcs', 'ltr']; 
     
     if (!allowedUnits.includes(trimmedUnit)) {
       throw new ExpressError(`Invalid unit type. Allowed values are: ${allowedUnits.join(', ')}`, 400);
     }    
-    //cloudinary file upload handling
+    //cloudinary handling
     let targetUrl = "";
     let targetFilename = "";
 
@@ -71,7 +70,7 @@ export const createProduct = async (req, res) => {
     return res.status(201).json({message: 'Product created successfully', product: newProduct})
 }
 
-// get : /api/product/all  Get all Products
+// get : /api/product/all  
 export const getAllProducts = async (req , res) => {
         const filter = filterProducts(req);
         const { limit ,skip,page } =  getPaginatedProducts(req);
@@ -119,7 +118,7 @@ export const getAllProducts = async (req , res) => {
         return res.status(200).json({message : 'Products retrieved successfully' , products , total,stats , totalPages,page })
 }
 
-//get:/api/product/:id      Get product by id
+//get:/api/product/:id      
 export const getProductById = async (req , res ) => {
         const {id} =  req.params;
         const product = await Product.findById(id);
@@ -129,7 +128,7 @@ export const getProductById = async (req , res ) => {
        return res.status(200).json({success:true, message : 'Product retrieved successfully' , product})
 }
 
-// Update Product : /api/product/:id
+//  /api/product/:id
 export const updateProduct = async (req , res ) => {
 
         const {id} = req.params;
@@ -140,7 +139,6 @@ export const updateProduct = async (req , res ) => {
 
             const oldQuantity = updateProduct.quantity;
 
-        // for partial update
         const allowedFields = ["name" ,"sku" ,"category" ,"sellPrice" ,"costPrice" ,"quantity" ,"description" ,"supplier" ,"unit"]
         allowedFields.forEach(field => {
             if(req.body?.[field] !== undefined){
@@ -204,7 +202,7 @@ await updateProduct.save();
 return res.status(200).json({message : 'Product updated successfully' , product : updateProduct})
 }
 
-// Delete Product : /api/product/:id
+//  /api/product/:id
 export const deleteProduct = async (req , res ) => {
         const {id} = req.params;
         const product = await Product.findById(id);

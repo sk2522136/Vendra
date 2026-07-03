@@ -15,10 +15,8 @@ router.post("/parse-command", async (req, res) => {
       });
     }
 
-    // Sab products fetch karo
     const products = await Product.find({ isActive: true });
 
-    // Gemini se parse karo
     const parsed = await parseVoiceCommand(transcript, products);
 
     if (parsed.confidence < 0.6) {

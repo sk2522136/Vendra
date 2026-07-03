@@ -1,12 +1,9 @@
-// utils/receiptService.js
-
 import { generateReceipt } from './receiptGenerator.js';
 import fs from 'fs';
 
 /**
- * Generates receipt and returns base64 PDF data
- * @param {Object} receiptPayload - Receipt data object
- * @param {String} receiptNumber - Unique receipt number
+ * @param {Object} receiptPayload 
+ * @param {String} receiptNumber 
  * @returns {Promise<{success, pdfBase64, fileName}>}
  */
 export const generateAndGetReceiptPDF = async (receiptPayload, receiptNumber) => {
@@ -33,7 +30,7 @@ export const generateAndGetReceiptPDF = async (receiptPayload, receiptNumber) =>
     };
 
   } catch (error) {
-    console.error("❌ Receipt generation error:", error.message);
+    console.error("Receipt generation error:", error.message);
     return {
       success: false,
       error: error.message
