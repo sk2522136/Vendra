@@ -27,7 +27,7 @@ ${userMessage}
 Response Rules:
 - Give a direct, well-structured and highly readable answer.
 - Structure long reports or lists with clear headings, spacing, and bullet points.
-- Use **bold text** for key numbers, amounts, and customer names to make it visually clear and easy to read at a glance.
+- Use *bold text* for key numbers, amounts, and customer names to make it visually clear and easy to read at a glance.
 - Do not cram everything together; use proper line breaks so it looks like a clean ledger report.
 `;
 
