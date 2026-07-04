@@ -64,7 +64,7 @@ export const getSaleChart = async(req, res) => {
     }
 };
 
-//  /api/analytical/products
+// get : /api/analytical/products
 export const getTopSellProd = async(req, res) => {
     try {
         const { month, year, limit = 10 } = req.query;
