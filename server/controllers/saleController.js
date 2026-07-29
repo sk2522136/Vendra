@@ -2,7 +2,7 @@ import Customer from "../models/Customer.js";
 import Product from "../models/Product.js";
 import SaleItem from "../models/SaleItem.js"
 import Sale from "../models/Sale.js"
-import Payment from "../models/payment.js"
+import Payment from "../models/Payment.js"
 import { inventoryLogChange } from "./inventoryLog.js"
 import ExpressError from "../utils/expressError.js"
 import { updateStock } from '../utils/stockService.js'

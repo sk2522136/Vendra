@@ -1,4 +1,4 @@
-import Payment from '../models/payment.js';
+import Payment from '../models/Payment.js';
 import Sale from '../models/Sale.js';
 import Customer from '../models/Customer.js';
 import SaleItem from '../models/SaleItem.js';

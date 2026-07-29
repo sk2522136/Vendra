@@ -1,5 +1,5 @@
 import Sale from '../models/Sale.js';
-import Payment from '../models/payment.js';
+import Payment from '../models/Payment.js';
 import Customer from '../models/Customer.js';
 import Product from '../models/Product.js';
 import Supplier from '../models/Supplier.js';
