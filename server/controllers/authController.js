@@ -11,26 +11,22 @@ import { validatePassword } from '../utils/passwordValidator.js';
 
 
 
- 
+ // api/auth/signup
 export const signup = async (req, res) => {
   try {
     const { name, email, password, companyName } = req.body;
 
-    // 1. Validation
     if (!name || !email || !password || !companyName) {
       throw new ExpressError("All fields are required", 400);
     }
 
-    // 2. Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new ExpressError("Email already exists", 409);
     }
 
-    // 3. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Create User (marked as admin & active)
     const user = await User.create({
       name,
       email,
@@ -49,11 +45,9 @@ export const signup = async (req, res) => {
   
     });
 
-    // 6. Associate Organization with User
     user.tenantId = organization._id;
     await user.save();
 
-    // 7. Simple response (No tokens, no payload, no cookies set)
     return res.status(201).json({
       success: true,
       message: 'Account created successfully! Please sign in.'
@@ -290,8 +284,10 @@ export const registerStaff = async (req , res) =>  {
 }); 
 }
 
+
+//  /api/auth//staff
+
 export const getAllStaff = async (req, res) => {
-  // Safe Fallback: Check req.tenantId or req.user.tenantId
   const tenantId = req.tenantId || req.user?.tenantId;
 
   if (!tenantId) {
@@ -344,8 +340,8 @@ export const isAuth = async (req, res) => {
     }
             throw new ExpressError("Not log in", 401);
 };
-
-
+ 
+// /api/auth/refresh
 export const refreshAccessToken = async (req, res) => {
   try {
         const refreshToken = req.cookies.refreshToken;
