@@ -5,7 +5,7 @@ import { FiDatabase, FiDownload, FiUpload } from "react-icons/fi"; // Icons impo
 
 export const BackupButtons = () => {
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // Dropdown state
+  const [isOpen, setIsOpen] = useState(false); 
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -72,15 +72,15 @@ export const BackupButtons = () => {
           alert(`
             Backup File Summary:
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            📅 Date: ${response.data.data.backupDate}
-            📊 Sales: ${response.data.data.salesToRestore}
-            💳 Payments: ${response.data.data.paymentsToRestore}
-            👥 Customers: ${response.data.data.customersToRestore}
-            📦 Products: ${response.data.data.productsToRestore}
-            🏢 Suppliers: ${response.data.data.suppliersToRestore}
+             Date: ${response.data.data.backupDate}
+            Sales: ${response.data.data.salesToRestore}
+             Payments: ${response.data.data.paymentsToRestore}
+             Customers: ${response.data.data.customersToRestore}
+             Products: ${response.data.data.productsToRestore}
+             Suppliers: ${response.data.data.suppliersToRestore}
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            🔐 Encryption: AES-256
-            ✅ Status: Valid & Decrypted
+             Encryption: AES-256
+             Status: Valid & Decrypted
                       `);
                     }
       } catch (error) {

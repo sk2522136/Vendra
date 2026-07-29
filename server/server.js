@@ -19,7 +19,10 @@ import paymentRouter from './routes/paymentRoute.js';
 import chatbotRouter from './routes/chatbotRoute.js';
 import voiceRouter from './routes/voiceRoute.js';
 import backupRouter from './routes/backupRoute.js';
+import pricingRouter from './routes/pricingRoute.js';
+import superAdminRouter from './routes/superAdminRoute.js';
 import startScheduleBackup from './utils/scheduleBackup.js';
+import {handleStripeWebhook} from './controllers/pricingController.js'
 
 
 
@@ -54,6 +57,9 @@ startScheduleBackup();
 
 const allowedOrigin = ['http://localhost:5173']
 
+app.post('/api/billing/webhook', express.raw({ type: "application/json" }), handleStripeWebhook);
+
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({extended:true}));
@@ -74,6 +80,8 @@ app.use('/api/payment', paymentRouter);
 app.use('/api/chatbot', chatbotRouter);
 app.use('/api/voice', voiceRouter);
 app.use('/api/backup', backupRouter);
+app.use('/api/billing', pricingRouter);
+app.use('/api/super-admin', superAdminRouter);
 
 
 

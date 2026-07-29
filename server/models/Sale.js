@@ -1,6 +1,11 @@
 import mongoose from 'mongoose'
 
 const saleSchema = new mongoose.Schema({
+    tenantId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Organization',
+    required: true  // Har sale ke liye zaroori
+  },
     items: [{type: mongoose.Schema.Types.ObjectId, ref: 'SaleItem'}],
     customer: {type: mongoose.Schema.Types.ObjectId, ref: 'Customer'},
     totalAmount: {type: Number, required: true},
@@ -16,6 +21,13 @@ const saleSchema = new mongoose.Schema({
     notes: {type: String},
     
 }, {timestamps: true})
+
+saleSchema.index({ tenantId: 1 });
+saleSchema.index({ tenantId: 1, createdAt: -1 });
+saleSchema.index({ tenantId: 1, customer: 1 });
+saleSchema.index({ tenantId: 1, paymentMethod: 1 });
+saleSchema.index({ tenantId: 1, paymentStatus: 1 });
+
 
 const Sale = mongoose.models.Sale || mongoose.model('Sale', saleSchema);
 

@@ -8,12 +8,12 @@ import { encryptData, decryptData } from '../utils/encryption.js';
 
 export const downloadBackup = async (req, res) => {
   try {
-
-    const sales = await Sale.find();
-    const payments = await Payment.find();
-    const customers = await Customer.find();
-    const products = await Product.find();
-    const suppliers = await Supplier.find();
+   const tenantId = req.tenantId
+    const sales = await Sale.find(tenantId);
+    const payments = await Payment.find(tenantId);
+    const customers = await Customer.find(tenantId);
+    const products = await Product.find(tenantId);
+    const suppliers = await Supplier.find(tenantId);
 
     const backupData = {
       timestamp: new Date().toISOString(),
@@ -66,6 +66,7 @@ export const downloadBackup = async (req, res) => {
 export const restoreBackup = async (req, res) => {
   try {
     const { encryptedData, iv } = req.body;
+    const tenantId = req.tenantId
 
     if (!encryptedData || !iv) {
       throw new ExpressError('Encrypted data and IV required', 400);
@@ -109,11 +110,12 @@ export const restoreBackup = async (req, res) => {
 
 export const getBackupStatus = async (req, res) => {
   try {
-    const sales = await Sale.countDocuments();
-    const payments = await Payment.countDocuments();
-    const customers = await Customer.countDocuments();
-    const products = await Product.countDocuments();
-    const suppliers = await Supplier.countDocuments();
+    const tenantId = req.tenantId;
+    const sales = await Sale.countDocuments(tenantId);
+    const payments = await Payment.countDocuments(tenantId);
+    const customers = await Customer.countDocuments(tenantId);
+    const products = await Product.countDocuments(tenantId);
+    const suppliers = await Supplier.countDocuments(tenantId);
 
     res.status(200).json({
       success: true,

@@ -14,18 +14,39 @@ const Login = () => {
   const navigate = useNavigate();
 
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
+    try {
       const response = await login({ email, password });
 
       if (response.success) {
-        toast.success("Login successful! ");
+        toast.success("Login successful!");
+        
+        // Extract logged in user object from backend response payload
+        const user = response.data?.user;
+
         setTimeout(() => {
-          navigate("/dashboard");
-        }, 500);
+          if (user?.isSuperAdmin || user?.role === "super_admin") {
+         return  navigate("/super-admin", { replace: true });
+        }
+
+        if (user?.role === "staff" || user?.role === "manager") {
+      return navigate("/pos", { replace: true });
+    }
+
+          if (user?.role === "admin") {
+          if (!user?.subscriptionPlan || user?.subscriptionStatus === 'expired') {
+            return navigate("/pricing", { replace: true });
+          }
+          return navigate("/dashboard", { replace: true });
+        }
+              
+          return navigate("/pos", { replace: true });
+          
+        }, 300);
+
       } else {
         toast.error(response.message || "Invalid email or password");
         setPassword(""); 
@@ -35,10 +56,8 @@ const Login = () => {
     } finally {
       setLoading(false); 
     }
-
-  
   };
-
+  
   return (
  <div className="w-screen h-screen bg-bg-body overflow-hidden relative flex items-center justify-center p-4 font-mona">
       
@@ -122,6 +141,14 @@ const Login = () => {
                 <>SIGN IN <FaArrowRight size={12} /></>
               )}
             </button>
+              <div className="mt-4 flex items-center justify-center text-sm text-muted">
+            <p className="flex items-center gap-1">
+              Need an account?{' '}
+              <a href="/SignUp" className="text-bg-primary hover:underline font-semibold">
+                Sign up
+              </a>
+            </p>
+          </div>
           </form>
         </div>
       </div>

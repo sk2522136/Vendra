@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import VoiceRecorder from "../components/voicerecord/VoiceRecorder.jsx"; 
-import { fetchProduct, createSale, getAllCategories, createStripeIntent, confirmStripePayment } from "../services/api.js";
+import { fetchProduct, createSale, getAllCategories, createStripeIntent, confirmStripePosPayment } from "../services/api.js";
 import ProductSection from "../components/pos/ProductSection.jsx";
 import CartSection from "../components/pos/CartSection.jsx";
 import CheckoutForm from "../components/pos/CheckoutForm.jsx";
@@ -213,7 +213,7 @@ useEffect(() => {
       if (stripeResult.error) throw new Error(stripeResult.error.message);
 
       if (stripeResult.paymentIntent.status === "succeeded") {
-        const confirmRes = await confirmStripePayment({ paymentIntentId, saleId });
+        const confirmRes = await confirmStripePosPayment({ paymentIntentId, saleId });
         if (confirmRes.data.success) {
           savePaymentToLocalStorage({
             paymentId: paymentIntentId,

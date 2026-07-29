@@ -7,10 +7,11 @@ export const updateStock = async ({
   change,
   type,
   sale = null,
-  user = null
+  user = null,
+  tenantId = null 
 }) => {
 
-  const product = await Product.findById(productId);
+  const product = await Product.findOne({ _id: productId, tenantId });
 
   if (!product) {
     throw new Error("Product not found");
@@ -27,7 +28,7 @@ export const updateStock = async ({
     type,
     sale,
     createdBy: user
-  });
+  },tenantId);
 
   return product;
 };

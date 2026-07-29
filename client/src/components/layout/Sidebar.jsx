@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink,useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   FaThLarge, FaCashRegister, FaBoxOpen, 
@@ -12,6 +12,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
   const [showLogout, setShowLogout] = useState(false);
   const { logout, user } = useAuth();
   const logoutRef = useRef(null);
+  const navigate = useNavigate(); 
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: <FaThLarge />, roles: ['admin'] },
@@ -25,6 +26,18 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
     { to: '/customer', label: 'Customers', icon: <FaUsers />, roles: ['admin', 'staff'] },
     { to: '/staff', label: 'Staff', icon: <FaUserTie />, roles: ['admin'] },
   ];
+
+  const handleLogout = async () => {
+  try {
+    setShowLogout(false); 
+    await logout();        
+    navigate('/login', { replace: true }); 
+  } catch (error) {
+    console.error("Logout navigation failed", error);
+  }
+};
+
+ 
 
   return (
     <div className={`fixed lg:relative h-screen w-64 flex flex-col bg-[#171717] z-40 transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
@@ -77,7 +90,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
           >
             <p className="text-white text-sm font-bold mb-3 text-center">Are you sure?</p>
             <button 
-              onClick={logout}
+              onClick={handleLogout}
               className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl text-sm transition-all"
             >
               Logout Now

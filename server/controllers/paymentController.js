@@ -15,6 +15,7 @@ import fs from "fs";
 export const createStripePaymentIntent = async (req, res) => {
   try {
     const { amount, saleId, currency = 'usd' } = req.body;
+    const tenantId = req.tenantId;
 
     if (!amount || amount <= 0) {
       throw new ExpressError('Invalid amount', 400);
@@ -25,7 +26,8 @@ export const createStripePaymentIntent = async (req, res) => {
     }
 
     // Sale find
-    const sale = await Sale.findById(saleId);
+    const sale = await Sale.findOne({ _id: saleId, tenantId});
+    
     if (!sale) {
       throw new ExpressError('Sale not found', 404);
     }
@@ -54,9 +56,10 @@ export const createStripePaymentIntent = async (req, res) => {
 };
 
 // POST /api/payment/confirm-stripe-payment
-export const confirmStripePayment = async (req, res) => {
+export const confirmStripePosPayment = async (req, res) => {
   try {
     const { paymentIntentId, saleId } = req.body;
+    const tenantId = req.tenantId
 
     if (!paymentIntentId || !saleId) {
       throw new ExpressError('Payment intent ID and Sale ID required', 400);
@@ -72,7 +75,12 @@ export const confirmStripePayment = async (req, res) => {
     const paymentStatus = result.status;
 
     // Sale find
-    const sale = await Sale.findById(saleId).populate('customer').populate('items');
+    const sale = await Sale.findOne({
+    _id: saleId,
+    tenantId 
+  }).populate('customer')
+    .populate('items');
+    
     if (!sale) {
       throw new ExpressError('Sale not found', 404);
     }
@@ -84,6 +92,7 @@ export const confirmStripePayment = async (req, res) => {
       const amountPaidThisTurn = sale.totalAmount - sale.paidAmount;
 
       const payment = await Payment.create({
+        tenantId:tenantId,
         sale: saleId,
         customer: customer._id,
         amount: amountPaidThisTurn,
@@ -109,11 +118,11 @@ export const confirmStripePayment = async (req, res) => {
       }
       await customer.save();
 
-      const populatedSale = await Sale.findById(saleId).populate('items');
+      const populatedSale = await Sale.Sale.findOne({ _id: saleId,tenantId }).populate('items');
 
       const itemsWithProducts = await Promise.all(
         populatedSale.items.map(async (item) => {
-          const product = await Product.findById(item.product);
+          const product = await Product.findOne({_id: item.product,tenantId});
           return {
             productName: product ? product.name : 'Unknown Product',
             quantity: item.quantity,

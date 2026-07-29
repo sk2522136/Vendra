@@ -3,12 +3,16 @@ import { useAuth } from '../../context/AuthContext';
 import { NavLink } from 'react-router-dom';
 import { FaSignOutAlt, FaUserCircle, FaCashRegister, FaUsers, FaBars, FaThLarge, FaBoxOpen, FaWarehouse, FaFileAlt, FaUserTie, FaTags, FaMoneyBillWave, FaTruck } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+
 
 function StaffNavbar() {
   const [showLogout, setShowLogout] = useState(false);
   const [showNav, setShowNav] = useState(false);
   const { logout, user } = useAuth();
   const logoutRef = useRef(null);
+  const navigate = useNavigate(); 
+  
 
   const allNavItems = [
     { to: '/dashboard', label: 'Dashboard', icon: <FaThLarge />, roles: ['admin'] },
@@ -26,14 +30,13 @@ function StaffNavbar() {
   const navItems = allNavItems.filter(item => item.roles.includes(user?.role));
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Logged out successfully');
-      setShowLogout(false);
-    } catch (error) {
-      toast.error('Logout failed');
-    }
-  };
+  try {
+    await logout();        
+    navigate('/login', { replace: true }); 
+  } catch (error) {
+    console.error("Logout navigation failed", error);
+  }
+};
 
   return (
     <div className="bg-bg-card m-4 rounded-4xl border-b border-border shadow-sm shrink-0">

@@ -3,7 +3,7 @@ import Product from "../models/Product.js";
 import ExpressError from "../utils/expressError.js";
 import { io } from '../server.js';
 
-export const inventoryLogChange = async (data) => {
+export const inventoryLogChange = async (data,tenantId) => {
 
   const { product, quantityChange, type, createdBy, sale } = data;
 
@@ -21,6 +21,7 @@ export const inventoryLogChange = async (data) => {
 
   // entry in enventroy log
   const logEntry = await InventoryLog.create({
+    tenantId: tenantId,
     product,
     quantityChange,
     type,
@@ -35,7 +36,8 @@ export const inventoryLogChange = async (data) => {
 
  //   api/inventory/status?type=....
 export const getInventoryStatus = async (req, res) => {
-  const products = await Product.find().select("name quantity");
+  const tenantId = req.tenantId;
+  const products = await Product.find({tenantId}).select("name quantity");
 
   let inventory = [];
   let totalStock = 0;
@@ -113,11 +115,12 @@ export const getInventoryStatus = async (req, res) => {
 // api/inventory/history
 export const getInventoryHistory = async (req, res)=>{
   const {productId} = req.params;
-  const product = await  Product.findById(productId);
+  const tenantId = req.tenantId;
+  const product = await  Product.findById({ _id: productId, tenantId });
   if(!product){
   throw new ExpressError('Product Not found', 404);
   }
- const logs = await InventoryLog.find({ product: productId }).populate('createdBy', 'name').sort({date:1})
+ const logs = await InventoryLog.find({tenantId, product: productId }).populate('createdBy', 'name').sort({date:1})
     let currentStock = 0;
     const history = [];
  

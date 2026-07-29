@@ -7,6 +7,7 @@ import ExpressError from '../utils/expressError.js';
 export const processChatMessage = async (req, res) => {
   try {
     const { message, phoneNumber } = req.body;
+    const tenantId = req.tenantId;
 
     if (!message) {
       throw new ExpressError('Message required', 400);
@@ -14,10 +15,16 @@ export const processChatMessage = async (req, res) => {
 
      //db query
     const [lowStockProducts, allProducts, allSalesAggregation] = await Promise.all([
-      Product.find({ quantity: { $lt: 10 } }).select('name quantity price'),
-      Product.find().select('name price quantity description'),
+      Product.find({ tenantId,quantity: { $lt: 10 } }).select('name quantity price'),
+      Product.find(tenantId).select('name price quantity description'),
       Sale.aggregate([
         {
+           $match: { tenantId 
+           }
+        },
+        
+        {
+          
           $group: {
             _id: null,
             totalRevenue: { $sum: "$totalAmount" },
@@ -37,9 +44,10 @@ export const processChatMessage = async (req, res) => {
     if (message || phoneNumber) {
       let customerQuery = {};
       if (phoneNumber) {
-        customerQuery = { phoneNumber: phoneNumber };
+        customerQuery = { phoneNumber: phoneNumber, tenantId };
       } else {
         customerQuery = { 
+          tenantId,
           $or: [
             { name: { $regex: message, $options: 'i' } },
             { phoneNumber: { $regex: message, $options: 'i' } }
@@ -50,7 +58,7 @@ export const processChatMessage = async (req, res) => {
       const customer = await Customer.findOne(customerQuery);
       
       if (customer) {
-        const customerSales = await Sale.find({ customer: customer._id });
+        const customerSales = await Sale.find({ customer: customer._id, tenantId });
         const cPurchased = customerSales.reduce((sum, s) => sum + s.totalAmount, 0);
         const cPaid = customerSales.reduce((sum, s) => sum + s.paidAmount, 0);
         const pending = cPurchased - cPaid;
@@ -70,7 +78,12 @@ export const processChatMessage = async (req, res) => {
 
   // old customers with pending credit balances
     const creditCustomersSummary = await Sale.aggregate([
-      {
+     
+        {
+          $match: { tenantId }
+       },
+
+ {
         $group: {
           _id: "$customer",
           totalPurchased: { $sum: "$totalAmount" },

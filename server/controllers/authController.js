@@ -1,4 +1,5 @@
 import User from '../models/User.js'
+import Organization from '../models/Organization.js'
 import { generateAccessToken, generateRefreshToken,verifyToken} from '../utils/token.js';
 import bcrypt from "bcryptjs";
 import {setAuthCookie  } from '../utils/cookieUtils.js';
@@ -9,7 +10,64 @@ import sendEmail from '../utils/sendEmail.js';
 import { validatePassword } from '../utils/passwordValidator.js';
 
 
- //  api/auth/login
+
+ 
+export const signup = async (req, res) => {
+  try {
+    const { name, email, password, companyName } = req.body;
+
+    // 1. Validation
+    if (!name || !email || !password || !companyName) {
+      throw new ExpressError("All fields are required", 400);
+    }
+
+    // 2. Check existing user
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new ExpressError("Email already exists", 409);
+    }
+
+    // 3. Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. Create User (marked as admin & active)
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      isSuperAdmin: false,
+      role: 'admin',
+      isEmailVerified: true
+    });
+
+    const now = new Date();
+    const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const organization = await Organization.create({
+      name: companyName,
+      ownerUserId: user._id,
+  
+    });
+
+    // 6. Associate Organization with User
+    user.tenantId = organization._id;
+    await user.save();
+
+    // 7. Simple response (No tokens, no payload, no cookies set)
+    return res.status(201).json({
+      success: true,
+      message: 'Account created successfully! Please sign in.'
+    });
+
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Signup failed"
+    });
+  }
+};
+
+//  api/auth/login
 export const userLogin = async (req , res ) => {
          const {email , password} = req.body;
              const user = await User.findOne({email})
@@ -33,6 +91,10 @@ export const userLogin = async (req , res ) => {
             throw new ExpressError("You Account is deactivate please contact admin", 403);
             }
 
+            if (!user.isSuperAdmin && user.role !== 'admin' && !user.isEmailVerified) {
+    throw new ExpressError("Your email is not verified. Please check your inbox.", 403);
+  }
+
                     
         if (user.role !== 'admin' && !user.isEmailVerified) {
     throw new ExpressError("Your email is not verified. Please check your inbox.", 403);
@@ -55,13 +117,44 @@ export const userLogin = async (req , res ) => {
             await user.save();            
             throw new ExpressError("Invalid Email or password", 401);
         }
-        
+
+
+        let subscriptionPlan = null;
+  let subscriptionStatus = 'inactive';
+  let subscriptionEndDate = null;
+
+  if (user.isSuperAdmin || user.role === 'super_admin') {
+    subscriptionPlan = 'enterprise';
+    subscriptionStatus = 'active';
+  } else if (user.tenantId) {
+    const organization = await Organization.findById(user.tenantId);
+    
+    if (organization) {
+    if (organization.status === 'suspended' || organization.status === 'inactive') {
+      throw new ExpressError("Your store/organization account is suspended. Please contact admin.", 403);
+    }
+  }
+
+    if (organization) {
+      subscriptionPlan = organization.subscriptionPlan;
+      subscriptionStatus = organization.subscriptionStatus;
+      subscriptionEndDate = organization.subscriptionEndDate;
+
+      if (organization.subscriptionEndDate && new Date(organization.subscriptionEndDate) < now) {
+        subscriptionStatus = 'expired';
+        organization.subscriptionStatus = 'expired';
+        await organization.save();
+      }
+    }
+  }
             
             const payload = {
-                   id: user._id,
-                  email: user.email,
-                  role: user.role
-            }
+    id: user._id,
+    email: user.email,
+    role: user.role,
+    tenantId: user.tenantId || null,
+    isSuperAdmin: user.isSuperAdmin || false,
+  };
             const accessToken = generateAccessToken(payload);
             const refreshToken = generateRefreshToken(payload);
             setAuthCookie(res, accessToken, refreshToken);
@@ -75,9 +168,16 @@ export const userLogin = async (req , res ) => {
             user.failedLoginAttempts = 0;
             user.lockedUntil = null;
             await user.save();
-               return res.status(200).json({success : true , message :"Logged In", user:{ id: user._id,email: user.email, name: user.name , role: user.role,}})
+          return res.status(200).json({success : true , message :"Logged In", user:{ id: user._id,email: user.email, name: user.name , role: user.role,tenantId: user.tenantId,subscriptionPlan,
+      subscriptionStatus,
+      subscriptionEndDate
+    }})
            
 }
+
+
+
+
 
 // logout /api/auth/logout
 export const logout =  async (req,res) => {
@@ -97,6 +197,7 @@ export const logout =  async (req,res) => {
 // post :/api/auth/register
 export const registerStaff = async (req , res) =>  {
    const {name , email , password ,role} = req.body;
+   const tenantId = req.tenantId || req.user?.tenantId; 
     const existingUser = await User.findOne({email});
     if(existingUser){
             throw new ExpressError("User Already Exist", 400);
@@ -118,6 +219,7 @@ export const registerStaff = async (req , res) =>  {
         email:email,
         password:hashedPassword,
         role: role || 'staff',
+        tenantId: tenantId,
         isEmailVerified: false, 
         emailVerificationToken: verificationToken,
         emailVerificationExpiry: verificationExpiry
@@ -189,7 +291,17 @@ export const registerStaff = async (req , res) =>  {
 }
 
 export const getAllStaff = async (req, res) => {
-  const users = await User.find().select('-password');
+  // Safe Fallback: Check req.tenantId or req.user.tenantId
+  const tenantId = req.tenantId || req.user?.tenantId;
+
+  if (!tenantId) {
+    throw new ExpressError("Tenant context missing", 400);
+  }
+
+  const users = await User.find({ 
+    tenantId: tenantId,  
+    role: { $in: ['manager', 'staff'] }
+  }).select('-password');
   
   return res.status(200).json({
     success: true,
@@ -200,10 +312,35 @@ export const getAllStaff = async (req, res) => {
 
 export const isAuth = async (req, res) => {
     if (req.user) {
-        return res.status(200).json({ 
-            success: true, 
-            user: req.user 
-        });
+       const now = new Date();
+    let subscriptionPlan = null;
+    let subscriptionStatus = 'inactive';
+    let subscriptionEndDate = null;
+
+    if (req.user.tenantId) {
+      const organization = await Organization.findById(req.user.tenantId);
+      if (organization) {
+        subscriptionPlan = organization.subscriptionPlan;
+        subscriptionStatus = organization.subscriptionStatus;
+        subscriptionEndDate = organization.subscriptionEndDate;
+
+        if (organization.subscriptionEndDate && new Date(organization.subscriptionEndDate) < now) {
+          subscriptionStatus = 'expired';
+          organization.subscriptionStatus = 'expired';
+          await organization.save();
+        }
+      }
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      user: {
+        ...req.user.toObject ? req.user.toObject() : req.user,
+        subscriptionPlan,
+        subscriptionStatus,
+        subscriptionEndDate
+        }
+    });
     }
             throw new ExpressError("Not log in", 401);
 };
@@ -225,7 +362,9 @@ export const refreshAccessToken = async (req, res) => {
          const newAccessToken = generateAccessToken({
         id: user._id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        tenantId: user.tenantId,  
+        isSuperAdmin: user.isSuperAdmin
       });
 
        res.cookie("accessToken", newAccessToken, {
@@ -282,8 +421,9 @@ export const verifyEmail = async (req, res) => {
 // DELETE /api/auth/staff/:id
 export const deleteStaff = async (req, res) => {
     const { id } = req.params;
+    const tenantId = req.tenantId;
 
-    const user = await User.findById(id);
+    const user = await User.findOne({ _id: id, tenantId });
     if (!user) {
         throw new ExpressError("Staff member not found", 404);
     }
@@ -292,7 +432,9 @@ export const deleteStaff = async (req, res) => {
         throw new ExpressError("Cannot delete admin account", 403);
     }
 
-    await User.findByIdAndDelete(id);
+    
+
+    await User.findOneAndDelete({ _id: id, tenantId });
 
     return res.status(200).json({
         success: true,

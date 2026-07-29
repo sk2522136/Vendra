@@ -2,32 +2,45 @@ version: '3.8'
 
 services:
   backend:
-    build: ./server
+    build:
+      context: ./server
+    env_file:
+      - .env
     ports:
       - "4000:4000"
-    env_file:
-      - .env  
+    depends_on:
+      - db
+    networks:
+      - pos-network
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - mongo-data:/data/db
     networks:
       - pos-network
 
   frontend:
     build:
       context: ./client
+      dockerfile: Dockerfile
       args:
-        - VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51Sx5sTPzorG2nWHVkDEKxfrOM83q8dao510Yur0skylQ2nHVTaPGxG648R88fdC17eXbiDpUl7TIXtsIRPNem2sk00NGTzqLvx
+        - VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY}
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
     ports:
-      - "80:80"
-      - "443:443" 
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro 
+      - "5173:5173"
     env_file:
-      - .env  
+      - .env
     depends_on:
       - backend
     networks:
       - pos-network
+
+volumes:
+  mongo-data:
 
 networks:
   pos-network:

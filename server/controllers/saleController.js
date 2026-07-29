@@ -16,13 +16,14 @@ import fs from "fs";
 
 export const createSale = async (req, res) =>{
   const {name, phoneNumber, items, customerType, paidAmount, discount = 0, notes = ''} = req.body;
+  const tenantId = req.tenantId;
      
    if (!items || items.length === 0) {
       throw new ExpressError('No items provided for checkout', 400);
     }
  
     const productIds = items.map(item => item.product);
-    const dbProducts = await Product.find({ _id: { $in: productIds } });
+    const dbProducts = await Product.find({ _id: { $in: productIds },tenantId });
  
     const productMap = {};
     dbProducts.forEach(p => { productMap[p._id.toString()] = p; });
@@ -37,9 +38,10 @@ export const createSale = async (req, res) =>{
       }
     }
   
-  let customer = await Customer.findOne({ phoneNumber})
+  let customer = await Customer.findOne({ phoneNumber,tenantId})
      if(!customer){
      customer = new Customer({
+      tenantId: tenantId,
       name: name,
       phoneNumber: phoneNumber,
       currentBalance: 0,
@@ -61,7 +63,7 @@ export const createSale = async (req, res) =>{
     let itemsForReceipt = [];
     
     for (let item of items){
-    let product = await Product.findById(item.product);
+    let product = await Product.findOne({ _id: item.product, tenantId });
     let itemTotal = item.quantity * item.sellPrice
     totalAmount += itemTotal;
      
@@ -103,6 +105,7 @@ export const createSale = async (req, res) =>{
  
   //  Create Sale
  const sale = await Sale.create({
+            tenantId: tenantId,
             items: saleItemIds,
             customer: customer._id,
             totalAmount,
@@ -131,7 +134,8 @@ for (let item of items) {
       change: -item.quantity,
       type: "Sale",
       sale: sale._id,
-      user: req.user._id
+      user: req.user._id,
+      tenantId: tenantId
     });
  
   }
@@ -153,6 +157,7 @@ for (let item of items) {
  
   if (paidAmount && paidAmount > 0) {
     await Payment.create({
+      tenantId: tenantId,
       sale: sale._id,
       customer: customer._id,
       amount: paidAmount,
@@ -206,8 +211,9 @@ for (let item of items) {
   export const updateSale = async (req, res) => {
   const { id } = req.params;
   const { amountToPay } = req.body;  
+  const tenantId = req.tenantId;
 
-  const sale = await Sale.findById(id);
+  const sale = await Sale.findOne({_id: id,tenantId});
 
   if (!sale) {
     throw new ExpressError("Sale not found", 404);
@@ -227,7 +233,7 @@ for (let item of items) {
   //  total paid
   const newPaidAmount = oldPaidAmount + amountToPay;  
 
-  const customer = await Customer.findById(sale.customer);
+  const customer = await Customer.findOne({_id: sale.customer,tenantId});
 
   if (!customer) {
     throw new ExpressError("Customer not found", 404);
@@ -255,6 +261,7 @@ for (let item of items) {
 
   if (amountToPay > 0) {
     await Payment.create({
+      tenantId:tenantId,
       sale: sale._id,
       customer: customer._id,
       amount: amountToPay,  
@@ -264,7 +271,7 @@ for (let item of items) {
     });
   }
 
-  const updatedSale = await Sale.findById(id)
+  const updatedSale = await Sale.findOne({_id: id,tenantId })
     .populate('customer')
     .populate('items')
     .populate('createdBy');
@@ -282,9 +289,10 @@ for (let item of items) {
 // api/sale/:id
  export const deleteSale = async (req, res) => {
     const { id } = req.params;
+    const tenantId = req.tenantId;
 
     // Sale find 
-    const sale = await Sale.findById(id)
+    const sale = await Sale.findOne({_id: id, tenantId})
         .populate('items')
         .populate('customer');
 
@@ -312,7 +320,8 @@ for (let item of items) {
           change: +item.quantity,
           type: "Sale Cancellation",
           sale: sale._id,
-          user: req.user._id
+          user: req.user._id,
+          tenantId: tenantId,
         });
 
     }
@@ -322,7 +331,7 @@ for (let item of items) {
     await SaleItem.deleteMany({ _id: { $in: saleItemIds } });
 
     // Payments delete
-    await Payment.deleteMany({ sale: sale._id });
+    await Payment.deleteMany({ sale: sale._id ,tenantId: tenantId, });
 
     // Update customer totals
     customer.totalPurchased -= (sale.totalAmount + sale.discount);
@@ -330,7 +339,7 @@ for (let item of items) {
     await customer.save();
 
     // Sale delete
-    await Sale.findByIdAndDelete(id);
+    await Sale.findByIdAndDelete({_id: id,tenantId});
     
     // Socket dashboard refresh
     emitDashboardRefresh();
@@ -350,13 +359,14 @@ for (let item of items) {
 //   /api/sale/customer/:customerId 
 export const getSalesByCustomer = async (req, res) => {
     const { customerId } = req.params;
+    const tenantId = req.tenantId;
     
-    const customer = await Customer.findById(customerId);
+    const customer = await Customer.findOne({_id: customerId,tenantId});
     if (!customer) {
         throw new ExpressError("Customer is not Found", 404);
     }
 
-    const sales = await Sale.find({ customer: customerId })
+    const sales = await Sale.find({ customer: customerId ,tenantId })
         .populate({
             path: 'items',
             populate: {
@@ -444,9 +454,10 @@ export const processReturn = async (req, res) => {
   session.startTransaction();
 
     const { saleId, productId, quantity } = req.body;
+    const tenantId = req.tenantId;
 
     // 1. Find Sale
-    const sale = await Sale.findById(saleId)
+    const sale = await Sale.findOne({_id: saleId,tenantId})
       .populate("customer")
       .populate("items")
       .session(session);
@@ -474,6 +485,7 @@ export const processReturn = async (req, res) => {
 
     //STOCK RESTORE 
     await updateStock({
+      tenantId:tenantId,
       productId,
       change: +quantity,
       type: "Return",
@@ -489,7 +501,7 @@ export const processReturn = async (req, res) => {
       await SaleItem.findByIdAndDelete(saleItem._id).session(session);
 
       await Sale.updateOne(
-        { _id: saleId },
+        { _id: saleId, tenantId },
         { $pull: { items: saleItem._id } }
       ).session(session);
     } else {
@@ -533,6 +545,7 @@ export const processReturn = async (req, res) => {
     await customer.save({ session });
 
     await Payment.create([{
+      tenantId: tenantId,
       sale: saleId,
       customer: customer._id,
       amount: -returnAmount,

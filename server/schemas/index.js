@@ -90,6 +90,14 @@ export const loginSchema = Joi.object({
   password: Joi.string().required().min(6)
 }).unknown(false);
 
+// sigup:
+export const signupSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  companyName: Joi.string().required(),
+  password: Joi.string().min(6).required()
+});
+
 
 // USER - REGISTER
 export const registerSchema = Joi.object({

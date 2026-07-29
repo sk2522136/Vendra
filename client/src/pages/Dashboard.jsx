@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StateCard from '../components/StateCard';
 import { FiDollarSign, FiTrendingUp, FiClock, FiPackage, FiSearch } from "react-icons/fi";
-import { getSaleChart, getTopSellProducts, getProfitChart, getPaymentMethod } from '../services/api.js';
+import { getSaleChart, getTopSellProducts, getProfitChart, getPaymentMethod,createSubscription, } from '../services/api.js';
 import { toast } from 'react-toastify';
 import socket from '../services/socket.js'
 import SalesTrend from '../components/charts/SalesTrend.jsx'
@@ -23,6 +23,8 @@ function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFrame, setTimeFrame] = useState('month');
 
+
+
   // Socket listners
   useEffect(() => {
     socket.on('lowStock', (data) => { toast.warning(data.message); });
@@ -41,6 +43,7 @@ function Dashboard() {
   useEffect(() => {
     fetchDashboardData();
   }, [timeFrame]); 
+
 
   const fetchDashboardData = async () => {
     setLoading(true);

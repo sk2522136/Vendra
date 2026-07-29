@@ -11,6 +11,7 @@ import { checkStockAlert } from '../utils/checkStockAlert.js';
 export const createProduct = async (req, res) => {
   
     const {name, sku, category, costPrice, quantity, description, supplier, unit, imageUrl} = req.body
+    const tenantId = req.tenantId;
      const trimmedUnit = unit ? unit.trim() : 'ltr'; 
     
     const allowedUnits = ['kg', 'Pcs', 'ltr']; 
@@ -35,13 +36,14 @@ export const createProduct = async (req, res) => {
     }
 
     //sku duplication check
-    const existingSku = await Product.findOne({ sku: sku.trim() });
+    const existingSku = await Product.findOne({ sku: sku.trim(),tenantId });
     if (existingSku) {
       throw new ExpressError('Product with this SKU already exists in the system', 409);
     }
 
     //  Ledger Record
     const newProduct = new Product({
+      tenantId: tenantId,
       name,
       sku: sku.trim(),
       category,
@@ -62,7 +64,7 @@ export const createProduct = async (req, res) => {
           quantityChange: newProduct.quantity,
           type: "Purchase", 
           createdBy: req.user?._id || "admin"
-        });
+        },tenantId);
       } catch (logError) {
         console.error("Inventory log error:", logError.message);
       }
@@ -72,8 +74,10 @@ export const createProduct = async (req, res) => {
 
 // get : /api/product/all  
 export const getAllProducts = async (req , res) => {
-        const filter = filterProducts(req);
-        const { limit ,skip,page } =  getPaginatedProducts(req);
+       const tenantId = req.tenantId;
+
+       const filter = { ...filterProducts(req), tenantId };  
+       const { limit ,skip,page } =  getPaginatedProducts(req);
         const {sortBy , sortorder} =  getSortProducts(req );
        const [products, total, statsArray] = await Promise.all([
       
@@ -115,13 +119,13 @@ export const getAllProducts = async (req , res) => {
       page
     });
       
-        return res.status(200).json({message : 'Products retrieved successfully' , products , total,stats , totalPages,page })
 }
 
 //get:/api/product/:id      
 export const getProductById = async (req , res ) => {
         const {id} =  req.params;
-        const product = await Product.findById(id);
+        const tenantId = req.tenantId;
+        const product = await Product.findById({ _id: id, tenantId });
         if(!product){
             throw new ExpressError('Product Not found', 404);
         }
@@ -132,7 +136,8 @@ export const getProductById = async (req , res ) => {
 export const updateProduct = async (req , res ) => {
 
         const {id} = req.params;
-        const updateProduct =  await Product.findById(id)
+        const tenantId = req.tenantId;
+        const updateProduct =  await Product.findById({ _id: id, tenantId })
         if(!updateProduct){
             throw new ExpressError('Product Not found', 404);
         }
@@ -192,7 +197,7 @@ await updateProduct.save();
             quantityChange: quantityDiff,
             type: "Adjustment",
             createdBy: req.user?._id|| "admin"
-        });
+        },tenantId);
     }
 } catch(logError){
           console.error("inventory log error:", logError.message);
@@ -205,7 +210,8 @@ return res.status(200).json({message : 'Product updated successfully' , product 
 //  /api/product/:id
 export const deleteProduct = async (req , res ) => {
         const {id} = req.params;
-        const product = await Product.findById(id);
+        const tenantId = req.tenantId;
+        const product = await Product.findById({ _id: id, tenantId });
         if(!product){
             throw new ExpressError('Product Not found', 404);
         }
@@ -213,7 +219,7 @@ export const deleteProduct = async (req , res ) => {
          if (product.image?.filename) {
             await cloudinary.uploader.destroy(product.image.filename,{ resource_type: 'image' });
             }
-          const deletedProduct=await Product.findByIdAndDelete(id);
+          const deletedProduct=await Product.findByIdAndDelete({ _id: id, tenantId });
           return res.status(200).json({success:true,message : 'Product deleted permanently',deletedProduct})
        }else{
          if (!product.isActive) {

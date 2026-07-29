@@ -6,13 +6,15 @@ import mongoose from 'mongoose';
 export const createExpense = async (req , res)=> {
 
    const {category , amount , description,paidBy , paymentMethod ,  date} = req.body;
+   const tenantId = req.tenantId;
 
-   let paidById = req.user?._id;
-  if (req.user._id === 'admin') {
-    paidById = new mongoose.Types.ObjectId(); 
-  }
+    let paidById = req.user?._id;
+    if (req.user._id === 'admin') {
+      paidById = new mongoose.Types.ObjectId(); 
+    }
 
     const expense = await Expense.create({
+      tenantId,
       category,
       amount,
       description,
@@ -30,14 +32,16 @@ export const createExpense = async (req , res)=> {
 
 //  api/expense/list
     export const getExpenses = async(req , res) =>{
-       const { month , year} = req.query;
+        const tenantId = req.tenantId; 
+        const { month , year} = req.query;
         const monthNum = parseInt(month) || new Date().getMonth() + 1;
         const yearNum = parseInt(year) || new Date().getFullYear();
         
         const startDate = new Date(yearNum, monthNum - 1, 1);
-    const endDate = new Date(yearNum, monthNum, 1);
+        const endDate = new Date(yearNum, monthNum, 1);
 
     const expenses = await Expense.find({
+      tenantId: tenantId,
       date: {
         $gte: startDate,
         $lt: endDate

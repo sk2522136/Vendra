@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema({
     name : {type : String , required :true },
     email:{ type : String , required :true , unique : true, lowercase: true, trim: true },
     password : {  type : String ,required : true },
-    role : { type : String , enum : ['admin' , 'staff'] , default : 'staff'},
+    tenantId: { type :mongoose.Schema.Types.ObjectId , ref: 'Organization' },
+    isSuperAdmin: { type: Boolean, default: false },
+    role: { type: String, enum: ['super_admin', 'admin', 'manager', 'staff'], default: 'staff' },
     isActive : { type : Boolean , default : true }, 
     isAdmin: { type: Boolean, default: false  },
     isEmailVerified: { type: Boolean, default: false },
@@ -26,6 +28,8 @@ const userSchema = new mongoose.Schema({
 
     },{ timestamps: true} )
 
+    userSchema.index({ tenantId: 1, role: 1 });
+    userSchema.index({ isSuperAdmin: 1 });
 
 
 

@@ -7,6 +7,7 @@ const router = express.Router();
 router.post("/parse-command", async (req, res) => {
   try {
     const { transcript } = req.body;
+    const tenantId = req.tenantId;
 
     if (!transcript || transcript.trim().length === 0) {
       return res.status(400).json({
@@ -15,7 +16,7 @@ router.post("/parse-command", async (req, res) => {
       });
     }
 
-    const products = await Product.find({ isActive: true });
+    const products = await Product.find({ isActive: true,tenantId });
 
     const parsed = await parseVoiceCommand(transcript, products);
 

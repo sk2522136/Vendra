@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const supplierSchema = new mongoose.Schema({
+    tenantId: {  type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true},
     name : {type : String , required : true},
     contact :{type :String , required : true},
     totalPurchase : {type : Number , default : 0},
@@ -9,6 +10,8 @@ const supplierSchema = new mongoose.Schema({
     isActive : {type : Boolean , default : true}
 })
 
+supplierSchema.index({ tenantId: 1 });
+supplierSchema.index({ tenantId: 1, isActive: 1 });
 
 const Supplier = mongoose.models.Supplier || mongoose.model('Supplier' , supplierSchema)
 

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 
 const paymentSchema = new mongoose.Schema({
+    tenantId: { type :mongoose.Schema.Types.ObjectId, ref: 'Organization',required: true  },
     customer: {type: mongoose.Schema.Types.ObjectId,ref: 'Customer',required: true},
     amount: {type: Number,required: true},
     sale: {type: mongoose.Schema.Types.ObjectId,ref: 'Sale',required: true},
@@ -13,6 +14,14 @@ const paymentSchema = new mongoose.Schema({
     notes: {type: String},
     receiptNumber: {type: String,sparse: true}
 }, {timestamps: true});
+
+
+paymentSchema.index({ tenantId: 1 });
+paymentSchema.index({ tenantId: 1, createdAt: -1 });
+paymentSchema.index({ tenantId: 1, sale: 1 });
+paymentSchema.index({ tenantId: 1, customer: 1 });
+paymentSchema.index({ tenantId: 1, paymentMethod: 1 });
+paymentSchema.index({ tenantId: 1, paymentStatus: 1 });
 
 const Payment = mongoose.models.Payment || mongoose.model('Payment', paymentSchema)
 

@@ -7,6 +7,7 @@ import ExpressError from "../utils/expressError.js";
 export const getSaleChart = async(req, res) => {
     try {
         const { month, year } = req.query;
+        const tenantId = req.tenantId;
         const date = new Date();
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
@@ -15,6 +16,7 @@ export const getSaleChart = async(req, res) => {
         const endDate = new Date(yearNum, monthNum, 1);
 
         const sales = await Sale.find({
+            tenantId: req.tenantId,
             createdAt: {
                 $gte: startDate,
                 $lt: endDate
@@ -68,6 +70,7 @@ export const getSaleChart = async(req, res) => {
 export const getTopSellProd = async(req, res) => {
     try {
         const { month, year, limit = 10 } = req.query;
+        const tenantId = req.tenantId;
         const date = new Date();
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
@@ -76,6 +79,7 @@ export const getTopSellProd = async(req, res) => {
         const endDate = new Date(yearNum, monthNum, 1);       
 
             const sales = await Sale.find({
+                tenantId: req.tenantId,
                 createdAt: {
                     $gte: startDate, 
                     $lt: endDate    
@@ -126,6 +130,7 @@ export const getTopSellProd = async(req, res) => {
 export const getProfitChart = async (req, res, next) => {
     try {
         const { year } = req.query;
+        const tenantId = req.tenantId;
         const yearNum = parseInt(year) || new Date().getFullYear();
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -134,7 +139,12 @@ export const getProfitChart = async (req, res, next) => {
 
              // Monthly Revenue
         const salesRevenueData = await Sale.aggregate([
-            { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
+            { 
+                $match: {
+                    tenantId: req.tenantId, 
+                createdAt: { 
+                    $gte: startDate, $lt: endDate 
+                } } },
             {
                 $group: {
                     _id: { $month: "$createdAt" },
@@ -154,7 +164,9 @@ export const getProfitChart = async (req, res, next) => {
                 }
             },
             { $unwind: "$sale" },
-            { $match: { "sale.createdAt": { $gte: startDate, $lt: endDate } } },
+            { $match: {
+                 "sale.tenantId": req.tenantId,
+                 "sale.createdAt": { $gte: startDate, $lt: endDate } } },
             {
                 $lookup: {
                     from: "products",
@@ -174,7 +186,9 @@ export const getProfitChart = async (req, res, next) => {
 
         //  Calculate Expenses
         const expensesData = await Expense.aggregate([
-            { $match: { date: { $gte: startDate, $lt: endDate } } },
+            { $match: {
+                tenantId: req.tenantId, 
+                date: { $gte: startDate, $lt: endDate } } },
             {
                 $group: {
                     _id: { $month: "$date" },
@@ -237,6 +251,8 @@ export const getProfitChart = async (req, res, next) => {
 export const getPaymentMethod = async(req, res) => {
     try {
         const { month, year } = req.query;
+        const tenantId = req.tenantId;
+
         const date = new Date();
         const monthNum = parseInt(month) || date.getMonth() + 1;
         const yearNum = parseInt(year) || date.getFullYear();
@@ -245,6 +261,7 @@ export const getPaymentMethod = async(req, res) => {
         const endDate = new Date(yearNum, monthNum, 1);
 
         const sales = await Sale.find({
+            tenantId: req.tenantId,
             createdAt: { $gte: startDate, $lt: endDate }
         }).populate('customer');
 

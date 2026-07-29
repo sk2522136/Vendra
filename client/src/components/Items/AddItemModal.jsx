@@ -82,8 +82,7 @@ useEffect(() => {
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4'>
       <div className='bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl'>
         
-=        <div className='flex justify-between items-center px-8 py-6 border-b border-border  bg-bg-body sticky top-0 z-10'>
-          <div>
+   <div className='flex justify-between items-center px-8 py-5 border-b border-border bg-white/95 backdrop-blur-md sticky top-0 z-20 shrink-0'>          <div>
             <h3 className='text-xl font-bold text-bg-secondary'>
               {isEditMode ? "Edit Product Details" : "Create New Product"}
             </h3>

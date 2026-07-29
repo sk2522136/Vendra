@@ -1,5 +1,5 @@
 export const filterProducts = (req) => {
-  let filter = { isActive: true };
+let filter = { isActive: true, tenantId: req.tenantId };  
 
   // CATEGORY FILTER
   if (req.query.category) {
@@ -14,7 +14,7 @@ export const filterProducts = (req) => {
     };
   }
 
-  // STOCK FILTER (optional but useful)
+  // STOCK FILTER 
   if (req.query.stock === "in") {
     filter.quantity = { $gt: 0 };
   }

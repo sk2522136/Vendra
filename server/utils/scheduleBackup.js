@@ -8,7 +8,6 @@ import { encryptData } from './encryption.js';
 export const startScheduleBackup = () => {
   cron.schedule('0 0 * * *', async () => {
     try {
-      console.log('🔄 Scheduled backup started at 12 AM');
 
       // Fetch data
       const customers = await Customer.find();
