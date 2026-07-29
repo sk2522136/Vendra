@@ -1,7 +1,7 @@
 import express from 'express';
-import authMiddleware from '../Middleware/authMiddleware.js';
-import tenantMiddleware from '../Middleware/tenantMiddleware.js';
-import superAdminMiddleware from '../Middleware/superAdminMiddleware.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+import tenantMiddleware from '../middleware/tenantMiddleware.js';
+import superAdminMiddleware from '../middleware/superAdminMiddleware.js';
 import { allowRoles } from '../middleware/roleMiddleware.js';
 import {getAdminDashboardStats,getAllTenants,toggleTenantStatus,updateTenantPlan,getRevenueAnalytics} from '../controllers/superAdminController.js';
 import wrapAsync from '../utils/wrapAsync.js';
