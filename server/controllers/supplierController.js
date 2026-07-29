@@ -1,4 +1,4 @@
-import Supplier from '../models/supplier.js';
+import Supplier from '../models/Supplier.js';
 import Product from '../models/Product.js';
 import ExpressError from "../utils/expressError.js";
 
