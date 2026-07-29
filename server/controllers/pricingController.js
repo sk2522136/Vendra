@@ -1,5 +1,5 @@
 import Organization from '../models/Organization.js';
-import ExpressError from '../utils/ExpressError.js'; 
+import ExpressError from "../utils/expressError.js"; 
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
