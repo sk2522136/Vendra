@@ -1,7 +1,7 @@
 import express from 'express';
 import authMiddleware from '../middleware/authMiddleware.js';
 import tenantMiddleware from '../middleware/tenantMiddleware.js';
-import {getAllPlans,createSubscription,upgradeSubscription,cancelSubscription,getSubscriptionStatus,confirmStripePayment,handleStripeWebhook} from '../Controllers/pricingController.js';
+import {getAllPlans,createSubscription,upgradeSubscription,cancelSubscription,getSubscriptionStatus,confirmStripePayment,handleStripeWebhook} from '../controllers/pricingController.js';
 import wrapAsync from '../utils/wrapAsync.js';
 
 
