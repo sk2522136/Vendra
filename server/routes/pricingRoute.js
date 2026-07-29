@@ -1,6 +1,6 @@
 import express from 'express';
-import authMiddleware from '../Middleware/authMiddleware.js';
-import tenantMiddleware from '../Middleware/tenantMiddleware.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+import tenantMiddleware from '../middleware/tenantMiddleware.js';
 import {getAllPlans,createSubscription,upgradeSubscription,cancelSubscription,getSubscriptionStatus,confirmStripePayment,handleStripeWebhook} from '../Controllers/pricingController.js';
 import wrapAsync from '../utils/wrapAsync.js';
 
