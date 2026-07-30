@@ -35,6 +35,8 @@ export const AuthProvider = ({ children }) => {
   setLoading(true);
   try {
     const { data } = await loginApi(credentials);
+    
+    
     setUser(data.user);
     return { success: true, data };
   } catch (error) {
@@ -51,7 +53,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-     
       setUser(null);
     }
   };

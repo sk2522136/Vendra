@@ -83,7 +83,6 @@ const handleSubmit = async (e) => {
             </div>
           </div>
           <div>
-  <h2 className="text-2xl font-bold text-white mb-3">VENDRA</h2>
   <p className="text-blue-200 text-sm leading-relaxed">
     Smart retail POS system with inventory management, multi-payment support & real-time analytics.
   </p>

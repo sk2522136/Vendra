@@ -28,13 +28,25 @@ const RevenueAnalytics = () => {
 
   const filteredTxns = transactions.filter(t => filterPlan === 'All' || t.status === filterPlan);
 
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'Successful':
+        return 'bg-emerald-500/10 text-emerald-500';
+      case 'Failed':
+        return 'bg-rose-500/10 text-rose-500';
+      case 'Refunded':
+        return 'bg-amber-500/10 text-amber-500';
+      default:
+        return 'bg-muted/10 text-muted';
+    }
+  };
+
   return (
     <div className="space-y-6 font-mona animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-text">Subscriptions & Revenue</h1>
         </div>
-        
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -61,11 +73,11 @@ const RevenueAnalytics = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between bg-bg-card p-4 rounded-2xl border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-bg-card p-4 rounded-2xl border border-border shadow-sm gap-3">
         <div className="flex items-center gap-2 text-sm font-bold text-text">
           <HiFilter className="text-muted" size={18} /> Filter Transactions:
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {['All', 'Successful', 'Failed', 'Refunded'].map((status) => (
             <button
               key={status}
@@ -88,49 +100,82 @@ const RevenueAnalytics = () => {
           <p className="text-xs text-muted mt-0.5">Real-time breakdown of internal application invoice trails.</p>
         </div>
 
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="bg-bg-body border-b border-border text-muted text-xs font-bold uppercase tracking-wider">
-                <th className="p-4">Transaction ID</th>
-                <th className="p-4">Merchant / Store</th>
-                <th className="p-4">Billing Type</th>
-                <th className="p-4">Date & Time</th>
-                <th className="p-4">Amount</th>
-                <th className="p-4 text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {isLoading ? (
-                <tr><td colSpan="6" className="p-8 text-center text-muted">Loading transactions...</td></tr>
-              ) : filteredTxns.length === 0 ? (
-                <tr><td colSpan="6" className="p-8 text-center text-muted">No transactions matching criteria.</td></tr>
-              ) : (
-                filteredTxns.map((txn) => (
-                  <tr key={txn.id} className="hover:bg-bg-body/40 transition-colors">
-                    <td className="p-4 font-mono font-bold text-bg-primary text-xs">{txn.id}</td>
-                    <td className="p-4">
-                      <div className="font-bold text-text">{txn.store}</div>
-                      <div className="text-xs text-muted mt-0.5">{txn.owner}</div>
-                    </td>
-                    <td className="p-4 text-xs font-semibold text-text/80">{txn.type}</td>
-                    <td className="p-4 text-xs text-muted font-medium">{txn.date}</td>
-                    <td className="p-4 font-bold text-text">{txn.amount}</td>
-                    <td className="p-4 text-center">
-                      <span className={`inline-block px-2.5 py-0.5 text-xs font-bold rounded-md ${
-                        txn.status === 'Successful' ? 'bg-emerald-500/10 text-emerald-500' :
-                        txn.status === 'Failed' ? 'bg-rose-500/10 text-rose-500' :
-                        txn.status === 'Refunded' ? 'bg-amber-500/10 text-amber-500' : 'bg-muted/10 text-muted'
-                      }`}>
-                        {txn.status}
-                      </span>
-                    </td>
+        {isLoading ? (
+          <div className="p-8 text-center text-muted text-sm">Loading transactions...</div>
+        ) : filteredTxns.length === 0 ? (
+          <div className="p-8 text-center text-muted text-sm">No transactions matching criteria.</div>
+        ) : (
+          <>
+            <div className="p-4 grid grid-cols-1 gap-4 sm:hidden bg-bg-body/30">
+              {filteredTxns.map((txn) => (
+                <div 
+                  key={txn.id} 
+                  className="bg-bg-card border border-border rounded-xl p-4 shadow-sm space-y-3"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-mono font-bold text-bg-primary text-xs block">{txn.id}</span>
+                      <h4 className="font-bold text-text text-sm mt-0.5">{txn.store}</h4>
+                      <p className="text-xs text-muted">{txn.owner}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${getStatusBadgeClass(txn.status)}`}>
+                      {txn.status}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-border/60 space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted">Billing Type:</span>
+                      <span className="font-semibold text-text">{txn.type}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted">Date & Time:</span>
+                      <span className="text-muted">{txn.date}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-muted font-bold">Amount:</span>
+                      <span className="font-bold text-text text-sm">{txn.amount}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden sm:block overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-bg-body border-b border-border text-muted text-xs font-bold uppercase tracking-wider">
+                    <th className="p-4">Transaction ID</th>
+                    <th className="p-4">Merchant / Store</th>
+                    <th className="p-4">Billing Type</th>
+                    <th className="p-4">Date & Time</th>
+                    <th className="p-4">Amount</th>
+                    <th className="p-4 text-center">Status</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {filteredTxns.map((txn) => (
+                    <tr key={txn.id} className="hover:bg-bg-body/40 transition-colors">
+                      <td className="p-4 font-mono font-bold text-bg-primary text-xs">{txn.id}</td>
+                      <td className="p-4">
+                        <div className="font-bold text-text">{txn.store}</div>
+                        <div className="text-xs text-muted mt-0.5">{txn.owner}</div>
+                      </td>
+                      <td className="p-4 text-xs font-semibold text-text/80">{txn.type}</td>
+                      <td className="p-4 text-xs text-muted font-medium">{txn.date}</td>
+                      <td className="p-4 font-bold text-text">{txn.amount}</td>
+                      <td className="p-4 text-center">
+                        <span className={`inline-block px-2.5 py-0.5 text-xs font-bold rounded-md ${getStatusBadgeClass(txn.status)}`}>
+                          {txn.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

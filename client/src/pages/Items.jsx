@@ -232,83 +232,124 @@ const statsData = [
   </div>
    
 
+  {/* Table / Cards Container */}
   <div className='border border-border rounded-3xl shadow-sm overflow-hidden bg-bg-card'>
     {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
-            <p className="text-base font-bold text-text">Loading...</p>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
-            <p className="text-base font-bold text-text">No data available</p>
-          </div>
-        ) : (
-          <>
-    <div className='overflow-x-auto'>
-      <table className='w-full text-left'>
-        <thead>
-          <tr className='bg-bg-body text-text font-extrabold border-b border-border'>
-            <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>PRODUCT INFO</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">SKU</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Category</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Stock Status</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Price</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-right">Actions</th>
-          </tr>
-        </thead>
-        
-       
-         
-        <tbody className='divide-y divide-border'>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+        <p className="text-base font-bold text-text">Loading...</p>
+      </div>
+    ) : products.length === 0 ? (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+        <p className="text-base font-bold text-text">No data available</p>
+      </div>
+    ) : (
+      <>
+        {/* MOBILE VIEW (Cards): Sirf mobile screen par dikhega ('md:hidden') */}
+        <div className='md:hidden divide-y divide-border p-4 space-y-4'>
           {products.map((item) => (
-            <tr key={item._id} className='hover:bg-hover transition-colors group'>
-              <td className='px-6 py-4 text-text font-bold'>
-                <div className='flex items-center gap-4'>
-                  <div className='w-12 h-12 rounded-xl border border-border bg-bg-body overflow-hidden'>
+            <div key={item._id} className='bg-bg-body p-4 rounded-2xl border border-border space-y-3'>
+              {/* Image, Name, Unit & Actions */}
+              <div className='flex items-center justify-between gap-3'>
+                <div className='flex items-center gap-3'>
+                  <div className='w-12 h-12 rounded-xl border border-border bg-bg-card overflow-hidden flex-shrink-0'>
                     <img src={item.image?.url} alt="" className='w-full h-full object-cover' />
                   </div>
                   <div>
-                    <p className="text-sm text-text">{item.name}</p>
+                    <p className="text-sm font-bold text-text">{item.name}</p>
                     <p className="text-[11px] text-muted">{item.unit}</p>
                   </div>
                 </div>
-              </td>
-              <td className="px-6 py-4 text-center text-text font-bold">
-                <span className="px-3 py-1 bg-bg-body text-text text-[11px] font-bold rounded-xl border border-border">{item.sku}</span>
-              </td>
-              <td className="px-6 py-4 text-[13px] font-bold text-text">{item.category.name}</td>
-              <td className="px-6 py-4 text-text font-bold">
-                <div className="flex flex-col gap-1.5">
-                  <div className="w-24 h-1.5 bg-bg-body rounded-full overflow-hidden">
+                {/* Actions */}
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEditModal(item)} className="p-2 bg-bg-card text-text hover:bg-bg-primary hover:text-white rounded-lg transition-all"><FiEdit2 size={16} /></button>
+                  <button onClick={() => handleDeleteProduct(item._id)} className="p-2 bg-bg-card text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><FiTrash2 size={16} /></button>
+                </div>
+              </div>
+
+              {/* SKU & Category */}
+              <div className='flex items-center justify-between text-xs pt-2 border-t border-border/50'>
+                <span className="px-2.5 py-1 bg-bg-card text-text text-[11px] font-bold rounded-xl border border-border">SKU: {item.sku}</span>
+                <span className="font-bold text-text">{item.category?.name}</span>
+              </div>
+
+              {/* Price & Stock Progress */}
+              <div className='flex items-center justify-between pt-1'>
+                <div>
+                  <p className='text-[10px] text-muted uppercase font-bold'>Price</p>
+                  <p className="text-sm text-text font-black">Rs {item.costPrice}</p>
+                </div>
+
+                <div className="flex flex-col items-end gap-1">
+                  <div className="w-24 h-1.5 bg-bg-card rounded-full overflow-hidden border border-border/40">
                     <div className={`h-full rounded-full ${item.quantity > 10 ? 'bg-bg-primary' : item.quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${Math.min(item.quantity, 100)}%` }}></div>
                   </div>
                   <span className={`text-[10px] font-bold ${item.quantity <= 10 ? 'text-red-500' : 'text-muted'}`}>
                     {item.quantity === 0 ? 'Out of Stock' : `${item.quantity} In Stock`}
                   </span>
                 </div>
-              </td>
-              <td className="px-6 py-4 text-text font-bold">Rs {item.costPrice}</td>
-              <td className="px-6 py-4">
-                <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => openEditModal(item)} className="p-2 bg-bg-body text-text hover:bg-bg-primary hover:text-white rounded-lg transition-all"><FiEdit2 size={16} /></button>
-                  <button onClick={() => handleDeleteProduct(item._id)} className="p-2 bg-bg-body text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><FiTrash2 size={16} /></button>
-                </div>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-        </tbody>
-  
+        </div>
 
-      </table>
-    
-   
-        
-   
-   </div>
-     </>
-         
-            )}
+        {/* DESKTOP VIEW (Table): Sirf medium aur usse badi screen par dikhega ('hidden md:block') */}
+        <div className='hidden md:block overflow-x-auto'>
+          <table className='w-full text-left'>
+            <thead>
+              <tr className='bg-bg-body text-text font-extrabold border-b border-border'>
+                <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>PRODUCT INFO</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">SKU</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Category</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Stock Status</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider">Price</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            
+            <tbody className='divide-y divide-border'>
+              {products.map((item) => (
+                <tr key={item._id} className='hover:bg-hover transition-colors group'>
+                  <td className='px-6 py-4 text-text font-bold'>
+                    <div className='flex items-center gap-4'>
+                      <div className='w-12 h-12 rounded-xl border border-border bg-bg-body overflow-hidden'>
+                        <img src={item.image?.url} alt="" className='w-full h-full object-cover' />
+                      </div>
+                      <div>
+                        <p className="text-sm text-text">{item.name}</p>
+                        <p className="text-[11px] text-muted">{item.unit}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center text-text font-bold">
+                    <span className="px-3 py-1 bg-bg-body text-text text-[11px] font-bold rounded-xl border border-border">{item.sku}</span>
+                  </td>
+                  <td className="px-6 py-4 text-[13px] font-bold text-text">{item.category?.name}</td>
+                  <td className="px-6 py-4 text-text font-bold">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="w-24 h-1.5 bg-bg-body rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${item.quantity > 10 ? 'bg-bg-primary' : item.quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${Math.min(item.quantity, 100)}%` }}></div>
+                      </div>
+                      <span className={`text-[10px] font-bold ${item.quantity <= 10 ? 'text-red-500' : 'text-muted'}`}>
+                        {item.quantity === 0 ? 'Out of Stock' : `${item.quantity} In Stock`}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-text font-bold">Rs {item.costPrice}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => openEditModal(item)} className="p-2 bg-bg-body text-text hover:bg-bg-primary hover:text-white rounded-lg transition-all"><FiEdit2 size={16} /></button>
+                      <button onClick={() => handleDeleteProduct(item._id)} className="p-2 bg-bg-body text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><FiTrash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    )}
   </div>
-
+  
   {/* Pagination */}
   <div className="flex items-center justify-center gap-2 mt-6">
     <button disabled={page === 1} onClick={() => setPage(page - 1)} className="w-10 h-10 flex items-center justify-center border border-border bg-bg-primary text-white rounded-xl hover:bg-bg-secondary disabled:opacity-40 transition-all">‹</button>

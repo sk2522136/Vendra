@@ -62,53 +62,96 @@ const Category = () => {
   </div>
 
  <div className='border border-border shadow-sm rounded-3xl overflow-hidden bg-bg-card'>
-
- {loading ? (
-    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
-      <p className="text-base font-bold text-text animate-pulse">Loading...</p>
-    </div>
-  ) : categories.length > 0 ? (
-    
-    <div className='overflow-x-auto custom-scrollbar'>
-      <table className='w-full text-left'>
-        <thead>
-          <tr className='bg-bg-body border-b border-border text-text font-extrabold'>
-            <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>Category Name</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Products</th>
-            <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody className='divide-y divide-border'>
+    {loading ? (
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
+        <p className="text-base font-bold text-text animate-pulse">Loading...</p>
+      </div>
+    ) : categories.length > 0 ? (
+      <>
+        {/* MOBILE VIEW (Cards): Visible only on mobile screens ('md:hidden') */}
+        <div className='md:hidden divide-y divide-border p-4 space-y-4'>
           {categories.map((c) => (
-            <tr key={c._id} className='hover:bg-bg-body transition-colors group'>
-              <td className="px-6 py-4 font-bold text-text">{c.name}</td>
-              <td className="px-6 py-4 text-center">
+            <div key={c._id} className='bg-bg-body p-4 rounded-2xl border border-border space-y-3'>
+              {/* Category Name */}
+              <div className='flex items-center justify-between'>
+                <span className='text-xs font-black text-muted uppercase tracking-wider'>Category Name</span>
+                <p className="font-bold text-text text-base">{c.name}</p>
+              </div>
+
+              {/* View Products & Actions */}
+              <div className='flex items-center justify-between pt-3 border-t border-border/50'>
+                {/* View Products Button */}
                 <button 
                   onClick={() => { setSelectedCat(c); setIsProductModalOpen(true); }} 
-                  className="p-2 bg-bg-body  text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-bg-card text-bg-secondary font-bold text-xs rounded-lg hover:bg-bg-primary hover:text-white transition-all border border-border"
                 >
-                  <FaBox />
+                  <FaBox /> View Products
                 </button>
-              </td>
-              <td className="px-6 py-4 flex justify-center gap-2">
-                <button 
-                  onClick={() => { setSelectedCat(c); setIsModalOpen(true); }} 
-                  className="p-2 bg-bg-body  text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all"
-                >
-                  <FaEdit />
-                </button>
-                <button 
-                  onClick={() => handleDelete(c._id)} 
-                  className="p-2 bg-bg-body text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
-                >
-                  <FaTrash />
-                </button>
-              </td>
-            </tr>
+
+                {/* Edit & Delete Actions */}
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => { setSelectedCat(c); setIsModalOpen(true); }} 
+                    className="p-2 bg-bg-card text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all border border-border"
+                    title="Edit Category"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(c._id)} 
+                    className="p-2 bg-bg-card text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-border"
+                    title="Delete Category"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </div>
+
+        {/* DESKTOP VIEW (Table): Visible only on medium and larger screens ('hidden md:block') */}
+        <div className='hidden md:block overflow-x-auto custom-scrollbar'>
+          <table className='w-full text-left'>
+            <thead>
+              <tr className='bg-bg-body border-b border-border text-text font-extrabold'>
+                <th className='py-4 px-6 text-[11px] font-black text-muted uppercase tracking-wider'>Category Name</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Products</th>
+                <th className="px-6 py-4 text-[11px] font-black text-muted uppercase tracking-wider text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className='divide-y divide-border'>
+              {categories.map((c) => (
+                <tr key={c._id} className='hover:bg-bg-body transition-colors group'>
+                  <td className="px-6 py-4 font-bold text-text">{c.name}</td>
+                  <td className="px-6 py-4 text-center">
+                    <button 
+                      onClick={() => { setSelectedCat(c); setIsProductModalOpen(true); }} 
+                      className="p-2 bg-bg-body text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                    >
+                      <FaBox />
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 flex justify-center gap-2">
+                    <button 
+                      onClick={() => { setSelectedCat(c); setIsModalOpen(true); }} 
+                      className="p-2 bg-bg-body text-bg-secondary rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(c._id)} 
+                      className="p-2 bg-bg-body text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
     ) : (
       <div className="flex-1 flex flex-col items-center justify-center p-12 text-center my-auto">
         <p className="text-base font-bold text-text">No data available</p>
@@ -116,7 +159,7 @@ const Category = () => {
       </div>
     )}
   </div>
-
+  
   {isModalOpen && <CategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} category={selectedCat} reloadCategories={fetchCategories} />}
   {isProductModalOpen && <CategoryProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} category={selectedCat} />}
 </div>

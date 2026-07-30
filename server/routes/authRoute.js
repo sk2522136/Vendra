@@ -29,7 +29,7 @@ router.route('/refresh')
 .post( refreshAccessToken);
 
 router.route('/is-auth')
-.get(authMiddleware,tenantMiddleware ,wrapAsync(isAuth))
+.get(authMiddleware ,wrapAsync(isAuth))
 
 
 

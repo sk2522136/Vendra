@@ -24,30 +24,40 @@ export const getAdminDashboardStats = async (req, res) => {
 };
 
 export const getAllTenants = async (req, res) => {
-  const { search, plan } = req.query;
-  let query = {};
+  try {
+    const { search, plan } = req.query;
+    let query = {};
 
-  if (plan && plan !== 'All') {
-    query.subscriptionPlan = plan.toLowerCase();
+    if (plan && plan !== 'All') {
+      query.subscriptionPlan = plan.toLowerCase();
+    }
+
+    let tenants = await Organization.find(query)
+      .populate('ownerUserId', 'name email')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      tenants = tenants.filter(t => 
+        (t.name && t.name.toLowerCase().includes(searchLower)) ||
+        (t.ownerUserId?.name && t.ownerUserId.name.toLowerCase().includes(searchLower)) ||
+        (t.ownerUserId?.email && t.ownerUserId.email.toLowerCase().includes(searchLower))
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      tenants
+    });
+  } catch (error) {
+    console.error("Error in getAllTenants:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch tenants",
+      error: error.message
+    });
   }
-
-  let tenants = await Organization.find(query)
-    .populate('ownerUserId', 'name email')
-    .sort({ createdAt: -1 });
-
-  if (search) {
-    const searchLower = search.toLowerCase();
-    tenants = tenants.filter(t => 
-      t.name.toLowerCase().includes(searchLower) ||
-      (t.ownerUserId?.name && t.ownerUserId.name.toLowerCase().includes(searchLower)) ||
-      (t.ownerUserId?.email && t.ownerUserId.email.toLowerCase().includes(searchLower))
-    );
-  }
-
-  return res.status(200).json({
-    success: true,
-    tenants
-  });
 };
 
 export const toggleTenantStatus = async (req, res) => {

@@ -194,80 +194,156 @@ const handleFormSubmit = (e) => {
       </div>
 
       {loading && <p className="text-center text-muted text-sm">Loading...</p>}
-      
+
       <div className="bg-bg-card border border-border rounded-lg sm:rounded-3xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto overflow-y-auto">
-          <table className="w-full text-left min-w-full sm:min-w-[800px]">
-            <thead className="bg-bg-body border-b border-border">
-              <tr className="text-[9px] sm:text-[11px] text-text font-extrabold uppercase tracking-wider">
-                <th className="px-3 sm:px-8 py-4 sm:py-5">Supplier</th>
-                <th className="px-2 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">Contact</th>
-                <th className="px-2 sm:px-6 py-4 sm:py-5 text-right hidden md:table-cell">Total Purchase</th>
-                <th className="px-2 sm:px-6 py-4 sm:py-5 text-right hidden lg:table-cell">Paid</th>
-                <th className="px-2 sm:px-6 py-4 sm:py-5 text-right">Unpaid</th>
-                <th className="px-2 sm:px-6 py-4 sm:py-5 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
+        {!loading && suppliers.length === 0 ? (
+          <p className="text-center text-muted py-8 text-sm font-bold">No suppliers found</p>
+        ) : (
+          <>
+            {/* MOBILE VIEW (Cards) */}
+            <div className="md:hidden divide-y divide-border p-4 space-y-4">
               {suppliers.map((s) => (
-                <tr key={s.id} className="hover:bg-bg-body transition-colors">
-                  <td className="px-3 sm:px-8 py-3 sm:py-4 flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-body rounded-lg sm:rounded-xl flex items-center justify-center text-text flex-shrink-0 border border-border">
-                      <FaUserTie size={14} className="sm:w-5 sm:h-5" />
+                <div key={s._id || s.id} className="bg-bg-body p-4 rounded-2xl border border-border space-y-3">
+                  
+                  {/* Supplier Info */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-bg-card rounded-xl flex items-center justify-center text-text flex-shrink-0 border border-border">
+                      <FaUserTie size={16} />
                     </div>
-                    <span className="font-bold text-text text-xs sm:text-sm break-words">{s.name}</span>
-                  </td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-muted font-medium text-xs hidden sm:table-cell break-words">{s.contact}</td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-text text-xs sm:text-sm hidden md:table-cell whitespace-nowrap">Rs {s.totalPurchase.toLocaleString()}</td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-text text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">Rs {s.paidAmount.toLocaleString()}</td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4 text-right font-black text-red-500 text-xs sm:text-sm whitespace-nowrap">Rs {s.unpaidAmount.toLocaleString()}</td>
-                  <td className="px-2 sm:px-6 py-3 sm:py-4">
-                    <div className="flex items-center justify-end gap-1 sm:gap-2">
-                      <button 
-                        onClick={() => openModal('purchase', s)} 
-                        className="p-1.5 sm:p-2.5 bg-bg-body text-text border border-border rounded-md sm:rounded-lg hover:bg-bg-primary hover:text-white transition-all flex-shrink-0"
-                        title="Add Purchase"
-                      >
-                        <FaCartPlus size={12} className="sm:w-3.5 sm:h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => openModal('payment', s)} 
-                        className="p-1.5 sm:p-2.5 bg-bg-body text-text border border-border rounded-md sm:rounded-lg hover:bg-bg-primary hover:text-white transition-all flex-shrink-0"
-                        title="Add Payment"
-                      >
-                        <FaWallet size={12} className="sm:w-3.5 sm:h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => openModal('edit', s)} 
-                        className="p-1.5 sm:p-2.5 bg-bg-body text-text border border-border rounded-md sm:rounded-lg hover:bg-bg-primary hover:text-white transition-all flex-shrink-0"
-                        title="Edit"
-                      >
-                        <FaEdit size={12} className="sm:w-3.5 sm:h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteSupplier(s._id)} 
-                        className="p-1.5 sm:p-2.5 bg-bg-body text-red-500 border border-border rounded-md sm:rounded-lg hover:bg-red-600 hover:text-white transition-all flex-shrink-0"
-                        title="Delete"
-                      >
-                        <FaTrash size={12} className="sm:w-3.5 sm:h-3.5" />
-                      </button>
+                    <div>
+                      <h4 className="text-sm font-bold text-text">{s.name}</h4>
+                      <p className="text-xs text-muted font-medium">{s.contact || 'No contact'}</p>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+
+                  {/* Amounts Grid */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/50 text-center">
+                    <div className="bg-bg-card p-2 rounded-xl border border-border">
+                      <p className="text-[9px] font-black text-muted uppercase">Total</p>
+                      <p className="text-xs font-black text-text mt-0.5">Rs {s.totalPurchase?.toLocaleString() || 0}</p>
+                    </div>
+                    <div className="bg-bg-card p-2 rounded-xl border border-border">
+                      <p className="text-[9px] font-black text-muted uppercase">Paid</p>
+                      <p className="text-xs font-black text-text mt-0.5">Rs {s.paidAmount?.toLocaleString() || 0}</p>
+                    </div>
+                    <div className="bg-bg-card p-2 rounded-xl border border-border">
+                      <p className="text-[9px] font-black text-muted uppercase">Unpaid</p>
+                      <p className="text-xs font-black text-red-500 mt-0.5">Rs {s.unpaidAmount?.toLocaleString() || 0}</p>
+                    </div>
+                  </div>
+
+                  {/* Actions Bar */}
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button 
+                      onClick={() => openModal('purchase', s)} 
+                      className="p-2 bg-bg-card text-text border border-border rounded-xl hover:bg-bg-primary hover:text-white transition-all"
+                      title="Add Purchase"
+                    >
+                      <FaCartPlus size={14} />
+                    </button>
+                    <button 
+                      onClick={() => openModal('payment', s)} 
+                      className="p-2 bg-bg-card text-text border border-border rounded-xl hover:bg-bg-primary hover:text-white transition-all"
+                      title="Add Payment"
+                    >
+                      <FaWallet size={14} />
+                    </button>
+                    <button 
+                      onClick={() => openModal('edit', s)} 
+                      className="p-2 bg-bg-card text-text border border-border rounded-xl hover:bg-bg-primary hover:text-white transition-all"
+                      title="Edit"
+                    >
+                      <FaEdit size={14} />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteSupplier(s._id)} 
+                      className="p-2 bg-bg-card text-red-500 border border-border rounded-xl hover:bg-red-600 hover:text-white transition-all"
+                      title="Delete"
+                    >
+                      <FaTrash size={14} />
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            {/* DESKTOP VIEW (Table) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left min-w-[800px]">
+                <thead className="bg-bg-body border-b border-border">
+                  <tr className="text-[11px] text-text font-extrabold uppercase tracking-wider">
+                    <th className="px-6 py-5">Supplier</th>
+                    <th className="px-6 py-5">Contact</th>
+                    <th className="px-6 py-5 text-right">Total Purchase</th>
+                    <th className="px-6 py-5 text-right">Paid</th>
+                    <th className="px-6 py-5 text-right">Unpaid</th>
+                    <th className="px-6 py-5 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {suppliers.map((s) => (
+                    <tr key={s._id || s.id} className="hover:bg-bg-body transition-colors">
+                      <td className="px-6 py-4 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-bg-body rounded-xl flex items-center justify-center text-text flex-shrink-0 border border-border">
+                          <FaUserTie size={16} />
+                        </div>
+                        <span className="font-bold text-text text-sm">{s.name}</span>
+                      </td>
+                      <td className="px-6 py-4 text-muted font-medium text-xs">{s.contact}</td>
+                      <td className="px-6 py-4 text-right font-black text-text text-sm whitespace-nowrap">
+                        Rs {s.totalPurchase?.toLocaleString() || 0}
+                      </td>
+                      <td className="px-6 py-4 text-right font-black text-text text-sm whitespace-nowrap">
+                        Rs {s.paidAmount?.toLocaleString() || 0}
+                      </td>
+                      <td className="px-6 py-4 text-right font-black text-red-500 text-sm whitespace-nowrap">
+                        Rs {s.unpaidAmount?.toLocaleString() || 0}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => openModal('purchase', s)} 
+                            className="p-2.5 bg-bg-body text-text border border-border rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                            title="Add Purchase"
+                          >
+                            <FaCartPlus size={14} />
+                          </button>
+                          <button 
+                            onClick={() => openModal('payment', s)} 
+                            className="p-2.5 bg-bg-body text-text border border-border rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                            title="Add Payment"
+                          >
+                            <FaWallet size={14} />
+                          </button>
+                          <button 
+                            onClick={() => openModal('edit', s)} 
+                            className="p-2.5 bg-bg-body text-text border border-border rounded-lg hover:bg-bg-primary hover:text-white transition-all"
+                            title="Edit"
+                          >
+                            <FaEdit size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteSupplier(s._id)} 
+                            className="p-2.5 bg-bg-body text-red-500 border border-border rounded-lg hover:bg-red-600 hover:text-white transition-all"
+                            title="Delete"
+                          >
+                            <FaTrash size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
-        
 
-      {!loading && suppliers.length === 0 && (
-        <p className="text-center text-muted py-8 text-sm">No suppliers found</p>
-      )}
-
+      {/* Action Modal */}
       <ActionModal 
         isOpen={!!modalType} 
-        onClose={() => setModalType(null)} 
+        onClose={closeModal} 
         title={`${modalType?.charAt(0).toUpperCase() + modalType?.slice(1)} ${selectedSupplier?.name || ''}`}
       >
         <form className="space-y-3 sm:space-y-4" onSubmit={handleFormSubmit}>

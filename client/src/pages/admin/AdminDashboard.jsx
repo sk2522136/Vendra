@@ -27,7 +27,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="p-8 text-center text-muted font-bold">
-        Loading Platform Dashboard...
+        Loading  Dashboard...
       </div>
     );
   }

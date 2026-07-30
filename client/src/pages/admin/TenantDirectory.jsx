@@ -41,7 +41,7 @@ const TenantDirectory = () => {
     } catch (err) {
       console.error("Failed to load tenants:", err);
       setTenants([]);
-    } finally {
+    }  finally {
       setIsLoading(false);
     }
   }, [debouncedSearch, selectedPlanFilter]);
@@ -101,74 +101,119 @@ const TenantDirectory = () => {
         </select>
       </div>
 
-      {/*  Table */}
-      <div className="bg-bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="bg-bg-body border-b border-border text-muted text-xs font-bold uppercase">
-                <th className="p-4">Store Profile</th>
-                <th className="p-4">Subscription Plan</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {isLoading ? (
-                <tr>
-                  <td colSpan="4" className="p-8 text-center text-muted">
-                    Loading tenants...
-                  </td>
-                </tr>
-              ) : (Array.isArray(tenants) && tenants.length > 0) ? (
-                tenants.map((tenant) => (
-                  <tr key={tenant._id} className="hover:bg-bg-body/40">
-                    <td className="p-4">
-                      <div className="font-bold text-text text-base">{tenant.name}</div>
-                      <div className="text-xs text-muted mt-0.5">
-                        {tenant.ownerUserId?.name} • {tenant.ownerUserId?.email}
-                      </div>
-                    </td>
-                    <td className="p-4 font-bold uppercase text-xs">{tenant.subscriptionPlan}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-md ${
-                        tenant.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
-                      }`}>
-                        {tenant.status === 'active' ? <HiCheckCircle /> : <HiBan />}
-                        {tenant.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right space-x-2">
-                      <button 
-                        onClick={() => { setSelectedTenant(tenant); setActiveModal('plan'); }}
-                        className="px-3 py-1.5 text-xs font-bold text-bg-primary hover:bg-bg-primary/10 rounded-lg border border-bg-primary/20"
-                      >
-                        Change Plan
-                      </button>
-                      <button 
-                        onClick={() => { setSelectedTenant(tenant); setActiveModal('status'); }}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg border ${
-                          tenant.status === 'active' 
-                            ? 'text-rose-500 border-rose-500/20 hover:bg-rose-500/10' 
-                            : 'text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10'
-                        }`}
-                      >
-                        {tenant.status === 'active' ? 'Suspend' : 'Activate'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="p-8 text-center text-muted">
-                    No tenants found matching your criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {isLoading ? (
+        <div className="bg-bg-card border border-border rounded-2xl p-8 text-center text-muted shadow-sm">
+          Loading tenants...
         </div>
-      </div>
+      ) : (!Array.isArray(tenants) || tenants.length === 0) ? (
+        <div className="bg-bg-card border border-border rounded-2xl p-8 text-center text-muted shadow-sm">
+          No tenants found matching your criteria.
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:hidden">
+            {tenants.map((tenant) => (
+              <div 
+                key={tenant._id} 
+                className="bg-bg-card border border-border rounded-2xl p-4 shadow-sm space-y-4"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-text text-base">{tenant.name}</h3>
+                    <p className="text-xs text-muted mt-0.5">
+                      {tenant.ownerUserId?.name} • {tenant.ownerUserId?.email}
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-md ${
+                    tenant.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                  }`}>
+                    {tenant.status === 'active' ? <HiCheckCircle /> : <HiBan />}
+                    {tenant.status}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center pt-2 border-t border-border/60 text-xs">
+                  <span className="text-muted font-medium">Subscription:</span>
+                  <span className="font-bold uppercase text-text">{tenant.subscriptionPlan}</span>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button 
+                    onClick={() => { setSelectedTenant(tenant); setActiveModal('plan'); }}
+                    className="flex-1 py-2 text-xs font-bold text-bg-primary bg-bg-primary/5 hover:bg-bg-primary/10 rounded-lg border border-bg-primary/20 text-center"
+                  >
+                    Change Plan
+                  </button>
+                  <button 
+                    onClick={() => { setSelectedTenant(tenant); setActiveModal('status'); }}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg border text-center ${
+                      tenant.status === 'active' 
+                        ? 'text-rose-500 border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10' 
+                        : 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10'
+                    }`}
+                  >
+                    {tenant.status === 'active' ? 'Suspend' : 'Activate'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden sm:block bg-bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-bg-body border-b border-border text-muted text-xs font-bold uppercase">
+                    <th className="p-4">Store Profile</th>
+                    <th className="p-4">Subscription Plan</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {tenants.map((tenant) => (
+                    <tr key={tenant._id} className="hover:bg-bg-body/40">
+                      <td className="p-4">
+                        <div className="font-bold text-text text-base">{tenant.name}</div>
+                        <div className="text-xs text-muted mt-0.5">
+                          {tenant.ownerUserId?.name} • {tenant.ownerUserId?.email}
+                        </div>
+                      </td>
+                      <td className="p-4 font-bold uppercase text-xs">{tenant.subscriptionPlan}</td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-md ${
+                          tenant.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                        }`}>
+                          {tenant.status === 'active' ? <HiCheckCircle /> : <HiBan />}
+                          {tenant.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right space-x-2">
+                        <button 
+                          onClick={() => { setSelectedTenant(tenant); setActiveModal('plan'); }}
+                          className="px-3 py-1.5 text-xs font-bold text-bg-primary hover:bg-bg-primary/10 rounded-lg border border-bg-primary/20"
+                        >
+                          Change Plan
+                        </button>
+                        <button 
+                          onClick={() => { setSelectedTenant(tenant); setActiveModal('status'); }}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border ${
+                            tenant.status === 'active' 
+                              ? 'text-rose-500 border-rose-500/20 hover:bg-rose-500/10' 
+                              : 'text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10'
+                          }`}
+                        >
+                          {tenant.status === 'active' ? 'Suspend' : 'Activate'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       {activeModal && selectedTenant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

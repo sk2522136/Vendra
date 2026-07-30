@@ -1,6 +1,5 @@
-// Middleware/tenantMiddleware.js
-
 import User from '../models/User.js'; 
+import ExpressError from '../utils/expressError.js';
 
 const tenantMiddleware = async (req, res, next) => {
   try {
@@ -10,21 +9,16 @@ const tenantMiddleware = async (req, res, next) => {
     
     if (!user) {
       return res.status(401).json({ 
-        success: false,
+        success: false, 
         error: 'User not found' 
       });
     }
-    
-    if (user.isSuperAdmin) {
-      req.tenantId = null;  
-      req.isSuperAdmin = true;
-    } else {
-      req.tenantId = user.tenantId;
-      req.isSuperAdmin = false;
-    }
-    
+
+    // Assign tenant-specific user fields
+    req.tenantId = user.tenantId;
     req.userRole = user.role;
     req.userId = user._id;
+
     let adminUser = user;
     
     if (user.role !== 'admin') {
@@ -36,12 +30,12 @@ const tenantMiddleware = async (req, res, next) => {
       throw new ExpressError("Tenant admin not found", 404);
     }
 
-    // Check Expiration
+    // Check Subscription Expiration
     const currentDate = new Date();
     const isPlanExpired = adminUser.planExpiresAt && new Date(adminUser.planExpiresAt) < currentDate;
     const isSubscribed = adminUser.isSubscribed && !isPlanExpired;
 
-    // Req object me status inject kar dein
+    // Inject subscription status into req object
     req.subscription = {
       isSubscribed: isSubscribed,
       planExpiresAt: adminUser.planExpiresAt,
@@ -51,11 +45,11 @@ const tenantMiddleware = async (req, res, next) => {
     
     next();
   } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      error: error.message 
+    res.status(error.statusCode || 500).json({ 
+      success: false, 
+      error: error.message || 'Tenant verification failed'
     });
   }
 };
 
-export default tenantMiddleware
+export default tenantMiddleware;
