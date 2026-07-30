@@ -128,7 +128,7 @@ return (
           </div>
         ) : (
           <>
-            {/* MOBILE VIEW (Cards View) */}
+            {/* MOBILE VIEW  */}
             <div className="md:hidden divide-y divide-border p-4 space-y-4">
               {expenses.map((ex) => (
                 <div key={ex.id} className="bg-bg-body p-4 rounded-2xl border border-border space-y-3">
@@ -156,7 +156,7 @@ return (
               ))}
             </div>
 
-            {/* DESKTOP VIEW (Table View) */}
+            {/* DESKTOP VIEW  */}
             <div className="hidden md:block overflow-x-auto custom-scrollbar">
               <table className="w-full text-left min-w-[600px]">
                 <thead className="bg-bg-body border-b border-border">
@@ -189,7 +189,6 @@ return (
         )}
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <AddExpenseModal
           isOpen={isModalOpen} 

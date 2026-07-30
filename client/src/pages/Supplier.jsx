@@ -200,12 +200,11 @@ const handleFormSubmit = (e) => {
           <p className="text-center text-muted py-8 text-sm font-bold">No suppliers found</p>
         ) : (
           <>
-            {/* MOBILE VIEW (Cards) */}
+            {/* MOBILE VIEW  */}
             <div className="md:hidden divide-y divide-border p-4 space-y-4">
               {suppliers.map((s) => (
                 <div key={s._id || s.id} className="bg-bg-body p-4 rounded-2xl border border-border space-y-3">
                   
-                  {/* Supplier Info */}
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-bg-card rounded-xl flex items-center justify-center text-text flex-shrink-0 border border-border">
                       <FaUserTie size={16} />
@@ -216,7 +215,6 @@ const handleFormSubmit = (e) => {
                     </div>
                   </div>
 
-                  {/* Amounts Grid */}
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/50 text-center">
                     <div className="bg-bg-card p-2 rounded-xl border border-border">
                       <p className="text-[9px] font-black text-muted uppercase">Total</p>
@@ -232,7 +230,6 @@ const handleFormSubmit = (e) => {
                     </div>
                   </div>
 
-                  {/* Actions Bar */}
                   <div className="flex items-center justify-end gap-2 pt-2">
                     <button 
                       onClick={() => openModal('purchase', s)} 
@@ -267,7 +264,7 @@ const handleFormSubmit = (e) => {
               ))}
             </div>
 
-            {/* DESKTOP VIEW (Table) */}
+            {/* DESKTOP VIEW  */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left min-w-[800px]">
                 <thead className="bg-bg-body border-b border-border">
@@ -340,7 +337,6 @@ const handleFormSubmit = (e) => {
         )}
       </div>
 
-      {/* Action Modal */}
       <ActionModal 
         isOpen={!!modalType} 
         onClose={closeModal} 

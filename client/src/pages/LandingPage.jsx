@@ -43,7 +43,6 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-bg-body text-text font-mona selection:bg-bg-primary selection:text-white">
       
-      {/* 🧭 PREMIUM NAVBAR */}
       <nav className="sticky top-0 z-50 bg-bg-card/90 backdrop-blur-md border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-0.5">
@@ -74,7 +73,6 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* 🚀 HERO SECTION */}
       <section className="relative overflow-hidden pt-20 pb-16 lg:pt-32 lg:pb-24 bg-gradient-to-b from-border/30 via-bg-card to-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-border text-bg-primary mb-6">
@@ -104,7 +102,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ✨ FEATURES GRID */}
       <section id="features" className="py-24 bg-bg-card border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
@@ -126,7 +123,6 @@ const LandingPage = () => {
               </p>
             </div>
             
-            {/* Feature 2 */}
             <div className="p-8 rounded-2xl bg-bg-body border border-border/60 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className="w-12 h-12 rounded-xl bg-border text-bg-primary flex items-center justify-center font-bold text-xl mb-6">⚡</div>
               <h3 className="text-xl font-bold text-text mb-2">Live Sync POS</h3>
@@ -135,7 +131,6 @@ const LandingPage = () => {
               </p>
             </div>
             
-            {/* Feature 3 */}
             <div className="p-8 rounded-2xl bg-bg-body border border-border/60 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className="w-12 h-12 rounded-xl bg-border text-bg-primary flex items-center justify-center font-bold text-xl mb-6">🛡️</div>
               <h3 className="text-xl font-bold text-text mb-2">Automated Fail-safes</h3>
@@ -144,7 +139,6 @@ const LandingPage = () => {
               </p>
             </div>
 
-            {/* Feature 4 */}
             <div className="p-8 rounded-2xl bg-bg-body border border-border/60 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className="w-12 h-12 rounded-xl bg-border text-bg-primary flex items-center justify-center font-bold text-xl mb-6">🎤</div>
               <h3 className="text-xl font-bold text-text mb-2">Voice Commands</h3>
@@ -153,7 +147,6 @@ const LandingPage = () => {
               </p>
             </div>
 
-            {/* Feature 5 */}
             <div className="p-8 rounded-2xl bg-bg-body border border-border/60 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className="w-12 h-12 rounded-xl bg-border text-bg-primary flex items-center justify-center font-bold text-xl mb-6">📊</div>
               <h3 className="text-xl font-bold text-text mb-2">Real-time Analytics</h3>
@@ -162,7 +155,6 @@ const LandingPage = () => {
               </p>
             </div>
 
-            {/* Feature 6 - AI Chatbot */}
             <div className="p-8 rounded-2xl bg-bg-body border border-border/60 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className="w-12 h-12 rounded-xl bg-border text-bg-primary flex items-center justify-center font-bold text-xl mb-6">🤖</div>
               <h3 className="text-xl font-bold text-text mb-2">AI Chat Assistant</h3>
@@ -174,7 +166,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 💰 PRICING PLANS */}
       <section id="pricing" className="py-24 bg-bg-body">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -234,7 +225,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 🏁 FOOTER */}
       <footer id="about" className="bg-bg-secondary text-muted py-12 border-t border-border/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -249,7 +239,6 @@ const LandingPage = () => {
               <p className="text-sm text-muted/70">Smart retail operating system for modern businesses.</p>
             </div>
 
-            {/* Product */}
             <div>
               <h4 className="font-bold text-white text-sm mb-4">Product</h4>
               <ul className="space-y-2 text-sm">
@@ -259,7 +248,6 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Company */}
             <div>
               <h4 className="font-bold text-white text-sm mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
@@ -269,7 +257,6 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Legal */}
             <div>
               <h4 className="font-bold text-white text-sm mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">

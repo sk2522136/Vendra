@@ -50,7 +50,7 @@ const Staff = () => {
   return (
   <div className="p-3 sm:p-4 md:p-6 overflow-y-auto custom-scrollbar space-y-4 sm:space-y-6 md:space-y-8 bg-bg-body rounded-2xl sm:rounded-3xl h-full flex flex-col">
     
-    {/* Header */}
+    
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
       <div>
         <h1 className="text-xl sm:text-2xl font-black text-text uppercase tracking-tight">Staff Management</h1>
@@ -63,7 +63,7 @@ const Staff = () => {
       </button>
     </div>
 
-    {/* Content Container */}
+    
     <div className="bg-bg-card border border-border rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm flex-1">
       {loading ? (
         <div className="p-8 text-center text-muted font-bold animate-pulse text-sm">
@@ -75,12 +75,12 @@ const Staff = () => {
         </div>
       ) : (
         <>
-          {/* MOBILE VIEW (Cards) */}
+         
           <div className="md:hidden divide-y divide-border p-3 space-y-3">
             {staff.map((s) => (
               <div key={s._id} className="bg-bg-body p-4 rounded-xl border border-border space-y-3">
                 
-                {/* Staff Main Info */}
+                
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-bold text-sm text-text">{s.name}</p>
@@ -91,7 +91,7 @@ const Staff = () => {
                   </span>
                 </div>
 
-                {/* Role Badge */}
+                
                 <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
                   <span className="text-muted font-semibold">Role:</span>
                   <span className="font-bold text-text uppercase text-[11px] bg-bg-card px-2.5 py-1 rounded-lg border border-border">
@@ -99,7 +99,7 @@ const Staff = () => {
                   </span>
                 </div>
 
-                {/* Action Controls */}
+                
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted font-semibold">Status Toggle:</span>
@@ -125,7 +125,7 @@ const Staff = () => {
             ))}
           </div>
 
-          {/* DESKTOP VIEW (Table) */}
+         
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left min-w-[600px]">
               <thead className="bg-bg-body border-b border-border">

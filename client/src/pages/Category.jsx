@@ -68,19 +68,16 @@ const Category = () => {
       </div>
     ) : categories.length > 0 ? (
       <>
-        {/* MOBILE VIEW (Cards): Visible only on mobile screens ('md:hidden') */}
+        {/* MOBILE VIEW  */}
         <div className='md:hidden divide-y divide-border p-4 space-y-4'>
           {categories.map((c) => (
             <div key={c._id} className='bg-bg-body p-4 rounded-2xl border border-border space-y-3'>
-              {/* Category Name */}
               <div className='flex items-center justify-between'>
                 <span className='text-xs font-black text-muted uppercase tracking-wider'>Category Name</span>
                 <p className="font-bold text-text text-base">{c.name}</p>
               </div>
 
-              {/* View Products & Actions */}
               <div className='flex items-center justify-between pt-3 border-t border-border/50'>
-                {/* View Products Button */}
                 <button 
                   onClick={() => { setSelectedCat(c); setIsProductModalOpen(true); }} 
                   className="flex items-center gap-2 px-3 py-1.5 bg-bg-card text-bg-secondary font-bold text-xs rounded-lg hover:bg-bg-primary hover:text-white transition-all border border-border"
@@ -88,7 +85,6 @@ const Category = () => {
                   <FaBox /> View Products
                 </button>
 
-                {/* Edit & Delete Actions */}
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => { setSelectedCat(c); setIsModalOpen(true); }} 
@@ -110,7 +106,7 @@ const Category = () => {
           ))}
         </div>
 
-        {/* DESKTOP VIEW (Table): Visible only on medium and larger screens ('hidden md:block') */}
+        {/* DESKTOP VIEW  */}
         <div className='hidden md:block overflow-x-auto custom-scrollbar'>
           <table className='w-full text-left'>
             <thead>

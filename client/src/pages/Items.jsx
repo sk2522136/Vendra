@@ -232,7 +232,6 @@ const statsData = [
   </div>
    
 
-  {/* Table / Cards Container */}
   <div className='border border-border rounded-3xl shadow-sm overflow-hidden bg-bg-card'>
     {loading ? (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
@@ -244,7 +243,7 @@ const statsData = [
       </div>
     ) : (
       <>
-        {/* MOBILE VIEW (Cards): Sirf mobile screen par dikhega ('md:hidden') */}
+        {/* MOBILE VIEW  */}
         <div className='md:hidden divide-y divide-border p-4 space-y-4'>
           {products.map((item) => (
             <div key={item._id} className='bg-bg-body p-4 rounded-2xl border border-border space-y-3'>
@@ -259,20 +258,17 @@ const statsData = [
                     <p className="text-[11px] text-muted">{item.unit}</p>
                   </div>
                 </div>
-                {/* Actions */}
                 <div className="flex items-center gap-1">
                   <button onClick={() => openEditModal(item)} className="p-2 bg-bg-card text-text hover:bg-bg-primary hover:text-white rounded-lg transition-all"><FiEdit2 size={16} /></button>
                   <button onClick={() => handleDeleteProduct(item._id)} className="p-2 bg-bg-card text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><FiTrash2 size={16} /></button>
                 </div>
               </div>
 
-              {/* SKU & Category */}
               <div className='flex items-center justify-between text-xs pt-2 border-t border-border/50'>
                 <span className="px-2.5 py-1 bg-bg-card text-text text-[11px] font-bold rounded-xl border border-border">SKU: {item.sku}</span>
                 <span className="font-bold text-text">{item.category?.name}</span>
               </div>
 
-              {/* Price & Stock Progress */}
               <div className='flex items-center justify-between pt-1'>
                 <div>
                   <p className='text-[10px] text-muted uppercase font-bold'>Price</p>
@@ -292,7 +288,7 @@ const statsData = [
           ))}
         </div>
 
-        {/* DESKTOP VIEW (Table): Sirf medium aur usse badi screen par dikhega ('hidden md:block') */}
+        {/* DESKTOP VIEW  */}
         <div className='hidden md:block overflow-x-auto'>
           <table className='w-full text-left'>
             <thead>
