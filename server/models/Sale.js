@@ -4,7 +4,7 @@ const saleSchema = new mongoose.Schema({
     tenantId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Organization',
-    required: true  // Har sale ke liye zaroori
+    required: true  
   },
     items: [{type: mongoose.Schema.Types.ObjectId, ref: 'SaleItem'}],
     customer: {type: mongoose.Schema.Types.ObjectId, ref: 'Customer'},

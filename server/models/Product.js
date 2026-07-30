@@ -5,7 +5,7 @@ const productSchema =  new mongoose.Schema({
     tenantId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Organization',
-    required: true  // Har product ke liye zaroori
+    required: true  
   },
   
     name :{type: String ,   required : true},

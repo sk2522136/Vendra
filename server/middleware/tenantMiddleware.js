@@ -14,7 +14,6 @@ const tenantMiddleware = async (req, res, next) => {
       });
     }
 
-    // Assign tenant-specific user fields
     req.tenantId = user.tenantId;
     req.userRole = user.role;
     req.userId = user._id;
@@ -22,7 +21,6 @@ const tenantMiddleware = async (req, res, next) => {
     let adminUser = user;
     
     if (user.role !== 'admin') {
-      // Find the main Admin/Owner of this tenant
       adminUser = await User.findOne({ tenantId: user.tenantId, role: 'admin' });
     }
 
@@ -35,7 +33,6 @@ const tenantMiddleware = async (req, res, next) => {
     const isPlanExpired = adminUser.planExpiresAt && new Date(adminUser.planExpiresAt) < currentDate;
     const isSubscribed = adminUser.isSubscribed && !isPlanExpired;
 
-    // Inject subscription status into req object
     req.subscription = {
       isSubscribed: isSubscribed,
       planExpiresAt: adminUser.planExpiresAt,

@@ -310,7 +310,6 @@ export const isAuth = async (req, res) => {
     if (req.user) {
     const userObj = req.user.toObject ? req.user.toObject() : req.user;
 
-    // Super Admin ke case mein Direct Response bhejein
     if (userObj.isSuperAdmin || userObj.role === 'super_admin' || userObj.role === 'superadmin') {
       return res.status(200).json({ 
         success: true, 

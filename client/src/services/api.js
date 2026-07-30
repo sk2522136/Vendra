@@ -23,7 +23,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// 1. REQUEST INTERCEPTOR (Attach Token automatically)
+// Attach Token automatically
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -35,13 +35,13 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 2. RESPONSE INTERCEPTOR (Handle Refresh Token Queue)
+// Handle Refresh Token 
 API.interceptors.response.use(
   (res) => res,
   async (err) => {
     const originalRequest = err.config;
 
-    // Do not trigger token refresh for Auth-entry endpoints
+    //  not trigger
     const authEndpointsToBypass = [
       '/auth/login',
       '/auth/signup',
