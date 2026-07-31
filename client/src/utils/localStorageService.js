@@ -4,7 +4,6 @@ export const saveToLocalStorage = (key, data) => {
   try {
     const jsonString = JSON.stringify(data);
     localStorage.setItem(key, jsonString);
-    console.log('✅ LocalStorage saved:', key);
   } catch (error) {
     console.error('❌ LocalStorage save failed:', error);
   }
@@ -23,7 +22,6 @@ export const getFromLocalStorage = (key) => {
 export const clearLocalStorage = (key) => {
   try {
     localStorage.removeItem(key);
-    console.log('✅ LocalStorage cleared:', key);
   } catch (error) {
     console.error('❌ LocalStorage clear failed:', error);
   }
@@ -38,7 +36,6 @@ export const saveSaleToLocalStorage = (saleData) => {
     syncStatus: 'synced'
   });
   saveToLocalStorage('pos_sales', sales);
-  console.log('💾 Sale saved to LocalStorage');
 };
 
 // ===== SAVE PAYMENT (REAL-TIME) =====
@@ -50,7 +47,6 @@ export const savePaymentToLocalStorage = (paymentData) => {
     syncStatus: 'synced'
   });
   saveToLocalStorage('pos_payments', payments);
-  console.log('💳 Payment saved to LocalStorage');
 };
 
 // ===== GET SALES =====
