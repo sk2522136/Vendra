@@ -449,15 +449,17 @@ export const getSalesByCustomer = async (req, res) => {
         data: formattedSales
     });
 };
+
+
 export const processReturn = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+ 
     const { saleId, productId, quantity } = req.body;
     const tenantId = req.tenantId;
 
-    // 1. Find Sale
-    const sale = await Sale.findOne({_id: saleId,tenantId})
+    const sale = await Sale.findOne({ _id: saleId, tenantId })
       .populate("customer")
       .populate("items")
       .session(session);
@@ -466,7 +468,6 @@ export const processReturn = async (req, res) => {
       throw new ExpressError("Sale not found", 404);
     }
 
-  
     const saleItem = await SaleItem.findOne({
       saleRef: saleId,
       product: productId
@@ -480,12 +481,21 @@ export const processReturn = async (req, res) => {
       throw new ExpressError("Cannot return more than purchased quantity", 400);
     }
 
-    const price = saleItem.sellPrice;
-    const returnAmount = price * quantity;
+    
+    const grossSaleTotal = sale.items.reduce((sum, item) => {
+      return sum + (item.sellPrice * item.quantity);
+    }, 0);
 
-    //STOCK RESTORE 
+    const discountRatio = grossSaleTotal > 0 ? (sale.discount || 0) / grossSaleTotal : 0;
+
+    const effectiveUnitPrice = saleItem.sellPrice * (1 - discountRatio);
+
+    const returnAmount = effectiveUnitPrice * quantity;
+
+    const discountRefunded = (saleItem.sellPrice * quantity) * discountRatio;
+
     await updateStock({
-      tenantId:tenantId,
+      tenantId: tenantId,
       productId,
       change: +quantity,
       type: "Return",
@@ -494,8 +504,8 @@ export const processReturn = async (req, res) => {
       session
     });
 
-    //  Update Sale Item
     saleItem.quantity -= quantity;
+    saleItem.totalPrice = saleItem.quantity * saleItem.sellPrice;
 
     if (saleItem.quantity === 0) {
       await SaleItem.findByIdAndDelete(saleItem._id).session(session);
@@ -509,7 +519,8 @@ export const processReturn = async (req, res) => {
     }
 
     const oldTotalAmount = sale.totalAmount;
-    sale.totalAmount -= returnAmount;
+    sale.totalAmount = Math.max(0, sale.totalAmount - returnAmount);
+    sale.discount = Math.max(0, (sale.discount || 0) - discountRefunded);
     sale.refundedAmount = (sale.refundedAmount || 0) + returnAmount;
 
     let creditAdjustment = 0;
@@ -517,14 +528,14 @@ export const processReturn = async (req, res) => {
 
     const customer = sale.customer;
 
-    if (customer.customerType === "credit") {
+    if (customer && customer.customerType === "credit") {
       const remainingBalanceOnSale = oldTotalAmount - sale.paidAmount;
       
       if (remainingBalanceOnSale >= returnAmount) {
         creditAdjustment = returnAmount;
       } else {
-        creditAdjustment = remainingBalanceOnSale;
-        cashRefundGiven = returnAmount - remainingBalanceOnSale;
+        creditAdjustment = Math.max(0, remainingBalanceOnSale);
+        cashRefundGiven = returnAmount - creditAdjustment;
       }
       
       customer.currentBalance -= creditAdjustment;
@@ -538,27 +549,29 @@ export const processReturn = async (req, res) => {
 
     await sale.save({ session });
 
-    if (cashRefundGiven > 0) {
-      customer.totalPaid = Math.max(0, (customer.totalPaid || 0) - cashRefundGiven);
+    if (customer) {
+      if (cashRefundGiven > 0) {
+        customer.totalPaid = Math.max(0, (customer.totalPaid || 0) - cashRefundGiven);
+      }
+      customer.totalPurchased = Math.max(0, (customer.totalPurchased || 0) - returnAmount);
+      customer.lastPaymentDate = new Date();
+      await customer.save({ session });
     }
-    customer.lastPaymentDate = new Date();
-    await customer.save({ session });
 
+    // Create Refund Payment Log
     await Payment.create([{
       tenantId: tenantId,
       sale: saleId,
-      customer: customer._id,
+      customer: customer ? customer._id : null,
       amount: -returnAmount,
       paymentMethod: "refund",
       paymentStatus: "success",
       recievedBy: req.user._id
     }], { session });
 
-    // Commit changes safely to DB
     await session.commitTransaction();
     session.endSession();
 
-    // Socket refresh
     emitDashboardRefresh();
 
     return res.status(200).json({
@@ -571,9 +584,9 @@ export const processReturn = async (req, res) => {
         creditAdjustment,
         newSaleTotal: sale.totalAmount,
         newSalePaid: sale.paidAmount,
-        newCustomerBalance: customer.currentBalance,
+        newCustomerBalance: customer ? customer.currentBalance : 0,
         newRefundedAmount: sale.refundedAmount
       }
-    })
+    });
 
-  }
+}
