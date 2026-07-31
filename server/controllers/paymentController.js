@@ -118,7 +118,7 @@ export const confirmStripePosPayment = async (req, res) => {
       }
       await customer.save();
 
-      const populatedSale = await Sale.Sale.findOne({ _id: saleId,tenantId }).populate('items');
+      const populatedSale = await Sale.findOne({ _id: saleId,tenantId }).populate('items');
 
       const itemsWithProducts = await Promise.all(
         populatedSale.items.map(async (item) => {

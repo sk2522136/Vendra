@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//reciept folder
+// reciept folder
 const receiptDir = path.join(__dirname, '../receipts');
 if (!fs.existsSync(receiptDir)) {
   fs.mkdirSync(receiptDir, { recursive: true });
@@ -27,7 +27,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
 
       doc.pipe(stream);
 
-      //  HEADER 
+      // HEADER 
       doc.fontSize(24).font('Helvetica-Bold').text('VENDRA', { align: 'center' });
       doc.fontSize(9).font('Helvetica').text('AUTOMATED INVENTORY MANAGEMENT SYSTEM', { align: 'center', tracking: 1 });
       doc.moveDown(0.4);
@@ -35,7 +35,6 @@ export const generateReceipt = async (saleData, receiptNumber) => {
 
       doc.moveDown(0.8);
 
-      // Receipt info
       const metaTop = doc.y;
       doc.fontSize(9).font('Helvetica-Bold').text(`Receipt #: `, 50, metaTop);
       doc.font('Helvetica').text(`${receiptNumber}`, 105, metaTop);
@@ -48,7 +47,6 @@ export const generateReceipt = async (saleData, receiptNumber) => {
 
       doc.moveDown(1.5);
 
-      // CUSTOMER INFO 
       doc.fontSize(10).font('Helvetica-Bold').text('CUSTOMER LEDGER PROFILE', 50, doc.y);
       doc.moveDown(0.3);
       
@@ -66,12 +64,11 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(0.5).stroke();
       doc.moveDown(0.8);
 
-      //  ITEMS TABLE HEADER 
       const tableTop = doc.y;
-      const col1 = 50;   // Item Title Description
-      const col2 = 300;  // Quantity Box
-      const col3 = 380;  // Unit Price Tag
-      const col4 = 465;  // Column Matrix Accumulator 
+      const col1 = 50;   
+      const col2 = 300; 
+      const col3 = 380;  
+      const col4 = 465;  
 
       doc.fontSize(9).font('Helvetica-Bold');
       doc.text('Item Description', col1, tableTop);
@@ -82,19 +79,21 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.moveDown(0.4);
       doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(1).stroke();
 
-      // ITEMS DATA 
       let yPosition = doc.y + 8;
       doc.fontSize(9).font('Helvetica');
 
       const itemsList = saleData.items || [];
+      let grossSubtotal = 0;
+
       itemsList.forEach((item) => {
         const pName = item.productName || (item.product && item.product.name) || "Inventory Item";
+        const price = item.sellPrice || item.price || 0;
+        const lineTotal = price * item.quantity;
+        
+        grossSubtotal += lineTotal;
+
         doc.text(pName.substring(0, 32).toUpperCase(), col1, yPosition);
         doc.text(item.quantity.toString(), col2, yPosition, { width: 40, align: 'center' });
-        
-        const price = item.sellPrice || item.price || 0;
-        const lineTotal = item.totalPrice || (price * item.quantity);
-        
         doc.text(`Rs ${price.toLocaleString()}`, col3, yPosition, { width: 75, align: 'right' });
         doc.text(`Rs ${lineTotal.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
         yPosition += 18; 
@@ -103,47 +102,47 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.moveTo(50, yPosition).lineTo(545, yPosition).lineWidth(0.5).stroke();
       yPosition += 10;
 
-      // FINANCIAL  SUMMARY
+ 
+      const sub = saleData.subtotal || grossSubtotal;
+
+      const appliedDiscount = Number(saleData.discount || 0);
+
+      const grandTotal = saleData.totalAmount || Math.max(0, sub - appliedDiscount);
+      const finalPaid = saleData.paidAmount ? Number(saleData.paidAmount) : 0;
+      const remainingBalance = Math.max(0, grandTotal - finalPaid);
+
       doc.fontSize(9).font('Helvetica-Bold');
       doc.text('SUBTOTAL:', col3, yPosition, { width: 75, align: 'right' });
-      
-      const sub = saleData.subtotal || saleData.totalAmount || 0;
       doc.text(`Rs ${sub.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
 
       yPosition += 16;
 
-      if (saleData.discount && saleData.discount > 0) {
+      if (appliedDiscount > 0) {
         doc.text('DISCOUNT:', col3, yPosition, { width: 75, align: 'right' });
-        doc.text(`-Rs ${Number(saleData.discount).toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
+        doc.text(`-Rs ${appliedDiscount.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
         yPosition += 16;
       }
 
-      // Amount paid 
-      const netPayable = Math.max(0, sub - (saleData.discount || 0));
-      doc.fontSize(10).font('Helvetica-Bold').text('PAID AMOUNT:', col3, yPosition, { width: 75, align: 'right' });
-      // ✅ FIX: Use paidAmount directly (not receivedAmount)
-      const finalPaid = saleData.paidAmount ? Number(saleData.paidAmount) : 0;
+      // GRAND TOTAL 
+      doc.fontSize(10).font('Helvetica-Bold');
+      doc.text('GRAND TOTAL:', col3, yPosition, { width: 75, align: 'right' });
+      doc.text(`Rs ${grandTotal.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
+      yPosition += 16;
+
+      // PAID AMOUNT
+      doc.text('PAID AMOUNT:', col3, yPosition, { width: 75, align: 'right' });
       doc.text(`Rs ${finalPaid.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
       yPosition += 16;
 
-      // Remaining balance checking computation block
-      const remainingBalance = netPayable - (saleData.paidAmount || 0);
+      // DUE BALANCE FOR CREDIT CUSTOMER
       if (remainingBalance > 0) {
         doc.fontSize(10).font('Helvetica-Bold').fillColor('#dc2626').text('DUE BALANCE:', col3, yPosition, { width: 75, align: 'right' });
         doc.text(`Rs ${remainingBalance.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
         yPosition += 18;
       }
 
-      // GRAND TOTAL BOX RENDER
-      doc.fillColor('#000000'); // Color reset to neutral dark
-      doc.moveTo(320, yPosition).lineTo(545, yPosition).lineWidth(1).stroke();
-      yPosition += 8;
+      doc.fillColor('#000000'); 
 
-      doc.fontSize(11).font('Helvetica-Bold');
-      doc.text('GRAND TOTAL:', col3, yPosition, { width: 75, align: 'right' });
-      doc.text(`Rs ${netPayable.toLocaleString()}`, col4, yPosition, { width: 80, align: 'right' });
-
-    
       doc.moveDown(4);
       doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(0.5).stroke();
       doc.moveDown(0.6);
@@ -154,7 +153,7 @@ export const generateReceipt = async (saleData, receiptNumber) => {
       doc.fontSize(9).font('Helvetica-Bold').text('Thank you for choosing VENDRA!', { align: 'center' });
       doc.fontSize(7).font('Helvetica').text('Computer generated secure ledger token. No signature required.', { align: 'center', opacity: 0.6 });
 
-      // PDF 
+      // PDF Write Stream
       doc.end();
 
       stream.on('finish', () => {

@@ -18,17 +18,14 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
   const itemsList = sale.items || [];
   const currentItem = itemsList[selectedItemIndex];
 
-  // 1. Calculate Gross Subtotal of all items in sale
   const grossSubtotal = itemsList.reduce((acc, item) => {
     const rate = item.sellPrice || item.price || 0;
     const qty = item.quantity || 0;
     return acc + (rate * qty);
   }, 0);
 
-  // 2. Calculate Overall Sale Discount Ratio (e.g. 50 Discount / 150 Subtotal = 0.333)
   const discountRatio = grossSubtotal > 0 ? (sale.discount || 0) / grossSubtotal : 0;
 
-  // Item details
   const targetProductId = 
     currentItem?.product?._id || 
     (typeof currentItem?.product === 'string' ? currentItem?.product : null) || 
@@ -44,7 +41,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
   const maxAvailableQty = currentItem?.quantity || 0;
   const originalUnitPrice = currentItem ? (currentItem.sellPrice || currentItem.price || 0) : 0;
   
-  // 💡 FIX: Discount deduct karne ke baad ka Effective Unit Price
   const effectiveUnitPrice = originalUnitPrice * (1 - discountRatio);
   const refundAmount = effectiveUnitPrice * quantity;
 
@@ -110,7 +106,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {itemsList.length > 0 ? (
             <div className="space-y-3 mb-6">
-              {/* Item Selection Dropdown if multiple items exist */}
               {itemsList.length > 1 && (
                 <div>
                   <label className="text-[8px] sm:text-[10px] font-black uppercase text-muted ml-1 mb-1 block">
@@ -133,7 +128,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
                 </div>
               )}
 
-              {/* Product Info Card */}
               <div className="p-3 sm:p-4 bg-bg-body rounded-lg sm:rounded-2xl border border-border">
                 <p className="text-[8px] sm:text-[10px] font-black text-muted uppercase tracking-widest mb-1">Product</p>
                 <p className="text-text font-black text-sm sm:text-base truncate mb-2">{targetProductName}</p>
@@ -156,7 +150,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
             </div>
           )}
 
-          {/* Quantity Controls */}
           <div className="space-y-4 sm:space-y-6">
             <div>
               <label className="text-[8px] sm:text-[10px] font-black uppercase text-muted ml-1 mb-2 block">
@@ -181,7 +174,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
               </div>
             </div>
 
-            {/* Refund Box */}
             <div className="p-4 sm:p-6 rounded-lg sm:rounded-2xl border border-border text-center bg-bg-body">
               <p className="text-[8px] sm:text-[10px] font-black text-muted uppercase tracking-widest mb-1">Estimated Refund</p>
               <h3 className="text-base sm:text-2xl font-black text-emerald-600 break-words">
@@ -189,7 +181,6 @@ const ReturnModel = ({ isOpen, onClose, sale, onReturnSuccess }) => {
               </h3>
             </div>
 
-            {/* Action Button */}
             <button 
               onClick={handleReturn}
               disabled={loading || !currentItem || !targetProductId}
