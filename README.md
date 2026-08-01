@@ -31,11 +31,11 @@ Perfect for:
 
 ## 🚀 Live Demo
 
-- Live Application: https://your-domain.com
+- Live Application: http://vndra.duckdns.org
 - Demo Credentials:
   - Email: demo@example.com
   - Password: Demo@123
-- Admin Panel: https://your-domain.com/admin
+
 
 ---
 
@@ -94,6 +94,7 @@ Perfect for:
 - Cloudinary
 - Nodemailer
 - Joi validation
+- AI Integration: Google Gemini API
 
 ### DevOps
 - Docker Compose
@@ -128,13 +129,38 @@ npm run dev
 
 #### Backend (.env)
 ```env
-PORT=4000
-MONGO_URI=your_mongodb_connection_string
-FRONTEND_URL=http://localhost:5173
+# MongoDB setup
+MONGO_URI=mongodb+srv://your-user:your-password@your-cluster.mongodb.net/vendra?retryWrites=true&w=majority
+
+# JWT secret
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+
+# Email setup
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_email_app_password
+
+# Cloudinary setup
+CLOUD_NAME=your_cloud_name
+CLOUD_API_KEY=your_cloudinary_api_key
+CLOUD_API_SECRET=your_cloudinary_api_secret
+
+# Stripe setup
 STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_PRO_PRODUCT_ID=your_product_id
-STRIPE_PRO_PRICE_ID=your_price_id
-STRIPE_WEBHOOK_SECRET=your_webhook_secret
+STRIPE_PUBLIC_KEY=your_stripe_public_key
+STRIPE_PRO_PRODUCT_ID=your_stripe_product_id
+STRIPE_PRO_PRICE_ID=your_stripe_price_id
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+
+# Gemini setup
+GEMINI_API_KEY=your_gemini_api_key
+
+# Encryption key
+ENCRYPTION_KEY=your_encryption_key
+SCHEDULE_BACKUP_TIME=0 0 * * *
+
+# Frontend URL
+FRONTEND_URL=http://localhost:5173
 ```
 
 #### Frontend (.env)
@@ -144,13 +170,14 @@ VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
 VITE_SOCKET_URL=http://localhost:4000
 ```
 
+
 ---
 
 ## 📚 API Documentation
 
 ### Base URL
 - Development: http://localhost:4000/api
-- Production: http://your-domain-or-ec2-ip/api
+- Production: https://vndra.duckdns.org/
 
 ### Authentication
 - POST /auth/signup
@@ -246,44 +273,88 @@ VITE_SOCKET_URL=http://localhost:4000
 ## 📁 Project Structure
 
 ```text
-vendra/
-├── client/                          # React frontend
-│   ├── src/
-│   │   ├── components/             # Reusable UI components
-│   │   ├── context/               # Authentication context
-│   │   └── pages/                 # Dashboard, POS, Inventory, Reports, etc.
+SALES INVENTORY SYSTEM/
+├── client/                    # Frontend React app
+│   ├── public/                # Static assets
+│   └── src/                   # Main source code
+│       ├── components/        # Reusable UI components
+│       ├── context/           # Auth and shared context
+│       ├── pages/             # Main app pages
+│       ├── services/          # API service layer
+│       └── utils/             # Frontend helpers
 │
-├── server/                          # Express backend
-│   ├── controllers/                # Business logic
-│   ├── models/                     # MongoDB schemas
-│   ├── routes/                     # API routes
-│   ├── middleware/                 # Auth, tenant and role checks
-│   └── utils/                      # Helpers, Stripe, backup, Gemini, voice
+├── server/                    # Backend Express app
+│   ├── config/                # DB and Cloudinary config
+│   ├── controllers/           # Business logic
+│   ├── middleware/            # Auth, role, tenant checks
+│   ├── models/                # MongoDB schemas
+│   ├── routes/                # API endpoints
+│   ├── schemas/               # Validation schemas
+│   └── utils/                 # Helper utilities
 │
-├── docker-compose.yml              # Multi-container setup
-└── doc/                            # Documentation files
+├── doc/                       # Documentation files
+├── docker-compose.yml         # Container setup
+├── README.md                  # Deployment guide
+└── .env                       # Environment variables
 ```
 
 ---
 
+
 ## 🚀 Deployment
 
-### AWS EC2 Deployment
-This project is ready for deployment on AWS EC2 using Docker Compose.
 
-#### Quick Steps
+#### AWS EC2 
+
+1. **Launch an AWS Instance and Connect**
+   - Sign in to the AWS Console and open the EC2 service.
+   - Click on "Launch Instance".
+   - Choose **Ubuntu 22.04 LTS or 24.04 LTS** as the operating system.
+   - Select an instance type such as **t2.micro** or **t3.micro**.
+   - Create a key pair and download the `.pem` file.
+   - In the security group, allow SSH, HTTP, and HTTPS traffic.
+   - Connect to the instance using SSH:
+
+```bash
+open the terminal 
+ssh -i "path\your-key.pem" ubuntu@<your-ec2-public-ip>
+```
+
+2. **Set Up the Server**
+
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y docker.io docker-compose-plugin git curl
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker $USER
+newgrp docker
 ```
+
+3. **Clone the Repository and Configure the App**
 
 ```bash
 git clone <your-repo-url>
-cd SALES-INVENTORY-SYSTEM
-cp .env.example .env
-sudo docker compose up -d --build
+cd Vendra
+nano .env
 ```
 
+4. **Environment Variables**
+   - Add the required secrets, database credentials, and JWT values in the `.env` file.
+   - Set `NODE_ENV=production`.
+   - Ensure the `.env` file is included in `.gitignore`.
+
+5. **Build and Run the Containers**
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+6. **Useful Maintenance Commands**
+
+```bash
+docker compose logs -f
+docker compose restart
+git pull origin main
+docker compose up -d --build
