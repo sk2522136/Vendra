@@ -287,14 +287,3 @@ cp .env.example .env
 sudo docker compose up -d --build
 ```
 
-### Important Notes for Free Tier / Low Cost
-- Use MongoDB Atlas if you want a simpler production setup
-- Open required ports in the EC2 security group
-- Set correct public URL values in frontend and backend env vars
-- Stripe webhook must point to your deployed public URL
-
----
-
-## 📝 Notes
-
-This documentation is based on the current implementation of the repository and reflects the actual routes and modules present in the project.
