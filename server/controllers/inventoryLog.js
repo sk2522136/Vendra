@@ -34,7 +34,7 @@ export const inventoryLogChange = async (data,tenantId) => {
 };
 
 
- //   api/inventory/status?type=....
+ //   api/inventory/status?type=..
 export const getInventoryStatus = async (req, res) => {
   const tenantId = req.tenantId;
   const products = await Product.find({tenantId}).select("name quantity");

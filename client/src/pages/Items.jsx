@@ -124,7 +124,7 @@ const statsData = [
 
     sendData.append("name", formData.name);
     sendData.append("sku", formData.sku);
-    sendData.append("category", formData.category);
+    sendData.append("category", formData.category._id);
     sendData.append("costPrice", formData.costPrice);
     sendData.append("supplier", formData.supplier);
     sendData.append("quantity", formData.quantity);

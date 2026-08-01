@@ -13,7 +13,6 @@ const CheckoutForm = ({
       
       <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar pb-2">
        
-        {/* Customer Form Inputs */}
         <div className="bg-hover rounded-xl p-2.5 sm:p-3 space-y-2.5 border border-border/60">
           <div className="flex items-center gap-1.5 text-[10px] font-black text-muted uppercase tracking-wider pb-1.5 border-b border-border/40">
             <FiUser size={12} /> Customer Information

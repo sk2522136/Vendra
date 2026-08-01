@@ -5,37 +5,20 @@ import SaleItem from '../models/SaleItem.js';
 import Product from '../models/Product.js';
 import ExpressError from '../utils/expressError.js';
 import { createPaymentIntent, getPaymentStatus } from '../utils/stripeService.js';
-import generateReceipt from '../utils/receiptGenerator.js';
 import { emitDashboardRefresh } from '../utils/emitDashboardRefresh.js';
 import { generateAndGetReceiptPDF, prepareReceiptPayload } from '../utils/receiptService.js';
-import fs from "fs";
 
-
-// POST /api/payment/create-intent
+// 1. POST /api/payment/create-intent
 export const createStripePaymentIntent = async (req, res) => {
   try {
-    const { amount, saleId, currency = 'usd' } = req.body;
-    const tenantId = req.tenantId;
+    const { amount, currency = 'usd' } = req.body;
 
     if (!amount || amount <= 0) {
       throw new ExpressError('Invalid amount', 400);
     }
 
-    if (!saleId) {
-      throw new ExpressError('Sale ID required', 400);
-    }
-
-    // Sale find
-    const sale = await Sale.findOne({ _id: saleId, tenantId});
-    
-    if (!sale) {
-      throw new ExpressError('Sale not found', 404);
-    }
-
     // Stripe payment intent create 
-    const result = await createPaymentIntent(amount, currency, {
-      saleId: saleId.toString(),
-    });
+    const result = await createPaymentIntent(amount, currency);
 
     if (!result.success) {
       throw new ExpressError(result.error, 400);
@@ -55,133 +38,146 @@ export const createStripePaymentIntent = async (req, res) => {
   }
 };
 
-// POST /api/payment/confirm-stripe-payment
 export const confirmStripePosPayment = async (req, res) => {
-  try {
-    const { paymentIntentId, saleId } = req.body;
-    const tenantId = req.tenantId
+  const { paymentIntentId, saleData } = req.body;
+  const { tenantId, user } = req;
 
-    if (!paymentIntentId || !saleId) {
-      throw new ExpressError('Payment intent ID and Sale ID required', 400);
-    }
-
-    // Stripe payment status check 
-    const result = await getPaymentStatus(paymentIntentId);
-
-    if (!result.success) {
-      throw new ExpressError(result.error, 400);
-    }
-
-    const paymentStatus = result.status;
-
-    // Sale find
-    const sale = await Sale.findOne({
-    _id: saleId,
-    tenantId 
-  }).populate('customer')
-    .populate('items');
-    
-    if (!sale) {
-      throw new ExpressError('Sale not found', 404);
-    }
-
-    // payment succeed 
-    if (paymentStatus === 'succeeded') {
-      const customer = sale.customer;
-
-      const amountPaidThisTurn = sale.totalAmount - sale.paidAmount;
-
-      const payment = await Payment.create({
-        tenantId:tenantId,
-        sale: saleId,
-        customer: customer._id,
-        amount: amountPaidThisTurn,
-        paymentMethod: 'card',
-        paymentStatus: 'success',
-        transactionId: paymentIntentId,
-        recievedBy: req.user._id
-      });
-
-      let receiptNumber = `RCP-${Date.now()}`;
-      sale.paidAmount = sale.totalAmount;
-      sale.paymentStatus = 'success';
-      sale.paymentId = payment._id;
-      sale.paymentMethod = 'card';
-      sale.receiptNumber = receiptNumber;
-      await sale.save();
-
-      customer.totalPaid += Number(amountPaidThisTurn);
-      customer.lastPaymentDate = new Date();
-      
-      if (customer.customerType === 'credit') {
-        customer.currentBalance = Math.max(0, customer.currentBalance - amountPaidThisTurn);
-      }
-      await customer.save();
-
-      const populatedSale = await Sale.findOne({ _id: saleId,tenantId }).populate('items');
-
-      const itemsWithProducts = await Promise.all(
-        populatedSale.items.map(async (item) => {
-          const product = await Product.findOne({_id: item.product,tenantId});
-          return {
-            productName: product ? product.name : 'Unknown Product',
-            quantity: item.quantity,
-            sellPrice: item.sellPrice,
-            totalPrice: item.totalPrice
-          };
-        })
-      );
-
-      const receiptPayload = prepareReceiptPayload(
-        populatedSale,
-        customer,
-        itemsWithProducts,
-        receiptNumber,
-        'card'
-      );
-
-      let pdfBase64Data = null;
-      let receiptFileName = "";
-      
-      try {
-        const receiptResult = await generateAndGetReceiptPDF(receiptPayload, receiptNumber);
-        if (receiptResult.success) {
-          pdfBase64Data = receiptResult.pdfBase64;
-          receiptFileName = receiptResult.fileName;
-        }
-      } catch (pdfError) {
-        console.error('Receipt generation error:', pdfError);
-      }
-
-      if (typeof emitDashboardRefresh === 'function') {
-        emitDashboardRefresh();
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: 'Payment confirmed successfully',
-        sale,
-        pdfData: pdfBase64Data,   
-        fileName: receiptFileName
-      });
-    }
-
-    if (paymentStatus === 'processing') {
-      return res.status(200).json({
-        success: true,
-        message: 'Payment is being processed',
-        paymentStatus: 'processing'
-      });
-    }
-
-    throw new ExpressError('Payment failed. Please try again.', 400);
-
-  } catch (error) {
-    res.status(error.statusCode || 500).json({
-      success: false,
-      error: error.message
-    });
+  if (!paymentIntentId || !saleData) {
+    throw new ExpressError('Payment intent ID and Sale details are required', 400);
   }
+
+  //  Verify Stripe Status
+  const stripe = await getPaymentStatus(paymentIntentId);
+  if (!stripe.success || stripe.status !== 'succeeded') {
+    throw new ExpressError('Stripe payment verification failed', 400);
+  }
+
+  //  Create Sale Items
+  let subtotal = 0;
+  const itemIds = [];
+  const receiptItems = [];
+
+  for (const item of (saleData.items || [])) {
+    const price = Number(item.sellPrice || 0);
+    const qty = Number(item.quantity || 1);
+    const lineTotal = price * qty;
+    const productId = item.productId || item.product;
+
+    subtotal += lineTotal;
+
+    const saleItem = await SaleItem.create({
+      tenantId,
+      product: productId,
+      quantity: qty,
+      sellPrice: price,
+      totalPrice: lineTotal
+    });
+
+    itemIds.push(saleItem._id);
+
+    let name = item.productName || 'Product';
+    if (!item.productName && productId) {
+      const prod = await Product.findOne({ _id: productId, tenantId });
+      if (prod) name = prod.name;
+    }
+
+    receiptItems.push({ productName: name, quantity: qty, sellPrice: price, totalPrice: lineTotal });
+  }
+
+  // Totals Calculation
+  const discount = Number(saleData.discount || 0);
+  const totalAmount = Math.max(0, subtotal - discount);
+  const paidAmount = Number(saleData.paidAmount ?? totalAmount);
+  const receiptNo = `RCP-${Date.now()}`;
+
+  // Resolve Customer
+  let customer = null;
+  if (saleData.phoneNumber) {
+    customer = await Customer.findOne({ phoneNumber: saleData.phoneNumber, tenantId });
+  }
+
+  if (!customer && (saleData.name || saleData.phoneNumber)) {
+    customer = new Customer({
+      tenantId,
+      name: saleData.name || 'Walk-in Customer',
+      phoneNumber: saleData.phoneNumber || '',
+      currentBalance: 0,
+      customerType: 'card',
+      totalPurchased: 0,
+      totalPaid: 0
+    });
+    await customer.save();
+  }
+
+  //  Create Sale Record
+  const sale = await Sale.create({
+    tenantId,
+    items: itemIds,
+    customer: customer ? customer._id : null,
+    totalAmount,
+    paidAmount,
+    discount,
+    paymentMethod: 'card',
+    paymentStatus: 'success',
+    receiptNumber: receiptNo,
+    createdBy: user?._id || null
+  });
+
+  await SaleItem.updateMany(
+  { _id: { $in: itemIds } },
+  { $set: { saleRef: sale._id } }
+);
+
+  // Create Payment Record
+  const payment = await Payment.create({
+    tenantId,
+    sale: sale._id,
+    customer: customer ? customer._id : null,
+    amount: totalAmount,
+    paymentMethod: 'card',
+    paymentStatus: 'success',
+    transactionId: paymentIntentId,
+    stripePaymentIntentId: paymentIntentId,
+    recievedBy: user?._id || null
+  });
+
+  sale.paymentId = payment._id;
+  await sale.save();
+
+  //  Update
+  if (customer) {
+    customer.totalPurchased = (customer.totalPurchased || 0) + totalAmount;
+    customer.totalPaid = (customer.totalPaid || 0) + paidAmount;
+    customer.currentBalance = Math.max(0, customer.totalPurchased - customer.totalPaid);
+    customer.lastPaymentDate = new Date();
+    await customer.save();
+  }
+
+  //  PDF Generation
+  let pdfData = null;
+  let fileName = '';
+  try {
+    const custInfo = customer || { name: saleData.name || 'Walk-in Customer', phoneNumber: saleData.phoneNumber || '' };
+    const payload = prepareReceiptPayload(sale, custInfo, receiptItems, receiptNo, 'card');
+    const pdf = await generateAndGetReceiptPDF(payload, receiptNo);
+
+    if (pdf?.success) {
+      pdfData = pdf.pdfBase64;
+      fileName = pdf.fileName;
+    }
+  } catch (pdfErr) {
+    console.error('PDF Generation Error:', pdfErr);
+  }
+
+  if (typeof emitDashboardRefresh === 'function') {
+    emitDashboardRefresh();
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Payment confirmed and sale saved successfully',
+    sale,
+    pdfData,
+    fileName
+  });
 };
-
-

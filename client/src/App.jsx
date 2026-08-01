@@ -43,7 +43,6 @@ function App() {
         {/* Public Landing & Auth Routes */}
         <Route path="/" element={<LandingPage />} />
         
-        {/* Redirect away from Login/SignUp if user is logged in */}
         <Route 
           path="/login" 
           element={
@@ -58,7 +57,6 @@ function App() {
         />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
-        {/* Pricing Page Route */}
         <Route
           path="/pricing"
           element={
@@ -68,7 +66,6 @@ function App() {
           }
         />
 
-        {/* Super Admin Protected Routes */}
         <Route 
           path="/super-admin" 
           element={
@@ -84,7 +81,6 @@ function App() {
 
         <Route path="/admin" element={<Navigate to="/super-admin" replace />} />
 
-        {/* Main App Protected Routes */}
         <Route element={<Layout />}>
           <Route
             path="/dashboard"

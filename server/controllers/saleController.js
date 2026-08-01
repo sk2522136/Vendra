@@ -58,14 +58,14 @@ export const createSale = async (req, res) =>{
       }
     }
  
-    let totalAmount = 0;
+    let grossTotal = 0;
     let saleItemIds = [];
     let itemsForReceipt = [];
     
     for (let item of items){
     let product = await Product.findOne({ _id: item.product, tenantId });
     let itemTotal = item.quantity * item.sellPrice
-    totalAmount += itemTotal;
+    grossTotal += itemTotal;
      
    //create saleItem
    let saleItem = await SaleItem.create({
@@ -86,8 +86,8 @@ export const createSale = async (req, res) =>{
     });
  }
 
- totalAmount = totalAmount - discount;
- 
+const netTotal = grossTotal - discount;
+
  let userId = req.user._id;
   if (req.user._id === 'admin') {
     userId = new mongoose.Types.ObjectId();
@@ -108,7 +108,7 @@ export const createSale = async (req, res) =>{
             tenantId: tenantId,
             items: saleItemIds,
             customer: customer._id,
-            totalAmount,
+            totalAmount:netTotal,
             paidAmount: paidAmount || 0,
             discount: discount,
             notes: notes,
@@ -140,33 +140,46 @@ for (let item of items) {
  
   }
   
-  customer.totalPurchased += totalAmount + discount; 
-  
+customer.totalPurchased = (customer.totalPurchased || 0) + netTotal;
+
+
+
   if (paidAmount > 0) {
     customer.totalPaid += Number(paidAmount);
     customer.lastPaymentDate = new Date();
   }
  
-  const remainingBalance = totalAmount - (paidAmount || 0);
+  const remainingBalance = netTotal - (paidAmount || 0);
   if (customerType === 'credit' && remainingBalance > 0) {
-    customer.currentBalance += remainingBalance;
+    customer.currentBalance = (customer.currentBalance || 0) + remainingBalance;
   }
   
   await customer.save();
  
- 
+ console.log("🔵 PAYMENT CREATE ATTEMPT:", {
+  tenantId,
+  saleId: sale._id,
+  customerId: customer._id,
+  amount: Number(paidAmount),
+  paymentMethod: paymentMethodForSale,
+  recievedBy: userId
+});
+
+
   if (paidAmount && paidAmount > 0) {
-    await Payment.create({
+ 
+    const payment = await Payment.create({
       tenantId: tenantId,
       sale: sale._id,
       customer: customer._id,
-      amount: paidAmount,
+      amount: Number(paidAmount),
       paymentMethod: paymentMethodForSale,
       paymentStatus: 'success',
-      recievedBy: userId
+      recievedBy: userId || req.user._id
     });
-  }
- 
+   
+}
+
  if (typeof emitDashboardRefresh === 'function') {
       emitDashboardRefresh();
     }
@@ -450,14 +463,13 @@ export const getSalesByCustomer = async (req, res) => {
     });
 };
 
-
 export const processReturn = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
- 
+  try {
     const { saleId, productId, quantity } = req.body;
-    const tenantId = req.tenantId;
+    const { tenantId, user } = req;
 
     const sale = await Sale.findOne({ _id: saleId, tenantId })
       .populate("customer")
@@ -468,6 +480,7 @@ export const processReturn = async (req, res) => {
       throw new ExpressError("Sale not found", 404);
     }
 
+    // 1. Fetch Item
     const saleItem = await SaleItem.findOne({
       saleRef: saleId,
       product: productId
@@ -481,35 +494,30 @@ export const processReturn = async (req, res) => {
       throw new ExpressError("Cannot return more than purchased quantity", 400);
     }
 
+    const grossTotal = sale.items.reduce((sum, item) => sum + (item.sellPrice * item.quantity), 0);
+    const discountRatio = grossTotal > 0 ? (sale.discount || 0) / grossTotal : 0;
     
-    const grossSaleTotal = sale.items.reduce((sum, item) => {
-      return sum + (item.sellPrice * item.quantity);
-    }, 0);
+    const itemGrossAmount = saleItem.sellPrice * quantity;
+    const itemDiscountPortion = itemGrossAmount * discountRatio;
+    const netRefundAmount = itemGrossAmount - itemDiscountPortion;
 
-    const discountRatio = grossSaleTotal > 0 ? (sale.discount || 0) / grossSaleTotal : 0;
-
-    const effectiveUnitPrice = saleItem.sellPrice * (1 - discountRatio);
-
-    const returnAmount = effectiveUnitPrice * quantity;
-
-    const discountRefunded = (saleItem.sellPrice * quantity) * discountRatio;
-
+    // 3. Stock Adjustment
     await updateStock({
-      tenantId: tenantId,
+      tenantId,
       productId,
       change: +quantity,
       type: "Return",
       sale: saleId,
-      user: req.user._id,
+      user: user._id,
       session
     });
 
+    // 4. Update SaleItem
     saleItem.quantity -= quantity;
     saleItem.totalPrice = saleItem.quantity * saleItem.sellPrice;
 
     if (saleItem.quantity === 0) {
       await SaleItem.findByIdAndDelete(saleItem._id).session(session);
-
       await Sale.updateOne(
         { _id: saleId, tenantId },
         { $pull: { items: saleItem._id } }
@@ -518,75 +526,88 @@ export const processReturn = async (req, res) => {
       await saleItem.save({ session });
     }
 
-    const oldTotalAmount = sale.totalAmount;
-    sale.totalAmount = Math.max(0, sale.totalAmount - returnAmount);
-    sale.discount = Math.max(0, (sale.discount || 0) - discountRefunded);
-    sale.refundedAmount = (sale.refundedAmount || 0) + returnAmount;
-
-    let creditAdjustment = 0;
-    let cashRefundGiven = 0;
-
     const customer = sale.customer;
+    const paidSoFar = sale.paidAmount || 0;
+    const unpaidSoFar = Math.max(0, sale.totalAmount - paidSoFar);
 
-    if (customer && customer.customerType === "credit") {
-      const remainingBalanceOnSale = oldTotalAmount - sale.paidAmount;
-      
-      if (remainingBalanceOnSale >= returnAmount) {
-        creditAdjustment = returnAmount;
-      } else {
-        creditAdjustment = Math.max(0, remainingBalanceOnSale);
-        cashRefundGiven = returnAmount - creditAdjustment;
-      }
-      
-      customer.currentBalance -= creditAdjustment;
+    let paidRefund = 0;  
+    let unpaidCancel = 0;  
+
+    if (netRefundAmount >= unpaidSoFar) {
+      unpaidCancel = unpaidSoFar;  
+      paidRefund = netRefundAmount - unpaidSoFar;  
     } else {
-      cashRefundGiven = returnAmount;
+      unpaidCancel = netRefundAmount;
+      paidRefund = 0;
     }
 
-    if (sale.paidAmount > sale.totalAmount) {
-      sale.paidAmount = sale.totalAmount;
-    }
+  
+    sale.totalAmount = Math.max(0, sale.totalAmount - netRefundAmount);
+    sale.paidAmount = Math.max(0, sale.paidAmount - paidRefund);
+    sale.discount = Math.max(0, (sale.discount || 0) - itemDiscountPortion);
+    sale.refundedAmount = (sale.refundedAmount || 0) + netRefundAmount;
 
+    if (sale.totalAmount === 0 && sale.paidAmount === 0) {
+      sale.paymentStatus = 'refunded';
+    }
+    
     await sale.save({ session });
 
+
     if (customer) {
-      if (cashRefundGiven > 0) {
-        customer.totalPaid = Math.max(0, (customer.totalPaid || 0) - cashRefundGiven);
+      customer.totalPurchased = Math.max(0, (customer.totalPurchased || 0) - netRefundAmount);
+      
+      if (paidRefund > 0) {
+        customer.totalPaid = Math.max(0, (customer.totalPaid || 0) - paidRefund);
       }
-      customer.totalPurchased = Math.max(0, (customer.totalPurchased || 0) - returnAmount);
+      
+      if (customer.customerType === 'credit') {
+        customer.currentBalance = Math.max(0, customer.totalPurchased - customer.totalPaid);
+      } else {
+        customer.currentBalance = 0;
+      }
+
       customer.lastPaymentDate = new Date();
       await customer.save({ session });
     }
 
-    // Create Refund Payment Log
-    await Payment.create([{
-      tenantId: tenantId,
-      sale: saleId,
-      customer: customer ? customer._id : null,
-      amount: -returnAmount,
-      paymentMethod: "refund",
-      paymentStatus: "success",
-      recievedBy: req.user._id
-    }], { session });
+   
+const existingPayment = await Payment.findOne({ 
+  sale: saleId, 
+  tenantId,
+  paymentStatus: 'success'
+}).session(session);
+
+if (existingPayment) {
+  existingPayment.amount = 0;  
+  existingPayment.paymentStatus = 'refunded';
+  existingPayment.notes = `Refund processed: Rs${paidRefund}`;
+  await existingPayment.save({ session });
+}
 
     await session.commitTransaction();
     session.endSession();
 
-    emitDashboardRefresh();
+    if (typeof emitDashboardRefresh === 'function') emitDashboardRefresh();
 
     return res.status(200).json({
       success: true,
       message: "Return processed successfully",
       data: {
-        returnedQuantity: quantity,
-        refundAmount: returnAmount,
-        cashRefundGiven,
-        creditAdjustment,
+        returnedQty: quantity,
+        netRefundAmount,
+        paidRefund,
+        unpaidCancel,
         newSaleTotal: sale.totalAmount,
         newSalePaid: sale.paidAmount,
-        newCustomerBalance: customer ? customer.currentBalance : 0,
-        newRefundedAmount: sale.refundedAmount
+        newCustomerBal: customer ? customer.currentBalance : 0
       }
     });
 
-}
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+ 

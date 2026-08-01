@@ -211,7 +211,7 @@ return res.status(200).json({message : 'Product updated successfully' , product 
 export const deleteProduct = async (req , res ) => {
         const {id} = req.params;
         const tenantId = req.tenantId;
-        const product = await Product.findById({ _id: id, tenantId });
+        const product = await Product.findOne({ _id: id, tenantId });
         if(!product){
             throw new ExpressError('Product Not found', 404);
         }

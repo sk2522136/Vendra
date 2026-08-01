@@ -88,7 +88,7 @@ const CartSection = ({
                 <h4 className="font-bold text-xs text-text uppercase truncate mb-0.5">{item.name}</h4>
                 <div className="flex items-center gap-1">
                   <span className="text-[10px] text-muted font-bold uppercase">Rs</span>
-                  {/* 🔥 DYNAMIC INPUT BOX FOR PRICE */}
+
                   <input
                     type="text"
                     value={item.price || ""}

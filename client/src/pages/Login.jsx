@@ -24,7 +24,6 @@ const handleSubmit = async (e) => {
       if (response.success) {
         toast.success("Login successful!");
         
-        // Extract logged in user object from backend response payload
         const user = response.data?.user;
 
         setTimeout(() => {

@@ -152,12 +152,18 @@ useEffect(() => {
     try {
       setIsProcessingPayment(true);
       
+      const computedSubtotal = cart.reduce((acc, item) => acc + (Number(item.price) || 0) * item.qty, 0);
+      const computedTotal = Math.max(0, computedSubtotal - Number(discount || 0));
+
+      if (computedTotal <= 0) {
+        toast.error("Total amount must be greater than 0!");
+        return;
+      }
+
       let actualPaidAmount = 0;
-      if (paymentMethod === "cash") {
-        actualPaidAmount = totalAmount; 
+      if (paymentMethod === "cash" || paymentMethod === "card") {
+        actualPaidAmount = computedTotal; 
       } else if (paymentMethod === "credit") {
-        actualPaidAmount = 0; 
-      } else if (paymentMethod === "card") {
         actualPaidAmount = 0; 
       }
 
@@ -165,13 +171,18 @@ useEffect(() => {
         name: customerName,
         phoneNumber: customerPhone,
         items: cart.map((item) => ({ 
-          product: item.productId, 
-          quantity: item.qty, 
-          sellPrice: Number(item.price) || 0  
+          product: item.productId,
+          productId: item.productId,
+          productName: item.name,
+          quantity: item.qty,
+          qty: item.qty,
+          sellPrice: Number(item.price) || 0,
+          price: Number(item.price) || 0,
+          totalPrice: (Number(item.price) || 0) * item.qty
         })),
-        customerType: paymentMethod, 
-        paidAmount: actualPaidAmount, 
-        discount: Number(discount),
+        customerType: paymentMethod,
+        paidAmount: actualPaidAmount,  
+        discount: Number(discount || 0),
         notes: notes,
       };
 
@@ -198,11 +209,11 @@ useEffect(() => {
 
       if (!stripe || !elements) { toast.error("Stripe SDK loading error."); return; }
 
-      const saleResponse = await createSale(saleData); 
-      const saleId = saleResponse.data?.sale?._id || saleResponse.data?._id;
-      if (!saleId) throw new Error("Database mapping failed.");
 
-      const intentRes = await createStripeIntent({ amount: totalAmount, saleId, currency: 'usd' });
+
+    
+
+      const intentRes = await createStripeIntent({ amount: totalAmount, currency: 'usd' });
       const { clientSecret, paymentIntentId } = intentRes.data;
 
       const cardElement = elements.getElement(CardElement);
@@ -213,12 +224,13 @@ useEffect(() => {
       if (stripeResult.error) throw new Error(stripeResult.error.message);
 
       if (stripeResult.paymentIntent.status === "succeeded") {
-        const confirmRes = await confirmStripePosPayment({ paymentIntentId, saleId });
+        const confirmRes = await confirmStripePosPayment({ paymentIntentId, saleData });
         if (confirmRes.data.success) {
+          const createdSaleId = confirmRes.data.sale?._id || confirmRes.data._id;
           savePaymentToLocalStorage({
             paymentId: paymentIntentId,
             amount: totalAmount,
-            saleId: saleId,
+            saleId: createdSaleId ,
             method: paymentMethod,
             timestamp: new Date().toISOString()
           });

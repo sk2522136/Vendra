@@ -1,4 +1,3 @@
-// ===== LOCALSTORAGE SERVICE FOR REAL-TIME SYNC =====
 
 export const saveToLocalStorage = (key, data) => {
   try {
@@ -27,7 +26,7 @@ export const clearLocalStorage = (key) => {
   }
 };
 
-// ===== SAVE SALE (REAL-TIME) =====
+// SAVE SALE 
 export const saveSaleToLocalStorage = (saleData) => {
   const sales = getFromLocalStorage('pos_sales') || [];
   sales.push({
@@ -38,7 +37,7 @@ export const saveSaleToLocalStorage = (saleData) => {
   saveToLocalStorage('pos_sales', sales);
 };
 
-// ===== SAVE PAYMENT (REAL-TIME) =====
+//  SAVE PAYMENT 
 export const savePaymentToLocalStorage = (paymentData) => {
   const payments = getFromLocalStorage('pos_payments') || [];
   payments.push({
@@ -49,17 +48,17 @@ export const savePaymentToLocalStorage = (paymentData) => {
   saveToLocalStorage('pos_payments', payments);
 };
 
-// ===== GET SALES =====
+// GET SALES 
 export const getAllSalesFromLocalStorage = () => {
   return getFromLocalStorage('pos_sales') || [];
 };
 
-// ===== GET PAYMENTS =====
+//  GET PAYMENTS
 export const getAllPaymentsFromLocalStorage = () => {
   return getFromLocalStorage('pos_payments') || [];
 };
 
-// ===== STATS =====
+// STATS 
 export const getLocalStorageStats = () => {
   const sales = getAllSalesFromLocalStorage();
   const payments = getAllPaymentsFromLocalStorage();

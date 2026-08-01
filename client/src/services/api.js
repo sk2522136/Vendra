@@ -110,7 +110,7 @@ export const deleteStaff = (id) => API.delete(`/auth/staff/${id}`);
 export const createProduct = (formData) => API.post('/product/create', formData);
 export const fetchProduct = (params) => API.get('/product', { params });
 export const updateProduct = (id, formData) => API.put(`/product/${id}`, formData);
-export const deleteProduct = (id) => API.delete(`/product/${id}`);
+export const deleteProduct = (id) => API.delete(`/product/${id}?hard=true`);
 export const getProductById = (id) => API.get(`/product/${id}`);
 export const getProductsByCategory = (id) => API.get(`/product/category/${id}`);
 
