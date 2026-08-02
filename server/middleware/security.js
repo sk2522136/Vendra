@@ -30,9 +30,22 @@ const sanitizeValue = (value) => {
 };
 
 export const sanitizeInput = (req, res, next) => {
-  req.body = sanitizeValue(req.body);
-  req.query = sanitizeValue(req.query);
-  req.params = sanitizeValue(req.params);
+  if (req.body) {
+    req.body = sanitizeValue(req.body);
+  }
+
+  if (req.query) {
+    const sanitizedQuery = sanitizeValue(req.query);
+    Object.keys(req.query).forEach((key) => delete req.query[key]);
+    Object.assign(req.query, sanitizedQuery);
+  }
+
+  if (req.params) {
+    const sanitizedParams = sanitizeValue(req.params);
+    Object.keys(req.params).forEach((key) => delete req.params[key]);
+    Object.assign(req.params, sanitizedParams);
+  }
+
   next();
 };
 
