@@ -31,7 +31,7 @@ export const createProduct = async (req, res) => {
       const parts = imageUrl.split('/');
       targetFilename = parts.length > 0 ? parts[parts.length - 1] : "external-link";
     } else {
-      targetUrl = "https://res.cloudinary.com/demo/image/upload/v1/sample.jpg"; 
+      targetUrl = "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto/v1/sample.jpg"; 
       targetFilename = "placeholder-default";
     }
 
@@ -81,7 +81,7 @@ export const getAllProducts = async (req , res) => {
         const {sortBy , sortorder} =  getSortProducts(req );
        const [products, total, statsArray] = await Promise.all([
       
-         Product.find(filter) .sort({ [sortBy]: sortorder }).skip(skip).limit(limit).populate('category'),
+         Product.find(filter) .sort({ [sortBy]: sortorder }).skip(skip).limit(limit).populate('category').lean(),,
 
       Product.countDocuments(filter),
 
@@ -125,7 +125,7 @@ export const getAllProducts = async (req , res) => {
 export const getProductById = async (req , res ) => {
         const {id} =  req.params;
         const tenantId = req.tenantId;
-        const product = await Product.findById({ _id: id, tenantId });
+        const product = await Product.findOne({ _id: id, tenantId });
         if(!product){
             throw new ExpressError('Product Not found', 404);
         }
@@ -137,7 +137,7 @@ export const updateProduct = async (req , res ) => {
 
         const {id} = req.params;
         const tenantId = req.tenantId;
-        const updateProduct =  await Product.findById({ _id: id, tenantId })
+        const updateProduct =  await Product.findOne({ _id: id, tenantId })
         if(!updateProduct){
             throw new ExpressError('Product Not found', 404);
         }
@@ -219,7 +219,7 @@ export const deleteProduct = async (req , res ) => {
          if (product.image?.filename) {
             await cloudinary.uploader.destroy(product.image.filename,{ resource_type: 'image' });
             }
-          const deletedProduct=await Product.findByIdAndDelete({ _id: id, tenantId });
+          const deletedProduct=await Product.findOneAndDelete({ _id: id, tenantId });
           return res.status(200).json({success:true,message : 'Product deleted permanently',deletedProduct})
        }else{
          if (!product.isActive) {

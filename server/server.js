@@ -23,6 +23,9 @@ import pricingRouter from './routes/pricingRoute.js';
 import superAdminRouter from './routes/superAdminRoute.js';
 import startScheduleBackup from './utils/scheduleBackup.js';
 import {handleStripeWebhook} from './controllers/pricingController.js'
+import compression from 'compression';
+
+
 
 
 
@@ -33,6 +36,10 @@ import cors from 'cors';
 
 const app = express();
 const server = http.createServer(app);
+app.use(compression({
+  level: 6, 
+  threshold: 1024 
+}));
 
 //socket io setup
 const io = new Server(server, {

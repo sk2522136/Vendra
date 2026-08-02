@@ -14,7 +14,13 @@ const storage = new CloudinaryStorage({
     cloudinary : cloudinary,
     params:{
     folder : 'Inventos',
-    allowedFormats : ['jpg' , 'png' , 'jpeg']
+    allowedFormats : ['jpg' , 'png' , 'jpeg','webp'],
+
+    transformation: [
+      { width: 1000, height: 1000, crop: 'limit' }, 
+      { quality: 'auto:good' },                     
+      { fetch_format: 'auto' }                      
+    ]
     }
 })
 
