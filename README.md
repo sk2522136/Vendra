@@ -443,15 +443,7 @@ git push origin feature/your-feature-name
 - GitHub: [@sk2522136](https://github.com/sk2522136)
 - Email: sk2522136@gmail.com
 
----
 
-## ⭐ Support
-
-If you find this project helpful, please give it a star on GitHub.
-
-**Built with ❤️ for modern retail and inventory management.**
-
----
 
 ## 📄 License
 
@@ -480,4 +472,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+                           ---
+
+  
+
+                       If you find this project helpful, please give it a star on GitHub.
+
+                         **Built with ❤️ for modern retail and inventory management.**
+
+---
 
