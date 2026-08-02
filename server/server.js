@@ -24,13 +24,8 @@ import superAdminRouter from './routes/superAdminRoute.js';
 import startScheduleBackup from './utils/scheduleBackup.js';
 import {handleStripeWebhook} from './controllers/pricingController.js'
 import compression from 'compression';
-
-
-
-
-
-
 import cors from 'cors';
+import { attachSecurityHeaders, csrfProtection, sanitizeInput } from './middleware/security.js';
 
 
 
@@ -62,16 +57,17 @@ io.on('connection', (socket) => {
 connectDb();
 startScheduleBackup();
 
-const allowedOrigin = ['http://localhost:5173']
+const allowedOrigin = ['http://localhost:5173', 'http://127.0.0.1:5173']
 
 app.post('/api/billing/webhook', express.raw({ type: "application/json" }), handleStripeWebhook);
-
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({extended:true}));
-app.use(cors({origin:allowedOrigin,credentials: true}))
-
+app.use(cors({origin:allowedOrigin,credentials: true}));
+app.use(attachSecurityHeaders);
+app.use(sanitizeInput);
+app.use(csrfProtection);
 
 app.get('/',(req,res)=>{res.send('Api is Working')});
 app.use('/api/auth', authRouter);

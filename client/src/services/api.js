@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+const getCookie = (name) => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
 const API = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -30,6 +36,20 @@ API.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    const method = (config.method || 'get').toLowerCase();
+    const isUnsafeMethod = ['post', 'put', 'patch', 'delete'].includes(method);
+    const isAuthRoute = ['/auth/login', '/auth/signup', '/auth/register', '/auth/refresh', '/auth/is-auth'].some((endpoint) =>
+      config.url?.includes(endpoint)
+    );
+
+    if (isUnsafeMethod && !isAuthRoute) {
+      const csrfToken = getCookie('csrfToken');
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

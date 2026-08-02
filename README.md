@@ -2,9 +2,9 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Status](https://img.shields.io/badge/status-Production-brightgreen.svg)
+![Express](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Reactjs](https://img.shields.io/badge/license-MIT-green.svg)
+![Live Demo](https://img.shields.io/badge/status-Production-brightgreen.svg)
 ![Node](https://img.shields.io/badge/node-v22-blue.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%2FLocal-green.svg)
 
@@ -83,6 +83,8 @@ Perfect for:
 - Recharts
 - Socket.IO client
 - React Icons
+- React-hot-toast
+- lucide-react
 
 ### Backend
 - Node.js
@@ -358,3 +360,124 @@ docker compose logs -f
 docker compose restart
 git pull origin main
 docker compose up -d --build
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. If you want to improve this project, please follow the steps below.
+
+1. **Fork the Repository**
+
+```bash
+git clone <your-fork-url>
+cd Vendra
+```
+
+2. **Create a Feature Branch**
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. **Make Your Changes**
+
+- Keep the code consistent with the existing structure
+- Follow the current frontend and backend patterns
+- Update documentation if you change features or setup steps
+
+4. **Commit and Push**
+
+```bash
+git add .
+git commit -m "Add your feature"
+git push origin feature/your-feature-name
+```
+
+5. **Open a Pull Request**
+
+- Describe the change clearly
+- Mention any related issue or feature request
+- Include screenshots or notes if the UI changes
+
+### Development Guidelines
+
+- Follow the existing code style and conventions
+- Keep API changes well documented
+- Add or update tests where possible
+- Ensure the app still runs correctly after your changes
+- Be careful with environment variables and sensitive credentials
+
+---
+
+## 🔐 Security
+
+### Implemented Security Measures
+
+- JWT-based authentication with secure cookie handling
+- Role-based and tenant-based access control
+- Input validation with Joi schemas for API requests
+- Rate limiting on login attempts to prevent brute-force access
+- Secure CORS configuration for frontend-backend communication
+- CSRF protection for state-changing requests
+- XSS-style input sanitization on server-side request data
+- Security headers such as X-Content-Type-Options, X-Frame-Options, and X-XSS-Protection
+- HTTPS-ready configuration for production deployment
+
+---
+
+## ⚡ Performance
+
+- Performance: 90+
+- Accessibility: 95+
+- Best Practices: 90+
+- SEO: 90+
+
+---
+
+## 👤 Author
+
+**Sahil Kumar**
+
+- GitHub: [@sk2522136](https://github.com/sk2522136)
+- Email: sk2522136@gmail.com
+
+---
+
+## ⭐ Support
+
+If you find this project helpful, please give it a star on GitHub.
+
+**Built with ❤️ for modern retail and inventory management.**
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+```text
+MIT License
+
+Copyright (c) 2026 Sahil Kumar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
