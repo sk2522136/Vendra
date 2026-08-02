@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Express](https://img.shields.io/badge/version-1.0.0-blue.svg)
+**![Express](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Reactjs](https://img.shields.io/badge/license-MIT-green.svg)
 ![Live Demo](https://img.shields.io/badge/status-Production-brightgreen.svg)
 ![Node](https://img.shields.io/badge/node-v22-blue.svg)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%2FLocal-green.svg)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%2FLocal-green.svg)**
 
 **A modern retail management platform for POS, inventory, analytics, billing, and AI-assisted operations**
 
@@ -443,15 +443,7 @@ git push origin feature/your-feature-name
 - GitHub: [@sk2522136](https://github.com/sk2522136)
 - Email: sk2522136@gmail.com
 
----
 
-## ⭐ Support
-
-If you find this project helpful, please give it a star on GitHub.
-
-**Built with ❤️ for modern retail and inventory management.**
-
----
 
 ## 📄 License
 
@@ -481,3 +473,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+                        ---
+
+<div align="center">
+
+If you find this project helpful, please give it a ⭐ on GitHub.
+
+**Built with ❤️ for modern retail and inventory management.**
+
+</div>
+
+---
