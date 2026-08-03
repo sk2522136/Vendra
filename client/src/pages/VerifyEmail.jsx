@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import { verifyEmailToken } from '../services/api'; 
 
 function VerifyEmail() {
   const { token } = useParams();
@@ -18,7 +19,7 @@ function VerifyEmail() {
       isApiCalled = true;
 
       try {
-        const response = await axios.get(`http://localhost:4000/api/auth/verify-email/${token}`);
+        const response = await verifyEmailToken(token);
         if (response.data.success) {
           setStatus('success');
           setMessage(response.data.message);

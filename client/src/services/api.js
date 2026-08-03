@@ -125,6 +125,7 @@ export const registerStaff = (data) => API.post('/auth/register', data);
 export const isAuth = () => API.get('/auth/is-auth');
 export const getAllStaff = () => API.get('/auth/staff');
 export const deleteStaff = (id) => API.delete(`/auth/staff/${id}`);
+export const verifyEmailToken = (token) => API.get(`/auth/verify-email/${token}`);
 
 // --- Product routes ---
 export const createProduct = (formData) => API.post('/product/create', formData);
