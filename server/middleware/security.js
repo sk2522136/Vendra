@@ -80,6 +80,7 @@ export const csrfProtection = (req, res, next) => {
   const exemptPaths = [
     '/api/auth/login',
     '/api/auth/signup',
+    '/api/auth/register',
     '/api/auth/refresh',
     '/api/auth/is-auth',
     '/api/auth/verify-email',

@@ -194,7 +194,7 @@ export const registerStaff = async (req , res) =>  {
    const tenantId = req.tenantId || req.user?.tenantId; 
     const existingUser = await User.findOne({email});
     if(existingUser){
-            throw new ExpressError("User Already Exist", 400);
+          throw new ExpressError("email already exists try another", 400);
     }
 
     const passwordCheck = validatePassword(password);
