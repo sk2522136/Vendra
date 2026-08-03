@@ -18,7 +18,7 @@
 
 ## 🎯 Overview
 
-Vendra is a complete sales and inventory management system designed for modern retail businesses. It helps stores manage products, stock, sales, customers, suppliers, expenses, analytics, billing, and support operations from one unified platform.
+Vendra is a SaaS-based full-stack sales and inventory management website designed for modern retail businesses. It helps stores manage products, stock, sales, customers, suppliers, expenses, analytics, billing, and support operations from one unified platform.
 
 Perfect for:
 - Retail stores
@@ -41,6 +41,20 @@ Perfect for:
 
 ## ✨ Features
 
+### ⭐ Super Admin 
+- Complete subscription monitoring across all tenants
+- Real-time revenue tracking and financial analytics
+- Tenant status management (active/suspend/deactivate)
+- Plan upgrades, downgrades & modifications
+- Webhook-based payment monitoring
+- Tenant analytics & performance metrics
+- Bulk tenant management capabilities
+- Audit logs for all tenant activities
+
+
+
+### ⭐ User
+
 ### 🛍️ Core Retail Features
 - Product creation, update, delete and category-based listing
 - Real-time stock tracking and inventory history
@@ -54,6 +68,7 @@ Perfect for:
 - Signup, login, logout and refresh-token based authentication
 - Role-based access for admin, staff, manager, cashier and super_admin
 - Tenant-based organization access for multi-store operations
+- Super admin portal for global tenant management, plan control, and revenue analytics
 - Email verification for staff accounts
 
 ### 💳 Billing & Subscription
@@ -264,6 +279,7 @@ VITE_SOCKET_URL=http://localhost:4000
 - POST /billing/webhook
 
 ### Super Admin
+- Super admin users can access a dedicated dashboard for tenant oversight, billing insights, and plan management
 - GET /super-admin/stats
 - GET /super-admin/tenants
 - PATCH /super-admin/tenants/:id/status
