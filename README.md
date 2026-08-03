@@ -33,7 +33,7 @@ Perfect for:
 
 - Live Application: http://vndra.duckdns.org
 - Demo Credentials:
-  - Email: demo@example.com
+  - Email: demo@gmail.com
   - Password: Demo@123
 
 
